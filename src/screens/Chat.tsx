@@ -785,6 +785,20 @@ export function Chat({
   const openImagePreview = React.useCallback((image: TranscriptImage): void => {
     dispatchOverlay({ type: 'open', overlay: { kind: 'image-preview', image } })
   }, [])
+  // Agent-binding generation is monotonic across every agent replacement
+  // and bumps before the replacement emit, closing the ABA hole where a
+  // resumed session reuses the same id. Partial test/embed channels fall
+  // back to staged-image generation.
+  const previewBindingGeneration = channel.agentBindingGeneration
+    ?? channel.stagedImageGeneration?.()
+    ?? 0
+  const previewGenerationRef = React.useRef(previewBindingGeneration)
+  const imagePreviewOwned = previewGenerationRef.current === previewBindingGeneration
+  React.useEffect(() => {
+    if (previewGenerationRef.current === previewBindingGeneration) return
+    previewGenerationRef.current = previewBindingGeneration
+    dispatchOverlay({ type: 'close-if', kind: 'image-preview' })
+  }, [previewBindingGeneration])
   // A questionnaire/approval/plugin dialog owns the keyboard while pending
   // (their guard runs BEFORE the overlay key chain), so a preview left open
   // underneath would be visually on top yet key-dead. Close it instead.
@@ -1101,21 +1115,52 @@ export function Chat({
    * result text lands as a notification. `rawInput` carries the text after
    * the command name (`/plan off` → ` off`).
    */
-  /** Route every permission switch through the official command path. */
-  const runPermissionCommand = (rawInput: string): void => {
+  const runExternalCommand = (
+    name: string,
+    rawInput: string,
+    images: readonly ComposerImageRef[] = [],
+  ): Promise<boolean> => {
     const originAgentBinding = channel.agentBindingGeneration
-    void channel.runExternalCommand('permission', rawInput).then((text) => {
-      if (channel.agentBindingGeneration !== originAgentBinding) return
-      if (text === undefined) {
-        channel.notify(t('command-not-found', { name: 'permission' }), { color: 'error' })
-        return
+    return channel.runExternalCommandOutcome(name, rawInput, images).then((outcome) => {
+      if (channel.agentBindingGeneration !== originAgentBinding) return false
+      if (outcome === undefined) {
+        channel.notify(t('command-not-found', { name }), { color: 'error' })
+        return false
       }
-      const cleaned = typeof text === 'string' ? cleanRenderText(text, PERMISSION_RESULT_CELLS) : ''
-      if (cleaned !== '') channel.notify(cleaned)
+      if (outcome.text !== '') {
+        channel.notify(outcome.text, outcome.kind === 'error' ? { color: 'error' } : undefined)
+      }
+      return outcome.consumeDraft
     }).catch((error: unknown) => {
-      if (channel.agentBindingGeneration !== originAgentBinding) return
+      if (channel.agentBindingGeneration !== originAgentBinding) return false
       const detail = cleanPermissionError(error)
       if (detail !== '') channel.notify(detail, { color: 'error' })
+      return false
+    })
+  }
+
+  /** Route every permission switch through the official command path. */
+  const runPermissionCommand = (
+    rawInput: string,
+    images: readonly ComposerImageRef[] = [],
+  ): Promise<boolean> => {
+    const originAgentBinding = channel.agentBindingGeneration
+    return channel.runExternalCommandOutcome('permission', rawInput, images).then((outcome) => {
+      if (channel.agentBindingGeneration !== originAgentBinding) return false
+      if (outcome === undefined) {
+        channel.notify(t('command-not-found', { name: 'permission' }), { color: 'error' })
+        return false
+      }
+      const cleaned = cleanRenderText(outcome.text, PERMISSION_RESULT_CELLS)
+      if (cleaned !== '') {
+        channel.notify(cleaned, outcome.kind === 'error' ? { color: 'error' } : undefined)
+      }
+      return outcome.consumeDraft
+    }).catch((error: unknown) => {
+      if (channel.agentBindingGeneration !== originAgentBinding) return false
+      const detail = cleanPermissionError(error)
+      if (detail !== '') channel.notify(detail, { color: 'error' })
+      return false
     })
   }
 
@@ -1153,7 +1198,7 @@ export function Chat({
     name: string,
     rawInput = '',
     images: readonly ComposerImageRef[] = [],
-  ): boolean => {
+  ): boolean | Promise<boolean> => {
     switch (name) {
       case 'activity': {
         // Ported from the pi working-activity extension: bare `/activity`
@@ -1879,8 +1924,7 @@ export function Chat({
           setHelpOpen(false)
           const snapshot = channel.permissionPresets()
           if (snapshot.options.some(option => option.value === 'status')) {
-            runPermissionCommand(rawInput)
-            return true
+            return runPermissionCommand(rawInput, images)
           }
           const currentName = snapshot.availability === 'unavailable'
             ? t('permission-roster-unavailable')
@@ -1898,8 +1942,7 @@ export function Chat({
           setHelpOpen(false)
           const snapshot = channel.permissionPresets()
           if (snapshot.availability === 'unavailable' || snapshot.options.length === 0) {
-            runPermissionCommand(rawInput)
-            return true
+            return runPermissionCommand(rawInput, images)
           }
           const currentValue = snapshot.current?.kind === 'preset' ? snapshot.current.value : undefined
           const currentIndex = currentValue === undefined
@@ -1920,8 +1963,7 @@ export function Chat({
         }
         if (mounted) {
           setHelpOpen(false)
-          runPermissionCommand(rawInput)
-          return true
+          return runPermissionCommand(rawInput, images)
         }
         return false
       }
@@ -1943,14 +1985,7 @@ export function Chat({
         }
         if (mounted) {
           setHelpOpen(false)
-          void channel.runExternalCommand('plan', rawInput).then((text) => {
-            if (text !== undefined && text !== '') {
-              channel.notify(text)
-            } else if (text === undefined) {
-              channel.notify(t('command-not-found', { name: 'plan' }), { color: 'error' })
-            }
-          })
-          return true
+          return runExternalCommand('plan', rawInput, images)
         }
         return false
       }
@@ -2170,14 +2205,7 @@ export function Chat({
         )
         if (external) {
           setHelpOpen(false)
-          void channel.runExternalCommand(name, rawInput, images).then((text) => {
-            if (text !== undefined && text !== '') {
-              channel.notify(text)
-            } else if (text === undefined) {
-              channel.notify(t('command-not-found', { name }), { color: 'error' })
-            }
-          })
-          return true
+          return runExternalCommand(name, rawInput, images)
         }
         return false
       }
@@ -2833,7 +2861,7 @@ export function Chat({
         const option = overlay.snapshot.options[currentIndex]
         permissionOverlayFocusRef.current = null
         dispatchOverlay({ type: 'close' })
-        if (option !== undefined) runPermissionCommand(` ${option.value}`)
+        if (option !== undefined) void runPermissionCommand(` ${option.value}`)
       } else if (key.escape) {
         permissionOverlayFocusRef.current = null
         dispatchOverlay({ type: 'close' })
@@ -2846,9 +2874,7 @@ export function Chat({
       } else if (plainReturn) {
         const on = overlay.index === 0
         dispatchOverlay({ type: 'close' })
-        void channel.runExternalCommand('plan', on ? '' : ' off').then((text) => {
-          if (text !== undefined && text !== '') channel.notify(text)
-        })
+        void runExternalCommand('plan', on ? '' : ' off')
       } else if (key.escape) {
         dispatchOverlay({ type: 'close' })
       }
@@ -3521,6 +3547,7 @@ export function Chat({
           onOpenJobs={() => setJobsPanelOpen(true)}
           onOpenFile={openFileActions}
           onPreviewImage={openImagePreview}
+          suppressImageGraphics={overlay.kind === 'image-preview'}
         />
         </ScrollBox>
         {(() => {
@@ -3628,7 +3655,7 @@ export function Chat({
             {statusEntries.map(entry => entry.text).join(' · ')}
           </Text>
         )}
-        {statusViews.map(view => (
+        {overlay.kind !== 'image-preview' && statusViews.map(view => (
           <PluginStatusViewBoundary
             key={`${view.key}:${view.registrationId}`}
             viewKey={view.key}
@@ -3949,7 +3976,7 @@ export function Chat({
                   if (approvalSnapshot !== null || questionSnapshot !== null || dialogSnapshot !== null) return
                   const option = overlay.snapshot.options[index]
                   dispatchOverlay({ type: 'close' })
-                  if (option !== undefined) runPermissionCommand(` ${option.value}`)
+                  if (option !== undefined) void runPermissionCommand(` ${option.value}`)
                 }}
               />
             </Box>
@@ -3962,9 +3989,7 @@ export function Chat({
                 onPick={(index) => {
                   dispatchOverlay({ type: 'close' })
                   const on = index === 0
-                  void channel.runExternalCommand('plan', on ? '' : ' off').then((text) => {
-                    if (text !== undefined && text !== '') channel.notify(text)
-                  })
+                  void runExternalCommand('plan', on ? '' : ' off')
                 }}
               />
             </Box>
@@ -4089,7 +4114,7 @@ export function Chat({
       {/* 模态图片预览：输入框 [Image #N] 与 transcript 缩略图共用。
           居中卡片 + 全屏点击捕获（点外部关闭）；Esc 在 Chat 的按键链关闭。
           保持根节点最后一个孩子，明确高于展开的 PromptEditorLayer。 */}
-      {overlay.kind === 'image-preview' && (
+      {overlay.kind === 'image-preview' && imagePreviewOwned && (
         <ImagePreviewOverlay
           image={overlay.image}
           onClose={() => dispatchOverlay({ type: 'close-if', kind: 'image-preview' })}
