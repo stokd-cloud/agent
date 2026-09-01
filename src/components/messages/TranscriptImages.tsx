@@ -4,17 +4,86 @@ import type { TerminalImageSource } from '../../ink/terminal-image.js'
 import type { TranscriptImage } from '../../dsh-adapter/transcript-images.js'
 import { t } from '../../i18n.js'
 
-const PREVIEW_PIXELS = 384
-const DECODED_CACHE_LIMIT = 24
-const decodedImages = new Map<TranscriptImage, Promise<TerminalImageSource>>()
+/**
+ * Decode caches in two size tiers sharing one LRU implementation (a hit
+ * re-inserts, eviction takes the least recently used): small thumbnails for
+ * transcript rows, and a bounded full tier for the modal preview overlay.
+ * Keys are the facade objects themselves — one stable object per durable
+ * reference (channel and projection guarantee that), so identical content
+ * re-projected as a new object simply re-decodes.
+ */
+function makeDecodeTier(maxPixels: number, limit: number) {
+  const cache = new Map<TranscriptImage, Promise<TerminalImageSource>>()
+  const load = (image: TranscriptImage): Promise<TerminalImageSource> => {
+    const cached = cache.get(image)
+    if (cached !== undefined) {
+      cache.delete(image)
+      cache.set(image, cached)
+      return cached
+    }
+    const pending = image.read().then(async data => {
+      const { default: sharp } = await import('sharp')
+      const decoded = await sharp(data, { failOn: 'error' })
+        .resize({
+          width: maxPixels,
+          height: maxPixels,
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .toColourspace('srgb')
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true })
+      if (
+        decoded.info.channels !== 4 ||
+        decoded.data.byteLength !== decoded.info.width * decoded.info.height * 4
+      ) {
+        throw new Error('decoded image is not RGBA')
+      }
+      return {
+        data: decoded.data,
+        width: decoded.info.width,
+        height: decoded.info.height,
+      }
+    })
+    cache.set(image, pending)
+    while (cache.size > limit) {
+      const oldest = cache.keys().next().value as TranscriptImage | undefined
+      if (oldest === undefined) break
+      cache.delete(oldest)
+    }
+    void pending.catch(() => {
+      if (cache.get(image) === pending) cache.delete(image)
+    })
+    return pending
+  }
+  return { load, clear: () => cache.clear() }
+}
+
+const thumbnailTier = makeDecodeTier(384, 24)
+// One modal at a time: current + previous suffices for instant reopen.
+const fullTier = makeDecodeTier(1024, 2)
+
+/** Full-resolution (bounded) decode for the modal preview overlay. */
+export const loadTranscriptImageFull = fullTier.load
+
+/** Display label for one transcript image: sanitized name, or the generic
+ *  localized fallback. Shared by thumbnails and the preview overlay. */
+export function transcriptImageLabel(image: TranscriptImage): string {
+  const name = (image.name ?? '').replace(/[\u0000-\u001f\u007f-\u009f]/gu, ' ').trim().slice(0, 80)
+  return name || t('transcript-image')
+}
 
 /** Bounded image gallery shared by user, assistant, and tool-result rows. */
 export function TranscriptImages({
   images,
   indent = 2,
+  onPreview,
 }: {
   readonly images: readonly TranscriptImage[]
   readonly indent?: number
+  /** Present = thumbnails are clickable and open the shared preview overlay. */
+  readonly onPreview?: (image: TranscriptImage) => void
 }): React.ReactNode {
   const { columns } = useTerminalSize()
   if (images.length === 0) return null
@@ -35,6 +104,7 @@ export function TranscriptImages({
             image={image}
             width={width}
             height={height}
+            onPreview={onPreview}
           />
         )
       })}
@@ -46,10 +116,12 @@ function TranscriptImagePreview({
   image,
   width,
   height,
+  onPreview,
 }: {
   readonly image: TranscriptImage
   readonly width: number
   readonly height: number
+  readonly onPreview?: (image: TranscriptImage) => void
 }): React.ReactNode {
   const [state, setState] = React.useState<
     | { readonly kind: 'loading' }
@@ -60,20 +132,20 @@ function TranscriptImagePreview({
   React.useEffect(() => {
     let live = true
     setState({ kind: 'loading' })
-    void loadDecodedImage(image).then(
+    void thumbnailTier.load(image).then(
       source => { if (live) setState({ kind: 'ready', source }) },
       () => { if (live) setState({ kind: 'failed' }) },
     )
     return () => { live = false }
   }, [image])
 
-  const label = cleanLabel(image.name) || t('transcript-image')
+  const label = transcriptImageLabel(image)
   const fallback = state.kind === 'failed'
     ? t('transcript-image-unavailable', { name: label })
     : state.kind === 'loading'
       ? t('transcript-image-loading', { name: label })
       : t('transcript-image-ready', { name: label })
-  return (
+  const preview = (
     <Image
       source={state.kind === 'ready' ? state.source : undefined}
       width={width}
@@ -84,6 +156,19 @@ function TranscriptImagePreview({
         <Text dimColor wrap="truncate">[{fallback}]</Text>
       </Box>
     </Image>
+  )
+  if (onPreview === undefined) return preview
+  return (
+    <Box
+      onClick={event => {
+        // A thumbnail click opens the preview; it must not also toggle the
+        // row expansion or start a transcript selection underneath.
+        event.stopImmediatePropagation()
+        onPreview(image)
+      }}
+    >
+      {preview}
+    </Box>
   )
 }
 
@@ -108,56 +193,8 @@ function previewSize(
   return [width, height]
 }
 
-async function loadDecodedImage(image: TranscriptImage): Promise<TerminalImageSource> {
-  const cached = decodedImages.get(image)
-  if (cached !== undefined) {
-    decodedImages.delete(image)
-    decodedImages.set(image, cached)
-    return cached
-  }
-
-  const pending = image.read().then(async data => {
-    const { default: sharp } = await import('sharp')
-    const decoded = await sharp(data, { failOn: 'error' })
-      .resize({
-        width: PREVIEW_PIXELS,
-        height: PREVIEW_PIXELS,
-        fit: 'inside',
-        withoutEnlargement: true,
-      })
-      .toColourspace('srgb')
-      .ensureAlpha()
-      .raw()
-      .toBuffer({ resolveWithObject: true })
-    if (
-      decoded.info.channels !== 4 ||
-      decoded.data.byteLength !== decoded.info.width * decoded.info.height * 4
-    ) {
-      throw new Error('decoded image is not RGBA')
-    }
-    return {
-      data: decoded.data,
-      width: decoded.info.width,
-      height: decoded.info.height,
-    }
-  })
-  decodedImages.set(image, pending)
-  while (decodedImages.size > DECODED_CACHE_LIMIT) {
-    const oldest = decodedImages.keys().next().value as TranscriptImage | undefined
-    if (oldest === undefined) break
-    decodedImages.delete(oldest)
-  }
-  void pending.catch(() => {
-    if (decodedImages.get(image) === pending) decodedImages.delete(image)
-  })
-  return pending
-}
-
-function cleanLabel(value: string | undefined): string {
-  return (value ?? '').replace(/[\u0000-\u001f\u007f-\u009f]/gu, ' ').trim().slice(0, 80)
-}
-
-/** @internal Focused regression scripts clear the process-local LRU. */
+/** @internal Focused regression scripts clear the process-local LRUs. */
 export function clearTranscriptImageCacheForTests(): void {
-  decodedImages.clear()
+  thumbnailTier.clear()
+  fullTier.clear()
 }
