@@ -1,0 +1,9 @@
+$ node scripts/verify-structure.mjs --item 9.9
+Error: unknown structure item: 9.9
+    at file:///opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/scripts/verify-structure.mjs:21:20
+    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
+    at async node:internal/modules/esm/loader:639:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+[ELIFECYCLE] Command failed with exit code 2.
+
+exit=2

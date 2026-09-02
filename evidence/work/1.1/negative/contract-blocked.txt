@@ -1,0 +1,5 @@
+$ node scripts/verify-contract.mjs --target VAL-REPO-003
+contract target is blocked: VAL-REPO-003
+[ELIFECYCLE] Command failed with exit code 2.
+
+exit=2

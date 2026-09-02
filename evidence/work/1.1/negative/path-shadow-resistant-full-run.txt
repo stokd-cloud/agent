@@ -1,0 +1,271 @@
+{
+  "schemaVersion": "1.0",
+  "item": "1.1",
+  "runId": "acf81308-1abf-402c-b652-cb1dc6cd99c6",
+  "startedAt": "2026-09-02T03:55:41.295Z",
+  "sourceHead": "a3439a3c7d7e7b3c9cfc505e833525376e8558d0",
+  "sourceTreeSha256": "613a634c06976e444c8312cc157a01e70ad9fc2a48f4f17e05639cc8ece91c68",
+  "canonicalManifestSha256": "aae8ce5bf73dca6f3c5e849c4b88744c60834f7716446911c2a0515e9627d602",
+  "buildFingerprintManifestSha256": "7e9d4d9e92f48feb36f25135063923f211cc124677e60e088c9b5147348b3acb",
+  "buildFingerprint": {
+    "schemaVersion": "1.0",
+    "sourcePaths": [
+      "apps/api/src/bin.ts",
+      "apps/api/src/index.ts",
+      "apps/cli/src/bin.ts",
+      "apps/cli/src/index.ts",
+      "apps/host/src/bin.ts",
+      "apps/host/src/index.ts",
+      "packages/dsh/src/index.ts",
+      "packages/protocol/src/artifacts.ts",
+      "packages/protocol/src/authority.ts",
+      "packages/protocol/src/commands.ts",
+      "packages/protocol/src/context.ts",
+      "packages/protocol/src/errors.ts",
+      "packages/protocol/src/events.ts",
+      "packages/protocol/src/host.ts",
+      "packages/protocol/src/ids.ts",
+      "packages/protocol/src/index.ts",
+      "packages/protocol/src/schema-type-fixtures.ts",
+      "packages/protocol/src/serialization.ts",
+      "packages/protocol/src/service.ts",
+      "packages/protocol/src/transports/https.ts",
+      "packages/protocol/src/transports/ipc.ts",
+      "packages/protocol/src/transports/sse.ts",
+      "packages/protocol/src/version.ts",
+      "packages/protocol/src/work.ts",
+      "packages/runtime/src/index.ts",
+      "packages/stokd-bridge/src/index.ts",
+      "packages/storage/src/index.ts",
+      "packages/tui/src/cloud-agent-client.ts"
+    ],
+    "outputPaths": [
+      "apps/api/lib/bin.d.ts",
+      "apps/api/lib/bin.js",
+      "apps/api/lib/index.d.ts",
+      "apps/api/lib/index.js",
+      "apps/cli/lib/bin.d.ts",
+      "apps/cli/lib/bin.js",
+      "apps/cli/lib/index.d.ts",
+      "apps/cli/lib/index.js",
+      "apps/host/lib/bin.d.ts",
+      "apps/host/lib/bin.js",
+      "apps/host/lib/index.d.ts",
+      "apps/host/lib/index.js",
+      "packages/dsh/lib/index.d.ts",
+      "packages/dsh/lib/index.js",
+      "packages/protocol/lib/artifacts.d.ts",
+      "packages/protocol/lib/artifacts.js",
+      "packages/protocol/lib/authority.d.ts",
+      "packages/protocol/lib/authority.js",
+      "packages/protocol/lib/commands.d.ts",
+      "packages/protocol/lib/commands.js",
+      "packages/protocol/lib/context.d.ts",
+      "packages/protocol/lib/context.js",
+      "packages/protocol/lib/errors.d.ts",
+      "packages/protocol/lib/errors.js",
+      "packages/protocol/lib/events.d.ts",
+      "packages/protocol/lib/events.js",
+      "packages/protocol/lib/host.d.ts",
+      "packages/protocol/lib/host.js",
+      "packages/protocol/lib/ids.d.ts",
+      "packages/protocol/lib/ids.js",
+      "packages/protocol/lib/index.d.ts",
+      "packages/protocol/lib/index.js",
+      "packages/protocol/lib/schema-type-fixtures.d.ts",
+      "packages/protocol/lib/schema-type-fixtures.js",
+      "packages/protocol/lib/serialization.d.ts",
+      "packages/protocol/lib/serialization.js",
+      "packages/protocol/lib/service.d.ts",
+      "packages/protocol/lib/service.js",
+      "packages/protocol/lib/transports/https.d.ts",
+      "packages/protocol/lib/transports/https.js",
+      "packages/protocol/lib/transports/ipc.d.ts",
+      "packages/protocol/lib/transports/ipc.js",
+      "packages/protocol/lib/transports/sse.d.ts",
+      "packages/protocol/lib/transports/sse.js",
+      "packages/protocol/lib/version.d.ts",
+      "packages/protocol/lib/version.js",
+      "packages/protocol/lib/work.d.ts",
+      "packages/protocol/lib/work.js",
+      "packages/runtime/lib/index.d.ts",
+      "packages/runtime/lib/index.js",
+      "packages/stokd-bridge/lib/index.d.ts",
+      "packages/stokd-bridge/lib/index.js",
+      "packages/storage/lib/index.d.ts",
+      "packages/storage/lib/index.js",
+      "packages/tui/lib/types/cloud-agent-client.d.ts",
+      "packages/tui/lib/types/cloud-agent-client.js"
+    ],
+    "sourceSha256": "e62b25fffa2f59963ef9792176301a72f902236a640e85402af45812daca7a27",
+    "outputSha256": "1910644c4f0336b31423fdb0f937d878f0f1f1cc5d5bb736a6be49528f190172"
+  },
+  "mappedScenarioCount": 7,
+  "state": "complete",
+  "canonicalPass": true,
+  "sealed": false,
+  "disposition": "work-check-only",
+  "finishedAt": "2026-09-02T03:56:03.462Z",
+  "workingTreeDiffSha256": "e149534c629c941f02ae96b78f06371a538727080d97a50b4119dc07892524b7",
+  "lockfileSha256": "4dcee7b32ca1a147482913c5ad38fcb66ba5211172c9c2e1fa24ae7ebcc55bdf",
+  "coverage": {
+    "ownedTargets": [
+      "VAL-REPO-001",
+      "VAL-REPO-002",
+      "VAL-OPS-005"
+    ],
+    "registeredScenarioCount": 11,
+    "scenarioIds": [
+      "schema-wire-parity",
+      "protocol-headless-roundtrip",
+      "dst-client-adapter",
+      "unsupported-entrypoints",
+      "import-side-effect-isolation",
+      "fork-provenance-and-ledger",
+      "fresh-isolated-workspace"
+    ],
+    "mapping": {
+      "VAL-OPS-005:unknown-minor-event-policy": "schema-wire-parity",
+      "VAL-OPS-005:raw-http-command": "protocol-headless-roundtrip",
+      "VAL-OPS-005:raw-sse-events": "protocol-headless-roundtrip",
+      "VAL-OPS-005:unsupported-major": "protocol-headless-roundtrip",
+      "VAL-OPS-005:shared-in-process-service": "dst-client-adapter",
+      "VAL-REPO-002:isolated-runtime-import": "unsupported-entrypoints",
+      "VAL-REPO-002:zero-import-network-trace": "import-side-effect-isolation",
+      "VAL-REPO-001:fork-ancestry-and-gitlinks": "fork-provenance-and-ledger",
+      "VAL-REPO-001:notices-and-lock-pin": "fork-provenance-and-ledger",
+      "VAL-REPO-001:existing-name-refusal": "fork-provenance-and-ledger",
+      "VAL-REPO-002:frozen-standalone-install": "fresh-isolated-workspace"
+    }
+  },
+  "executedScenarioCount": 7,
+  "environment": {
+    "node": "v24.15.0",
+    "pnpm": "11.25.0",
+    "pnpmExecutable": "/private/tmp/cloud-agents-pnpm-cache/_npx/dd5dd6106160c588/node_modules/pnpm/bin/pnpm.cjs",
+    "pnpmExecutableSha256": "67b035e322203961795e8e34ca63a08c37a4386eda94107fb3d28f3246d882ad",
+    "pnpmPackageRoot": "/private/tmp/cloud-agents-pnpm-cache/_npx/dd5dd6106160c588/node_modules/pnpm",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "results": [
+    {
+      "id": "schema-wire-parity",
+      "command": [
+        "node",
+        "tests/work-1.1/schema-wire-parity.mjs"
+      ],
+      "targets": [
+        "VAL-OPS-005"
+      ],
+      "registeredScenarios": [
+        "unknown-minor-event-policy"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "verdict": "pass"
+    },
+    {
+      "id": "protocol-headless-roundtrip",
+      "command": [
+        "node",
+        "tests/work-1.1/headless-protocol.mjs"
+      ],
+      "targets": [
+        "VAL-OPS-005"
+      ],
+      "registeredScenarios": [
+        "raw-http-command",
+        "raw-sse-events",
+        "unsupported-major"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "verdict": "pass"
+    },
+    {
+      "id": "dst-client-adapter",
+      "command": [
+        "node",
+        "tests/work-1.1/dst-client-roundtrip.mjs"
+      ],
+      "targets": [
+        "VAL-OPS-005"
+      ],
+      "registeredScenarios": [
+        "shared-in-process-service"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "verdict": "pass"
+    },
+    {
+      "id": "unsupported-entrypoints",
+      "command": [
+        "node",
+        "tests/work-1.1/unsupported-stubs.mjs"
+      ],
+      "targets": [
+        "VAL-REPO-002"
+      ],
+      "registeredScenarios": [
+        "isolated-runtime-import"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "verdict": "pass"
+    },
+    {
+      "id": "import-side-effect-isolation",
+      "command": [
+        "node",
+        "tests/work-1.1/import-isolation.mjs"
+      ],
+      "targets": [
+        "VAL-REPO-002"
+      ],
+      "registeredScenarios": [
+        "zero-import-network-trace"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "verdict": "pass"
+    },
+    {
+      "id": "fork-provenance-and-ledger",
+      "command": [
+        "node",
+        "tests/work-1.1/provenance-and-ledger.mjs"
+      ],
+      "targets": [
+        "VAL-REPO-001"
+      ],
+      "registeredScenarios": [
+        "fork-ancestry-and-gitlinks",
+        "notices-and-lock-pin",
+        "existing-name-refusal"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "verdict": "pass"
+    },
+    {
+      "id": "fresh-isolated-workspace",
+      "command": [
+        "node",
+        "tests/work-1.1/isolated-runtime.mjs"
+      ],
+      "targets": [
+        "VAL-REPO-002"
+      ],
+      "registeredScenarios": [
+        "frozen-standalone-install"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "verdict": "pass"
+    }
+  ]
+}
+
+exit=0

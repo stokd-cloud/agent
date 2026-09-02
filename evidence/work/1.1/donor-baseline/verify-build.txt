@@ -1,0 +1,349 @@
+$ npm run verify:boundary && npm run verify:contract && npm run verify:herdr && npm run verify:manifest-deps && npm run verify:patch-surface && npm run verify:web-coexistence && npm run verify:plugin-spec && npm run verify:plugin-grants && npm run verify:plugin-storage && npm run verify:plugin-messages && npm run verify:plugin-ledger && npm run verify:plugin-commands && npm run verify:plugin-negotiation && npm run verify:plugin-lifecycle && npm run verify:packaged-presets && npm run verify:history-search && npm run verify:skill-direct-invocation && npm run verify:minimal-preset-tools && npm run verify:liangshen-bootstrap && npm run verify:wheel-selection && npm run verify:liangshen-instruction-hint && npm run verify:pointer-events && npm run verify:chat-overlay && npm run verify:i18n && npm run verify:approval-visibility
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:boundary
+> node --import tsx/esm scripts/verify-adapter-boundary.ts
+
+adapter boundary OK (358 source files scanned)
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:contract
+> node --import tsx/esm scripts/verify-upstream-contract.ts
+
+upstream contract OK (validated: 0.1.1-rc.2 (0.1.0-rc.6/7/8, 0.1.1-rc.1/2))
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:herdr
+> node --import tsx/esm scripts/verify-herdr-integration.ts
+
+verify-herdr-integration: lifecycle, rejection isolation, folding, contract gate, and release passed
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:manifest-deps
+> node --import tsx/esm scripts/verify-manifest-deps.ts
+
+manifest deps OK (27 optional framework peers, all mirrored in dev at matching ranges, blessed list in sync)
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:patch-surface
+> node --import tsx/esm scripts/verify-patch-surface.ts
+
+patch-surface OK (15 inserts, 6 config overrides, 0 disables beyond web-app)
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:web-coexistence
+> node scripts/verify-web-coexistence.mjs
+
+web coexistence OK (72 composed rows, no loader entry id shared with dsh-web-app)
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:plugin-spec
+> node --import tsx/esm scripts/verify-plugin-spec.ts
+
+plugin-spec battery OK (41 checks: registry self-check, 27 validate fixtures, 8 negotiate scenarios, tamper fail-closed)
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:plugin-grants
+> node --import tsx/esm scripts/verify-plugin-grants.ts
+
+plugin-grants battery OK (119 checks: grant store semantics, guard via GrantStore, plugin-host row, descriptor build, wiring)
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:plugin-storage
+> node --import tsx/esm scripts/verify-plugin-storage.ts
+
+plugin-storage battery OK (83 checks: round-trip, grants, validation, isolation, quota, corruption, lifecycle, privacy, descriptor)
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:plugin-messages
+> node --import tsx/esm scripts/verify-plugin-messages.ts
+
+plugin-messages battery OK (58 checks: mapping, schema, grants, revocation, scope, isolation, truncation, fail-closed, retention)
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:plugin-ledger
+> node --import tsx/esm scripts/verify-plugin-ledger.ts
+
+plugin-ledger battery OK (42 checks: five operations, lifecycle triple, sequence resume, drop-not-write, fail-closed, wired emitters, no sentinels, wiring)
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:plugin-commands
+> node --import tsx/esm scripts/verify-plugin-commands.ts
+
+plugin-commands battery OK (65 checks: real-dependency mapping, variants, code predicate, wrapper, vocabulary, invoke gate, channel wiring, non-breaking signatures)
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:plugin-negotiation
+> node --import tsx/esm scripts/verify-plugin-negotiation.ts
+
+plugin-negotiation battery OK (49 checks: trust banner, descriptor summary, grant matrix, ledger tail, /plugins check five-state, wiring)
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:plugin-lifecycle
+> node --import tsx/esm scripts/verify-plugin-lifecycle.ts
+
+ok   root status call leaves no contribution
+ok   root shortcut call leaves no binding
+ok   root renderer call leaves no renderer
+ok   root dialog call leaves no queue entry
+ok   root scene registration is rejected
+ok   root settings registration is rejected
+ok   root workspace registration is rejected
+ok   root command-tree registration is rejected
+ok   root inject cannot create a child activation
+ok   root registry deletion is rejected
+ok   cross-composition plugin cannot create a child on the host root
+ok   cross-composition scene registration is rejected
+ok   cross-composition settings registration is rejected
+ok   cross-composition workspace registration is rejected
+ok   cross-composition command-tree registration is rejected
+ok   cross-composition proxy cannot leave UI effects
+ok   live plugin effects are visible before dispose
+ok   foreign plugin cannot discover another activation workspace commands
+ok   foreign plugin cannot invoke another activation workspace command
+ok   foreign plugin cannot discover another activation command-tree children
+ok   foreign plugin cannot discover another activation command-tree description
+ok   foreign plugin cannot inspect another activation scene
+ok   foreign plugin cannot open another activation scene
+ok   foreign plugin cannot close another activation scene
+ok   foreign plugin cannot overwrite another activation status
+ok   plugin dialog is cancelled on its fiber dispose
+ok   fiber dispose releases every registered extension effect
+ok   retained workspace proxy rejects commands after dispose
+ok   retained workspace proxy rejects rename after dispose
+ok   forged caller leaves no status
+ok   forged caller leaves no shortcut
+ok   forged caller leaves no renderer
+ok   forged caller leaves no dialog
+ok   forged scene caller is rejected
+ok   forged settings caller is rejected
+ok   forged workspace caller is rejected
+ok   forged command-tree caller is rejected
+ok   forged internal/plugin event leaves no status
+ok   mutated Fiber.ctx leaves no status
+ok   restart window rejects retained caller effects
+ok   old async callback after restart cannot write
+ok   overwritten fiber.effect cannot retain a contribution
+plugin lifecycle battery OK (42 checks)
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:packaged-presets
+> node scripts/verify-packaged-presets.mjs
+
+packaged presets OK (install, discover, preserve conflict, update)
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:history-search
+> node --import tsx/esm scripts/verify-history-search.mjs
+
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;history search OK (keys, stale lock recovery, empty render, capped persistence)
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:skill-direct-invocation
+> node --import tsx/esm scripts/verify-skill-direct-invocation.ts
+
+
+[1] LOCAL_COMMANDS 不含打包技能名（交还直调路径）
+  ✓ isLocalCommandName('audit') === false
+  ✓ isLocalCommandName('bug') === false
+  ✓ isLocalCommandName('practice') === false
+  ✓ isLocalCommandName('pr-comments') === false
+  ✓ isLocalCommandName('release-notes') === false
+  ✓ isLocalCommandName('review') === false
+  ✓ isLocalCommandName('vuln-check') === false
+  ✓ 下划线旧名 'pr_comments' 已从 LOCAL_COMMANDS 移除
+
+[2] 打包技能全部通过 parseCommandName + 撞名过滤
+  ✓ 'audit' 可被命令文法解析
+  ✓ 'audit' 不与本地命令撞名
+  ✓ 'bug' 可被命令文法解析
+  ✓ 'bug' 不与本地命令撞名
+  ✓ 'practice' 可被命令文法解析
+  ✓ 'practice' 不与本地命令撞名
+  ✓ 'pr-comments' 可被命令文法解析
+  ✓ 'pr-comments' 不与本地命令撞名
+  ✓ 'release-notes' 可被命令文法解析
+  ✓ 'release-notes' 不与本地命令撞名
+  ✓ 'review' 可被命令文法解析
+  ✓ 'review' 不与本地命令撞名
+  ✓ 'vuln-check' 可被命令文法解析
+  ✓ 'vuln-check' 不与本地命令撞名
+
+[3] registerPackagedSkills 注册 7 个打包技能
+  ✓ 注册名集合 === 打包技能目录（实际：audit, bug, pr-comments, practice, release-notes, review, vuln-check）
+  ✓ resolveSkillsRoot('/opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/src/dsh-adapter') 命中包根 skills/（实际：/opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/skills）
+  ✓ resolveSkillsRoot('/opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/lib/types/dsh-adapter') 命中包根 skills/（实际：/opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/skills）
+
+[4] SKILL_PROMPTS 与 skill-*-prompt i18n 键不再存在
+  ✓ Chat.tsx 无 SKILL_PROMPTS
+  ✓ i18n.ts 无 'skill-audit-prompt'
+  ✓ i18n.ts 无 'skill-bug-prompt'
+  ✓ i18n.ts 无 'skill-practice-prompt'
+  ✓ i18n.ts 无 'skill-review-prompt'
+  ✓ i18n.ts 无 'skill-pr-comments-prompt'
+  ✓ i18n.ts 无 'skill-release-notes-prompt'
+  ✓ i18n.ts 无 'skill-vuln-check-prompt'
+
+[5] cmd-desc 键对齐连字符注册名
+  ✓ 存在 'cmd-desc-pr-comments'
+  ✓ 不存在 'cmd-desc-pr_comments'
+
+全部断言通过
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:minimal-preset-tools
+> node scripts/verify-minimal-preset-tools.mjs
+
+minimal preset tool filtering verified
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:liangshen-bootstrap
+> node scripts/verify-liangshen-bootstrap.mjs
+
+liangshen bootstrap verified (root/subagent anchors, tool-call promotion, full catalog, compaction re-anchor)
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:wheel-selection
+> node --import tsx/esm scripts/verify-wheel-selection.ts
+
+ok   T1 not cleared
+ok   T1 anchor clamped to viewport top, col reset by capture
+ok   T1 virtual anchor row tracks pre-clamp position
+ok   T1 focus shifted up
+ok   T1 scrolledOffAbove captured anchor row (col-constrained)
+ok   T1 copy includes captured row + on-screen rows
+ok   T2 not cleared
+ok   T2 anchor restored (virtual debt popped)
+ok   T2 virtual anchor cleared
+ok   T2 focus restored
+ok   T2 below accumulator empty (selection never reached bottom edge)
+ok   T3 not cleared
+ok   T3 anchor
+ok   T3 virtual anchor
+ok   T3 focus
+ok   T3 captured rows 2-3 across drain frames
+ok   T4 cleared when both ends exit bottom
+ok   T4 anchor nulled
+ok   T4 no selection after clear
+ok   T5 cleared when both ends exit top
+ok   T5 anchor nulled
+ok   T6 not cleared on partial exit
+ok   T6 anchor clamped with virtual debt
+ok   T6 focus still in viewport
+ok   T6 copy still has full text via accumulator
+ok   T7 anchor in overlap rows picks the panel (innermost viewport)
+ok   T7 anchor above the panel picks the transcript
+ok   T7 order-independent: same pick with events swapped
+ok   T7 anchor outside every viewport follows nothing
+ok   T7 no events -> null
+ok   T7 null anchor -> null
+
+verify-wheel-selection: all checks passed
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:liangshen-instruction-hint
+> node scripts/verify-liangshen-instruction-hint.mjs
+
+liangshen instruction hint verified (promotion, durable resume, unrelated messages, re-entry, scan failure)
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:pointer-events
+> node --import tsx/esm scripts/verify-pointer-events.ts
+
+ok   SGR wheelup name
+ok   SGR wheelup coords kept (0-indexed)  (73,15)
+ok   SGR wheeldown coords
+ok   SGR wheel modifiers decoded
+ok   SGR wheelleft parsed
+ok   SGR wheelright parsed
+ok   SGR press stays mouse
+ok   SGR release stays mouse
+ok   X10 click parsed as mouse  (5,6)
+ok   X10 drag parsed (button carries motion bit)
+ok   X10 wheel → key with coords
+ok   X10 no-button motion swallowed
+ok   orphan SGR wheel tail resynthesized
+ok   text not misparsed as mouse
+ok   PointerEvent modifiers
+ok   ClickEvent normalizes button bits, keeps shift
+ok   ClickEvent is a release action
+ok   local coords from nodeCache rect
+[dsh-tui] Error: handler boom
+    at onClick (/opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/scripts/verify-pointer-events.ts:138:13)
+    at dispatchClick (/opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/src/ink/hit-test.ts:145:9)
+    at <anonymous> (/opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/scripts/verify-pointer-events.ts:146:19)
+    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
+    at async node:internal/modules/esm/loader:639:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+ok   dispatchClick error isolation: bubble continues past throwing child  (child | parent local=2,0)
+ok   dispatchClick reports handled
+ok   parent sees local coords
+ok   dispatchWheel routes to onWheel under pointer
+ok   WheelEvent carries deltas + coords
+ok   dispatchWheel false without handler
+ok   hitTest misses outside rect
+ok   hover enter fired with pointer event arg
+ok   hover set populated
+ok   hover leave fired
+ok   moving between rows leaves the old row
+ok   clearHovered fires leave on every tracked row  (a=1 b=1)
+ok   clearHovered empties the set
+ok   post-clear motion re-enters cleanly
+ok   out-of-bounds press clamped to frame  (19,9)
+ok   in-bounds press passes through
+ok   click chain existed before reset
+ok   drag was active before reset
+ok   resetPointerState clears clickCount
+ok   resetPointerState settles interrupted drag
+ok   resetPointerState clears hover dedupe
+
+verify-pointer-events: all checks passed
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:chat-overlay
+> node --import tsx/esm scripts/verify-chat-overlay.ts
+
+ok   T1a open from none
+ok   T1b async open replaces the current overlay (effort landing over model)
+ok   T1c close
+ok   T1d open-if drops a stale async open when the user opened something else
+ok   T1e open-if opens over an allowed kind (idle, and flow stage transitions)
+ok   T2a close-if matching
+ok   T2b close-if mismatched is a no-op (stale loader must not close the picker the user opened later)
+ok   T3a up from 0 wraps to count-1
+ok   T3b down from count-1 wraps to 0
+ok   T3c empty list is a no-op (skills while the snapshot loads)
+ok   T3d two-entry up parity
+ok   T3e two-entry down parity
+ok   T3f thinking focus toggles on either arrow
+ok   T3g effort modulo parity
+ok   T4a set-index applies on its picker
+ok   T4b stale loader set-index ignored after the picker changed
+ok   T4c mouse pick sets an absolute index on panels that stay open (effort, rewind list)
+ok   T5a partial patch keeps unnamed fields
+ok   T5b edit ignored outside history
+ok   T6a flow-busy applies
+ok   T6b flow-busy ignored elsewhere
+ok   T6c flow-input enters editing
+ok   T6d flow-input-edit rewrites value+cursor
+ok   T6e flow-input-edit without an input is a no-op
+ok   T7a list move targets the candidate cursor
+ok   T7b busy set
+ok   T7c decision lands: busy clears, confirm+modes set, modeIndex reset
+ok   T7d move in the modes pane targets modeIndex, not the list index
+ok   T7e move on the plain confirm pane is a no-op (Enter/Esc only)
+ok   T7f rewind-back returns to the list; modeIndex stays until the next decision
+ok   T7g decision ignored outside rewind
+ok   T8a none never mounts
+ok   T8b plain picker mounts
+ok   T8c workspace picker gated on targets
+ok   T8d effort gated on >1 options
+ok   T8e preset gated on >0 options
+ok   T8f tips still counts as overlay-open
+ok   T8g search mounts the bar
+ok   T9a open from none
+ok   T9b move wraps within the 3 actions
+ok   T9c empty count is a no-op
+ok   T9d mouse pick sets the absolute row
+ok   T9e stale set-index ignored after the menu closed
+ok   T9f close
+ok   T9g overlay mounts by default (no data gate)
+
+verify-chat-overlay: all checks passed
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:i18n
+> node --import tsx/esm scripts/verify-i18n.ts
+
+✓ verify-i18n: 825 条目——语言完整、占位符一致、无死 key
+
+> @deepseek-harness-tui/dsh-tui@0.9.3 verify:approval-visibility
+> node --import tsx/esm scripts/verify-approval-visibility.tsx
+
+PASS  chat state: approval panel renders
+PASS  chat state: digit 2 rejects
+PASS  settings screen opens
+PASS  settings open: approval panel visible (interrupt lane)
+PASS  settings open: digit 2 rejects
+PASS  settings screen restored after decision
+PASS  settings open: question panel visible (interrupt lane)
+PASS  settings open: Esc cancels the question
+
+verify-approval-visibility: all checks passed
+[?2026h[0m]8;;[?25h[?2026l[?1049l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;

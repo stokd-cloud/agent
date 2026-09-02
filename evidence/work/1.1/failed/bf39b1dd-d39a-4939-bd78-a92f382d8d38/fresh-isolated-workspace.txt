@@ -1,0 +1,37 @@
+$ /Users/stoked/.nvm/versions/node/v24.15.0/bin/node /opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/tests/work-1.1/isolated-runtime.mjs
+exit=1
+signal=<none>
+
+[stdout]
+
+[stderr]
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: /Users/stoked/.nvm/versions/node/v24.15.0/bin/node /private/tmp/cloud-agents-pnpm-cache/_npx/dd5dd6106160c588/node_modules/pnpm/bin/pnpm.cjs verify:structure --item 1.1
+[ELIFECYCLE] Command failed with exit code 2.
+
+$ node scripts/verify-structure.mjs --item 1.1
+Error: ENOENT: no such file or directory, stat '/private/var/folders/53/dd576_xj6gq_qtjqyblf1xjw0000gn/T/agent-real-clone-D0dyKU/fresh-clone/packages/tui/lib/types/cloud-agent-client.d.ts'
+    at statSync (node:fs:1726:25)
+    at computeBuildFingerprint (file:///private/var/folders/53/dd576_xj6gq_qtjqyblf1xjw0000gn/T/agent-real-clone-D0dyKU/fresh-clone/scripts/lib/build-fingerprint.mjs:8:337)
+    at file:///private/var/folders/53/dd576_xj6gq_qtjqyblf1xjw0000gn/T/agent-real-clone-D0dyKU/fresh-clone/scripts/verify-structure.mjs:25:381
+    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
+    at async node:internal/modules/esm/loader:639:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+
+2 !== 0
+
+    at run (file:///opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/tests/work-1.1/isolated-runtime.mjs:9:232)
+    at file:///opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/tests/work-1.1/isolated-runtime.mjs:23:458 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 2,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.15.0

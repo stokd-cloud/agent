@@ -1,0 +1,8 @@
+$ /Users/stoked/.nvm/versions/node/v24.15.0/bin/node /opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/tests/work-1.1/import-isolation.mjs
+exit=0
+signal=<none>
+
+[stdout]
+{"ok":true,"importAttemptedNetwork":[],"networkGuardKinds":["dgram.createSocket","dns.promises.lookup","dns.promises.resolve","fetch","net.connect","net.createConnection","tls.connect"],"httpAndHttpsDenied":true,"loadedProductModules":["tests/work-1.1/network-guard.mjs","tests/work-1.1/import-targets.mjs","packages/protocol/lib/index.js","packages/protocol/lib/artifacts.js","packages/protocol/lib/authority.js","packages/protocol/lib/commands.js","packages/protocol/lib/context.js","packages/protocol/lib/errors.js","packages/protocol/lib/events.js","packages/protocol/lib/ids.js","packages/protocol/lib/version.js","packages/protocol/lib/host.js","packages/protocol/lib/serialization.js","packages/protocol/lib/service.js","packages/protocol/lib/work.js","packages/protocol/lib/transports/https.js","packages/protocol/lib/transports/ipc.js","packages/protocol/lib/transports/sse.js","packages/runtime/lib/index.js","packages/storage/lib/index.js","packages/dsh/lib/index.js","packages/stokd-bridge/lib/index.js","apps/api/lib/index.js","apps/host/lib/index.js","apps/cli/lib/index.js"],"tuiLoaded":false,"siblingSourceLoaded":false}
+
+[stderr]

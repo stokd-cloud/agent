@@ -1,0 +1,5 @@
+$ node scripts/verify-contract.mjs --target VAL-REPO-001
+AGENT_CONTRACT_REGISTRY override is forbidden
+[ELIFECYCLE] Command failed with exit code 2.
+
+exit=2

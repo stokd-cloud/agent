@@ -1,0 +1,9 @@
+unignored helper inventory
+scripts/lib/args.mjs
+scripts/lib/build-fingerprint.mjs
+scripts/lib/canonical-work.mjs
+scripts/lib/repository-target.mjs
+scripts/lib/scenario-mapping.mjs
+
+expected helper count
+       5

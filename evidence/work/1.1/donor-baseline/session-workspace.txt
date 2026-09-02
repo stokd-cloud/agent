@@ -1,0 +1,822 @@
+::group::session-workspace（22 项，失败不中断）
+
+===== verify-cordis-approval =====
+PASS: bare cordis.yml mounts the @deepseek-ai/dsh-user-approval row
+PASS: profile cordis.patch.yml keeps an approval policy row
+PASS: bare policy: linux default (workspace-write) -> ask
+PASS: profile policy: linux default (workspace-write) -> ask
+PASS: bare policy: linux danger-full-access -> never
+PASS: profile policy: linux danger-full-access -> never
+PASS: bare policy: win32 default -> never
+PASS: profile policy: win32 default -> never
+PASS: bare policy: win32 danger-full-access -> never
+PASS: profile policy: win32 danger-full-access -> never
+PASS: bare and profile policies agree in every scenario
+all approval config checks passed
+
+===== verify-working-activity =====
+verify-working-activity: OK
+
+===== verify-workspace-attachment =====
+verify-workspace-attachment: OK
+
+===== verify-workspaces-degrade =====
+verify-workspaces-degrade: OK
+
+===== verify-extension-events =====
+ok   tui/session-switched notifications launch listeners in parallel
+ok   decision guard (no extensions row): ungranted plugin subscription denied
+ok   tui/input transform: delivered text is the plugin substitute
+ok   tui/input transform: the typed text never reached the agent
+ok   tui/input cancel: nothing delivered
+ok   tui/input cancel: reason toasted
+ok   tui/input cancel: reason sanitized before toasting
+ok   pending decision: parked indicator toasted past 400ms
+ok   pending decision: the slow veto still lands
+ok   pending decision: the parked indicator is dismissed on resolution
+ok   tui/input cancel without reason: host fallback toasted
+ok   tui/input handled without notice: host fallback toasted
+ok   fifo: a slow decision on A does not let B overtake
+ok   interruptAndDeliver: the tui/input veto applies to the Ctrl+Enter path
+ok   interruptAndDeliver: the re-queue delivers without a veto
+ok   interruptAndDeliver: a vetoed retry remains deliverable and cancel runs once
+ok   interruptAndDeliver: turn/end permits a fresh cancel
+ok   tui/input crash: a throwing listener degrades to no-opinion
+ok   serial chain: blank rewrite does NOT bail the chain (veto still runs)
+ok   serial chain: a throwing listener does NOT skip the later veto
+ok   serial chain: junk primitive return is skipped, later transform wins
+ok   serial chain: a throwing-getter return is skipped, later veto still runs
+ok   rewind picker opens on double-Esc
+ok   rewind confirm renders plugin modes
+ok   rewind confirm: malformed description stripped, entry kept (no render crash)
+ok   tui/rewind-prompt received the picked message seq
+ok   picked mode id threaded to tui/rewind-done
+ok   tui/rewind-done summary toasted
+ok   tui/session-switched fired with kind 'rewind'
+ok   tui/rewind-prompt cancel: reason toasted
+ok   tui/rewind-prompt cancel: picker still open (list visible)
+ok   tui/rewind-prompt cancel: no delivery side effects
+ok   tui/session-switch veto: /new refused
+ok   tui/session-switch veto: reason toasted
+ok   /new succeeds without the veto
+ok   tui/session-switched fired with kind 'new'
+ok   tui/compact veto: compaction never ran
+ok   tui/compact veto: reason toasted
+ok   tui/compact without the veto: compaction runs on the live agent
+ok   compact stale-drop setup: /new succeeded mid-await
+ok   compact stale-drop: the old session’s compaction never ran
+ok   compact stale-drop: stale notice toasted
+ok   compact ABA setup: /new succeeded mid-await
+ok   compact ABA setup: /resume back to the origin session succeeded
+ok   compact ABA: id reuse does NOT revive the stale compaction
+ok   switch stale setup: /new off the origin succeeded
+ok   switch stale setup: a second /new completed mid-await
+ok   session-switch stale: the parked /resume is dropped
+ok   session-switch stale: stale notice toasted
+ok   enqueue origin setup: /new succeeded while the predecessor parked
+ok   enqueue-time origin: the parked predecessor is dropped as stale
+ok   enqueue-time origin: the queued follower never reaches the new session
+ok   rewind stale setup: /new succeeded while the rewind decision parked
+ok   rewind-prompt stale: the parked decision resolves to cancel
+ok   rewind-prompt stale: stale notice toasted
+ok   rewind-done decoupled: rewindTo returns the picked text without waiting for the listener
+ok   rewind-done decoupled: the summary listener was still dispatched
+ok   rewind-done decoupled: session-switched did not wait for the listener
+ok   rewind-done decoupled: the late summary still toasts
+ok   pending indicator: raised past the threshold
+ok   pending indicator: still up while the bounded decision is parked
+ok   pending indicator: dismissed when the deadline settles the decision
+ok   pending indicator: the settled input is delivered
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;extension decision-event seam verified
+
+===== verify-extension-ui =====
+ok   dialog store: FIFO — first request is active
+ok   dialog store: decide resolves the active request
+ok   dialog store: queue advances to the second request
+ok   dialog store: cancel resolves undefined
+ok   dialog store: queue drained
+ok   dialog store: pre-aborted signal resolves undefined
+ok   dialog store: aborted request was active
+ok   dialog store: mid-flight abort resolves undefined
+ok   dialog store: abort closed the dialog
+ok   dialog store: timeout resolves undefined
+ok   dialog store: settleAll resolves everything cancelled
+ok   dialog store: stale decide is ignored
+ok   dialog store: one Enter settles only the first dialog
+ok   dialog store: the successor survives the batched Enter
+ok   dialog store: the successor settles on ITS key
+ok   dialog store: a foreign key is ignored
+ok   dialog store: a foreign cancel key is ignored
+ok   dialog store: the keyed cancel settles
+ok   dialog store: aborted active resolves cancelled
+ok   dialog store: abort ADVANCES the queue to the next request
+ok   dialog store: the advanced request settles normally
+ok   dialog store: timed-out active resolves cancelled
+ok   dialog store: timeout ADVANCES the queue
+ok   status store: entries in first-set order
+ok   status store: undefined clears the key
+ok   status store: redundant clear does not emit
+ok   status store: snapshot referentially stable between emits
+ok   host-only: dialog queue is absent from the plugin service
+ok   host-only: status store is absent from the plugin service
+ok   host-only: shortcut dispatch is absent from the plugin service
+ok   host-only: renderer dispatch is absent from the plugin service
+ok   host-only: accessors are absent from the public extension package
+ok   tuiDialogs.select: no options → cancelled + warn
+ok   tuiDialogs.confirm: no title → false + warn
+ok   tuiDialogs.input: no title → cancelled
+ok   tuiDialogs.confirm: object title refused, not coerced
+ok   tuiDialogs.select: control chars stripped from the title
+ok   tuiDialogs.select: malformed options filtered
+ok   tuiDialogs.select: timeout still applies through the runtime
+ok   tuiDialogs.select: option ids kept verbatim in the snapshot
+ok   tuiDialogs.select: cleanup cancel still resolves undefined
+ok   tuiStatus: invalid key refused + warn
+ok   tuiStatus: colon-namespaced key accepted (documented convention)
+ok   tuiStatus: uppercase colon key case-folds and is accepted
+ok   tuiStatus: malformed colon key "trail:" refused
+ok   tuiStatus: malformed colon key ":lead" refused
+ok   tuiStatus: malformed colon key "double::colon" refused
+ok   tuiStatus: malformed colon key "has space:x" refused
+ok   tuiStatus: control chars stripped
+ok   tuiStatus: non-scalar text refused + warn
+ok   tuiStatus: numeric text coerces
+ok   tuiStatus: contribution cap enforced
+ok   tuiStatus: disposer clears its own contribution
+ok   tuiStatus: stale disposer keeps the newer value
+ok   tuiStatus: explicit clear still works
+ok   tuiStatus: same-value stale disposer keeps the newer write
+ok   tuiStatus: the owning disposer clears the same-value write
+ok   parse: ctrl+shift+p
+ok   parse: alt+enter → meta + return
+ok   parse: ctrl+space → char " "
+ok   parse: bare letter refused
+ok   parse: shift-only refused (needs ctrl/alt)
+ok   parse: unknown key name refused
+ok   parse: duplicated modifier refused
+ok   match: ctrl+shift+p vs uppercase input
+ok   match: shift flag mismatch refuses
+ok   match: alt+k
+ok   match: alt+k matches meta
+ok   match: super flag always refuses
+ok   match: named key requires the combo’s shift state
+ok   parse: alt+escape refused (Esc always carries meta)
+ok   parse: ctrl+escape refused too
+ok   tuiShortcuts: reserved combo refused + warn
+ok   tuiShortcuts: chat-global combos reserved (ctrl+o, alt+up)
+ok   tuiShortcuts: editor newline combo reserved (ctrl+shift+enter)
+ok   tuiShortcuts: shift-supersets of reserved combos refused (ctrl+shift+g/t)
+ok   tuiShortcuts: shift-superset of a free combo registers
+ok   tuiShortcuts: the shift-superset disposes cleanly
+ok   tuiShortcuts: alt+escape refused at registration
+ok   tuiShortcuts: malformed combo refused
+ok   tuiShortcuts: duplicate refused
+ok   tuiShortcuts: empty description refused
+ok   tuiShortcuts.dispatch: matching key consumed
+ok   tuiShortcuts.dispatch: handler ran
+ok   tuiShortcuts.dispatch: non-matching key passes through
+ok   tuiShortcuts.dispatch: handler error routed to onError
+ok   tuiShortcuts: dispose unregisters
+ok   tuiRenderers: built-in event type refused
+ok   tuiRenderers: host-special plugin event refused
+ok   tuiRenderers: malformed type refused
+ok   tuiRenderers: duplicate refused
+ok   tuiRenderers.render: title + lines returned
+ok   tuiRenderers.render: unregistered type → undefined
+ok   tuiRenderers: renderer for a plugin-REGISTERED type is accepted
+ok   tuiRenderers.render: non-string title dropped, no crash
+ok   tuiRenderers.render: lines capped at 100
+ok   tuiRenderers.render: control chars stripped from lines
+ok   tuiRenderers.render: scalar lines coerced, objects skipped
+ok   tuiRenderers.render: throw → undefined, logged once per type
+ok   tuiRenderers.render: malformed result → undefined
+ok   decision guard: granted subscription enters the chain
+ok   decision guard: ungranted subscription never enters the chain
+ok   decision guard: denial warns with plugin + grant
+ok   decision guard: observe-class events stay ungated
+ok   decision guard: corrupt grants parse as deny-all
+ok   ui: select dialog renders title + options
+ok   ui: select ↓+Enter resolves the second id
+ok   ui: dialog closed after settle
+ok   ui: confirm renders with message + localized defaults
+ok   ui: FIFO — second dialog still queued
+ok   ui: confirm Enter resolves true
+ok   ui: queued select now active
+ok   ui: Esc cancels → undefined
+ok   ui: input dialog renders placeholder
+ok   ui: input Enter resolves the typed text
+ok   ui: input initial pre-fills and edits
+ok   ui: pure-newline paste does NOT confirm the dialog
+ok   ui: paste-surviving dialog cancels normally
+ok   ui: paste flattened to one line (no control chars survive)
+ok   ui: paste capped at INPUT_CELLS cells
+ok   ui: typing past the cell cap is ignored
+ok   ui: batched ↓+Enter settles the NEW focus, not the stale one
+ok   ui: batched →+Enter settles the moved focus
+ok   ui: batched Backspace×2 deletes both characters
+ok   ui: Backspace deletes a whole emoji (no lone surrogate)
+ok   ui: Backspace on the sole emoji empties the value
+ok   ui: arrow keys step by code point (insert never splits a pair)
+ok   ui: status line renders the contribution
+ok   ui: status line clears
+ok   ui: plugin shortcut handler fired through Chat
+ok   ui: shortcut keypress never reached submit
+ok   ui: open dialog gates plugin shortcuts
+ok   ui: dialog Esc-cancelled after the gate check
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;ok   lifecycle: plugin activation dispose leaves no status contribution
+ok   lifecycle: plugin activation dispose leaves no shortcut
+ok   lifecycle: plugin activation dispose leaves no renderer
+extension UI seams verified
+
+===== verify-session-titles =====
+verify-session-titles: OK
+
+===== verify-resume-legacy-events =====
+verify-resume-legacy-events: OK
+
+===== verify-session-cwd =====
+PASS: explicit config.cwd wins
+PASS: repo root resolves to itself
+PASS: launch subdirectory resolves to the worktree root
+PASS: linked worktree (.git file) resolves
+PASS: outside any worktree the launch directory survives
+PASS: exact cwd match
+PASS: trailing slashes normalize
+PASS: pre-upgrade subdirectory session stays visible
+PASS: deep descendant stays visible
+PASS: sibling project stays hidden
+PASS: resumed-into-subdirectory keeps workspace-root sessions visible
+PASS: deeply nested state still matches the workspace root
+PASS: sibling subtrees stay hidden (either direction)
+PASS: root-recorded session never matches
+PASS: root state matches only root-recorded (both empty)
+PASS: prefix-but-not-descendant stays hidden
+PASS: windows separators normalize
+PASS: empty header cwd never matches
+PASS: case-insensitive mode matches differing case
+PASS: case-sensitive mode keeps case-distinct dirs apart
+PASS: exact match at $HOME itself
+PASS: from $HOME, sessions of a project below stay hidden
+PASS: deeply nested sessions stay hidden from $HOME too
+PASS: home-recorded session stays hidden inside a project
+PASS: non-home parent keeps the descendant rule
+PASS: drive root hides every session on the drive
+PASS: drive root exact match still passes
+PASS: drive-root-recorded session hidden inside a repo
+PASS: UNC share root hides share sessions
+PASS: UNC share root exact match passes
+PASS: UNC-recorded session hidden inside a share repo
+PASS: extended drive root hides descendants
+PASS: extended drive root exact match passes
+PASS: extended UNC root hides descendants
+PASS: deeper UNC path keeps the descendant rule
+PASS: dotfiles ~/.git does not promote $HOME to the workspace
+PASS: launching from $HOME with a dotfiles repo keeps $HOME as plain cwd
+PASS: a real repo under $HOME still resolves normally
+
+all checks passed
+
+===== verify-plain-enter-guard =====
+PASS: plain return accepted
+PASS: meta+return rejected (Option+Enter / ESC CR)
+PASS: ctrl+return rejected (CSI 13;5u)
+PASS: shift+return rejected (CSI 13;2u)
+PASS: super+return rejected (Cmd+Enter)
+PASS: non-return rejected
+PASS: Option+Enter (ESC CR) does not decide  ([])
+PASS: Ctrl+Enter (CSI 13;5u) does not decide  ([])
+PASS: Shift+Enter (CSI 13;2u) does not decide  ([])
+PASS: plain Enter decides the focused outcome  (["allowed-once"])
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: src/screens/Chat.tsx has no unguarded key.return confirm
+PASS: src/components/approvals/ApprovalPanel.tsx has no unguarded key.return confirm
+PASS: src/components/questions/AskUserQuestionPanel.tsx has no unguarded key.return confirm
+PASS: src/components/questions/PlanReviewPanel.tsx has no unguarded key.return confirm
+
+all plain-Enter guard checks passed
+
+===== verify-word-jump =====
+PASS: caret moves + inserts compose to the expected submitted text  (["hello ZYXworldQ"])
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: source: isMod+left arm exists and precedes bare left arm
+PASS: source: isMod+right arm exists and precedes bare right arm
+verify-word-jump OK
+
+===== verify-batched-prompt-input =====
+PASS: batched text, cursor movement, text, and Enter submit the composed value  (["ba"])
+PASS: batched Termy win32 IME records preserve every committed character  (["ba","你好"])
+PASS: batched Windows input while streaming preserves npm before steer  (["npm"])
+PASS: Ctrl+J inserts a newline before Enter submits the multiline draft  (["ba","你好","ctrl first\nctrl second"])
+PASS: Option+Enter inserts a newline before Enter submits the multiline draft  (["ba","你好","ctrl first\nctrl second","option first\noption second"])
+PASS: Shift+Enter inserts a newline before Enter submits the multiline draft  (["ba","你好","ctrl first\nctrl second","option first\noption second","shift first\nshift second"])
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;verify-batched-prompt-input OK
+
+===== verify-keymap =====
+PASS: parse: ctrl+shift+p
+PASS: parse: alt+v
+PASS: parse: named key ctrl+return
+PASS: parse: ctrl+space → char " "
+PASS: parse: bare letter refused
+PASS: parse: shift-only refused
+PASS: parse: unknown key name refused
+PASS: parse: duplicated modifier refused
+PASS: parse: escape combos refused
+PASS: default paste matches ctrl+v
+PASS: default paste matches alt+v (meta)
+PASS: ctrl+shift+v does NOT match paste (native terminal paste)
+PASS: default editor matches ctrl+g
+PASS: default trajectory matches ctrl+t
+PASS: default history matches ctrl+r
+PASS: default paste display string  (ctrl+v, alt+v)
+PASS: invalid override entry falls back to default
+PASS: other invalid entry keeps paste default
+PASS: override moves the paste binding
+PASS: override drops ctrl+v from paste
+PASS: multi-combo override: alt+r
+PASS: multi-combo override: ctrl+shift+r
+PASS: override reflected in display string  (alt+r, ctrl+shift+r)
+PASS: remapped paste combo joins reserved set
+PASS: remapped combo frees nothing stale
+PASS: other actions keep their defaults reserved
+PASS: fixed: ctrl+u kill-line reserved
+PASS: fixed: ctrl+return reserved
+PASS: fixed: ctrl+w reserved
+PASS: free combo not reserved
+PASS: draft: single combo
+PASS: draft: comma list
+PASS: draft: blank restores default
+PASS: draft: junk refused
+PASS: draft: escape combo refused
+PASS: conflict: history → ctrl+v refused (owned by paste)
+PASS: conflict: paste → ctrl+u refused (fixed kill-line)
+PASS: no conflict: history restating ctrl+r
+PASS: no conflict: fresh combo ctrl+n
+PASS: plain v types  ("v")
+PASS: ctrl+c clears the prompt  ("")
+PASS: alt+v reaches the clipboard paste branch  ({"before":"","after":"/2","notices":[]})
+PASS: alt+v does not type a bare v on an empty clipboard
+PASS: ctrl+v reaches the clipboard paste branch  ({"before":"","after":"/2","notices":[]})
+PASS: remapped alt+g editor key does not type g  ("")
+PASS: remapped editor key reached the editor path (notify seen)  (["Error: No editor configured. Set $VISUAL or $EDITOR environment variable."])
+PASS: default ctrl+g no longer matches after remap
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+all keymap checks passed
+
+===== verify-prompt-history-draft =====
+verify-prompt-history-draft OK
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+===== verify-file-completion =====
+PASS: CMake build output cannot crowd source files out of @ completion
+PASS: a large sibling directory cannot crowd source files out of @ completion
+PASS: ordinary nested source remains reachable in @ completion
+
+===== verify-resume-manage =====
+verify-resume-manage: OK
+
+===== verify-resume-route =====
+PASS: recorded request/header yields the full route  ({"provider":"deepseek-official","model":"deepseek-v4-flash"})
+PASS: provider-only record yields undefined
+PASS: bare log (no header) yields undefined
+PASS: unreadable artifact yields undefined  (undefined)
+PASS: absent persistence yields undefined  (undefined)
+PASS: last request/header wins  ({"provider":"other-provider","model":"other-model"})
+verify-resume-route: all checks passed
+
+===== verify-resume-rename-mru =====
+verify-resume-rename-mru: OK
+
+===== verify-session-kinds =====
+verify-session-kinds: OK (101 checks)
+
+===== verify-session-index =====
+verify-session-index: OK (50 checks)
+
+===== verify-session-browser =====
+PASS: the browser opens as a screen  ( Resume session 0 sessions ╭────────────────────────────────────────────────────────────────────────────────────────────)
+PASS: conversations are listed
+PASS: the current model-switch lineage is not offered as another conversation
+PASS: delegated runs are NOT listed by default
+PASS: but they are counted  ( Resume session 3 sessions · 2 runs folded · 1 empty ╭────────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │ ⌕ Type to search · /tmp │ ╰───────)
+PASS: a session with no conversation is never a row
+PASS: and it is counted too  ( Resume session 3 sessions · 2 runs folded · 1 empty ╭────────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │ ⌕ Type to search · /tmp │ ╰───────)
+PASS: the count reflects only what is shown  ( Resume session 3 sessions · 2 runs folded · 1 empty ╭────────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │ ⌕ Type to search · /tmp │ ╰───────)
+PASS: metadata rides under each title
+PASS: focus starts on the MRU top row (gamma)  (❯ gamma)
+PASS: mouse wheel-down moves the focus one session  (❯ beta)
+PASS: mouse wheel-up moves it back  (❯ gamma)
+PASS: two arrows in one chunk move two rows, not one  (❯ alpha)
+PASS: and back again
+PASS: unclaimed control bytes never reach the search box  ( Resume session 3 sessions · 2 runs folded · 1 empty ╭────────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │ ⌕ Type to search · /tmp │ ╰───────)
+PASS: and the list is untouched by them
+PASS: typing filters the list  ( Resume session 1 sessions · 2 runs folded · 1 empty ╭─────────╮ │ ⌕ alph │ ╰─────────╯ ❯ alpha 12/31 · main · 2.0 KB · deepseek-v4-pro ────────────────────────────────────────────────────────────────)
+PASS: the cursor lands on the surviving row
+PASS: backspace widens the query again
+PASS: Esc clears the query rather than leaving
+PASS: ctrl+s reveals the delegated runs  ( Resume session 5 sessions · 1 empty ╭────────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │ ⌕ Type to search · /tmp │ ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯ ❯ gamma 12/31)
+PASS: nothing is folded any more
+PASS: a run is indented under its parent  ("    ⑂ audit run")
+PASS: ctrl+s folds them away again
+PASS: rename prefills the editor with the focused title  ( ╮ Type to search · /tmp │ ╯ ✎ beta to save · Esc to cancel )
+PASS: the rename call hit the intended session  ([["s-mid","betarenamed"]])
+PASS: the cursor followed the renamed session to its new position  ("❯ betarenamed")
+PASS: the confirmation names the focused session  (deepseek-v4-pro Delete "betarenamed"? The session log is removed permanently. ────────────────────────────────────────────────────────────────────────────────────────────────────────────── Enter to delete · Esc to cancel)
+PASS: Ctrl+Enter does not confirm an irreversible delete  ([])
+PASS: Esc cancels the confirmation
+PASS: repeated Enter commits one delete, on the session the confirmation named  (["s-mid"])
+PASS: the browser says what it did, on the screen the user is looking at  (med ────────────────────────────────────────────────────────────────────────────────────────────────────────────── Enter resume · Tab preview · ⌘a projects · ⌘s runs · ⌘r rename · ⌘d delete · Esc exit)
+PASS: the deleted row leaves the list  ( Resume session 2 sessions · 2 runs folded · 1 empty ╭────────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │ ⌕ Type to search · /tmp │ ╰───────)
+PASS: a failed resume stays in the browser  ( Resume session 2 sessions · 2 runs folded · 1 empty ╭────────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │ ⌕ Type to sear)
+PASS: the browser shows the real resume failure  (gap in committed region ────────────────────────────────────────────────────────────────────────────────────────────────────────────── Enter resume · Tab preview · ⌘a projects · ⌘s runs · ⌘r rename · ⌘d delete · Esc exit)
+PASS: the browser does not misreport every failure as a running model  (gap in committed region ────────────────────────────────────────────────────────────────────────────────────────────────────────────── Enter resume · Tab preview · ⌘a projects · ⌘s runs · ⌘r rename · ⌘d delete · Esc exit)
+PASS: Esc leaves the browser and restores the conversation  ( ✦ dsh-TUI v0.9.3 █▀▀▀▄ █▀▀▀▀ █▀▀▀▀ █▀▀▀▄ █▀▀▀▀ █▀▀▀▀ █▀▀▀▀ █ █ ▄▀▄ ▄ █ █ █ █ █ █ █ █ █ █ █ ▀▀▀▀▄ ▄▄▀▀▀ █ █ █▀▀▀ █▀▀▀ █▄▄▄▀ ▀▀▀▄ █▀▀▀ █▀▀▀ ██ ▄▄▄▄▄▄▄▄▄ ▀▀▀▀▀▀▀▀)
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+all session-browser checks passed
+
+===== verify-session-browser-layout =====
+PASS: zh 180x44 initial: nothing overflows the width
+PASS: zh 180x44 initial: the hint row is the last line, intact
+PASS: zh 180x44 preview on: nothing overflows the width
+PASS: zh 180x44 preview on: the hint row is the last line, intact
+PASS: zh 180x44 runs revealed: nothing overflows the width
+PASS: zh 180x44 runs revealed: the hint row is the last line, intact
+PASS: zh 180x44 all projects: nothing overflows the width
+PASS: zh 180x44 all projects: the hint row is the last line, intact
+PASS: zh 180x44 rename editor: nothing overflows the width
+PASS: zh 180x44 rename editor: the hint row is the last line, intact
+PASS: zh 180x44 rename cancelled: nothing overflows the width
+PASS: zh 180x44 rename cancelled: the hint row is the last line, intact
+PASS: zh 180x44 delete confirmation: nothing overflows the width
+PASS: zh 180x44 delete confirmation: the hint row is the last line, intact
+PASS: zh 180x44 confirmation cancelled: nothing overflows the width
+PASS: zh 180x44 confirmation cancelled: the hint row is the last line, intact
+PASS: zh 180x44 CJK query: nothing overflows the width
+PASS: zh 180x44 CJK query: the hint row is the last line, intact
+PASS: zh 180x44 resized to 200x50: nothing overflows the width
+PASS: zh 180x44 resized to 200x50: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: zh 120x30 initial: nothing overflows the width
+PASS: zh 120x30 initial: the hint row is the last line, intact
+PASS: zh 120x30 preview on: nothing overflows the width
+PASS: zh 120x30 preview on: the hint row is the last line, intact
+PASS: zh 120x30 runs revealed: nothing overflows the width
+PASS: zh 120x30 runs revealed: the hint row is the last line, intact
+PASS: zh 120x30 all projects: nothing overflows the width
+PASS: zh 120x30 all projects: the hint row is the last line, intact
+PASS: zh 120x30 rename editor: nothing overflows the width
+PASS: zh 120x30 rename editor: the hint row is the last line, intact
+PASS: zh 120x30 rename cancelled: nothing overflows the width
+PASS: zh 120x30 rename cancelled: the hint row is the last line, intact
+PASS: zh 120x30 delete confirmation: nothing overflows the width
+PASS: zh 120x30 delete confirmation: the hint row is the last line, intact
+PASS: zh 120x30 confirmation cancelled: nothing overflows the width
+PASS: zh 120x30 confirmation cancelled: the hint row is the last line, intact
+PASS: zh 120x30 CJK query: nothing overflows the width
+PASS: zh 120x30 CJK query: the hint row is the last line, intact
+PASS: zh 120x30 resized to 180x42: nothing overflows the width
+PASS: zh 120x30 resized to 180x42: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: zh 110x34 initial: nothing overflows the width
+PASS: zh 110x34 initial: the hint row is the last line, intact
+PASS: zh 110x34 preview on: nothing overflows the width
+PASS: zh 110x34 preview on: the hint row is the last line, intact
+PASS: zh 110x34 runs revealed: nothing overflows the width
+PASS: zh 110x34 runs revealed: the hint row is the last line, intact
+PASS: zh 110x34 all projects: nothing overflows the width
+PASS: zh 110x34 all projects: the hint row is the last line, intact
+PASS: zh 110x34 rename editor: nothing overflows the width
+PASS: zh 110x34 rename editor: the hint row is the last line, intact
+PASS: zh 110x34 rename cancelled: nothing overflows the width
+PASS: zh 110x34 rename cancelled: the hint row is the last line, intact
+PASS: zh 110x34 delete confirmation: nothing overflows the width
+PASS: zh 110x34 delete confirmation: the hint row is the last line, intact
+PASS: zh 110x34 confirmation cancelled: nothing overflows the width
+PASS: zh 110x34 confirmation cancelled: the hint row is the last line, intact
+PASS: zh 110x34 CJK query: nothing overflows the width
+PASS: zh 110x34 CJK query: the hint row is the last line, intact
+PASS: zh 110x34 resized to 170x46: nothing overflows the width
+PASS: zh 110x34 resized to 170x46: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: zh 99x24 initial: nothing overflows the width
+PASS: zh 99x24 initial: the hint row is the last line, intact
+PASS: zh 99x24 preview on: nothing overflows the width
+PASS: zh 99x24 preview on: the hint row is the last line, intact
+PASS: zh 99x24 runs revealed: nothing overflows the width
+PASS: zh 99x24 runs revealed: the hint row is the last line, intact
+PASS: zh 99x24 all projects: nothing overflows the width
+PASS: zh 99x24 all projects: the hint row is the last line, intact
+PASS: zh 99x24 rename editor: nothing overflows the width
+PASS: zh 99x24 rename editor: the hint row is the last line, intact
+PASS: zh 99x24 rename cancelled: nothing overflows the width
+PASS: zh 99x24 rename cancelled: the hint row is the last line, intact
+PASS: zh 99x24 delete confirmation: nothing overflows the width
+PASS: zh 99x24 delete confirmation: the hint row is the last line, intact
+PASS: zh 99x24 confirmation cancelled: nothing overflows the width
+PASS: zh 99x24 confirmation cancelled: the hint row is the last line, intact
+PASS: zh 99x24 CJK query: nothing overflows the width
+PASS: zh 99x24 CJK query: the hint row is the last line, intact
+PASS: zh 99x24 resized to 159x36: nothing overflows the width
+PASS: zh 99x24 resized to 159x36: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: zh 80x20 initial: nothing overflows the width
+PASS: zh 80x20 initial: the hint row is the last line, intact
+PASS: zh 80x20 preview on: nothing overflows the width
+PASS: zh 80x20 preview on: the hint row is the last line, intact
+PASS: zh 80x20 runs revealed: nothing overflows the width
+PASS: zh 80x20 runs revealed: the hint row is the last line, intact
+PASS: zh 80x20 all projects: nothing overflows the width
+PASS: zh 80x20 all projects: the hint row is the last line, intact
+PASS: zh 80x20 rename editor: nothing overflows the width
+PASS: zh 80x20 rename editor: the hint row is the last line, intact
+PASS: zh 80x20 rename cancelled: nothing overflows the width
+PASS: zh 80x20 rename cancelled: the hint row is the last line, intact
+PASS: zh 80x20 delete confirmation: nothing overflows the width
+PASS: zh 80x20 delete confirmation: the hint row is the last line, intact
+PASS: zh 80x20 confirmation cancelled: nothing overflows the width
+PASS: zh 80x20 confirmation cancelled: the hint row is the last line, intact
+PASS: zh 80x20 CJK query: nothing overflows the width
+PASS: zh 80x20 CJK query: the hint row is the last line, intact
+PASS: zh 80x20 resized to 140x32: nothing overflows the width
+PASS: zh 80x20 resized to 140x32: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: zh 60x14 initial: nothing overflows the width
+PASS: zh 60x14 initial: the hint row is the last line, intact
+PASS: zh 60x14 preview on: nothing overflows the width
+PASS: zh 60x14 preview on: the hint row is the last line, intact
+PASS: zh 60x14 runs revealed: nothing overflows the width
+PASS: zh 60x14 runs revealed: the hint row is the last line, intact
+PASS: zh 60x14 all projects: nothing overflows the width
+PASS: zh 60x14 all projects: the hint row is the last line, intact
+PASS: zh 60x14 rename editor: nothing overflows the width
+PASS: zh 60x14 rename editor: the hint row is the last line, intact
+PASS: zh 60x14 rename cancelled: nothing overflows the width
+PASS: zh 60x14 rename cancelled: the hint row is the last line, intact
+PASS: zh 60x14 delete confirmation: nothing overflows the width
+PASS: zh 60x14 delete confirmation: the hint row is the last line, intact
+PASS: zh 60x14 confirmation cancelled: nothing overflows the width
+PASS: zh 60x14 confirmation cancelled: the hint row is the last line, intact
+PASS: zh 60x14 CJK query: nothing overflows the width
+PASS: zh 60x14 CJK query: the hint row is the last line, intact
+PASS: zh 60x14 resized to 120x26: nothing overflows the width
+PASS: zh 60x14 resized to 120x26: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: zh 46x10 initial: nothing overflows the width
+PASS: zh 46x10 initial: the hint row is the last line, intact
+PASS: zh 46x10 preview on: nothing overflows the width
+PASS: zh 46x10 preview on: the hint row is the last line, intact
+PASS: zh 46x10 runs revealed: nothing overflows the width
+PASS: zh 46x10 runs revealed: the hint row is the last line, intact
+PASS: zh 46x10 all projects: nothing overflows the width
+PASS: zh 46x10 all projects: the hint row is the last line, intact
+PASS: zh 46x10 rename editor: nothing overflows the width
+PASS: zh 46x10 rename editor: the hint row is the last line, intact
+PASS: zh 46x10 rename cancelled: nothing overflows the width
+PASS: zh 46x10 rename cancelled: the hint row is the last line, intact
+PASS: zh 46x10 delete confirmation: nothing overflows the width
+PASS: zh 46x10 delete confirmation: the hint row is the last line, intact
+PASS: zh 46x10 confirmation cancelled: nothing overflows the width
+PASS: zh 46x10 confirmation cancelled: the hint row is the last line, intact
+PASS: zh 46x10 CJK query: nothing overflows the width
+PASS: zh 46x10 CJK query: the hint row is the last line, intact
+PASS: zh 46x10 resized to 106x22: nothing overflows the width
+PASS: zh 46x10 resized to 106x22: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: zh 40x8 initial: nothing overflows the width
+PASS: zh 40x8 initial: the hint row is the last line, intact
+PASS: zh 40x8 preview on: nothing overflows the width
+PASS: zh 40x8 preview on: the hint row is the last line, intact
+PASS: zh 40x8 runs revealed: nothing overflows the width
+PASS: zh 40x8 runs revealed: the hint row is the last line, intact
+PASS: zh 40x8 all projects: nothing overflows the width
+PASS: zh 40x8 all projects: the hint row is the last line, intact
+PASS: zh 40x8 rename editor: nothing overflows the width
+PASS: zh 40x8 rename editor: the hint row is the last line, intact
+PASS: zh 40x8 rename cancelled: nothing overflows the width
+PASS: zh 40x8 rename cancelled: the hint row is the last line, intact
+PASS: zh 40x8 delete confirmation: nothing overflows the width
+PASS: zh 40x8 delete confirmation: the hint row is the last line, intact
+PASS: zh 40x8 confirmation cancelled: nothing overflows the width
+PASS: zh 40x8 confirmation cancelled: the hint row is the last line, intact
+PASS: zh 40x8 CJK query: nothing overflows the width
+PASS: zh 40x8 CJK query: the hint row is the last line, intact
+PASS: zh 40x8 resized to 100x20: nothing overflows the width
+PASS: zh 40x8 resized to 100x20: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: zh 52x7 initial: nothing overflows the width
+PASS: zh 52x7 initial: the hint row is the last line, intact
+PASS: zh 52x7 preview on: nothing overflows the width
+PASS: zh 52x7 preview on: the hint row is the last line, intact
+PASS: zh 52x7 runs revealed: nothing overflows the width
+PASS: zh 52x7 runs revealed: the hint row is the last line, intact
+PASS: zh 52x7 all projects: nothing overflows the width
+PASS: zh 52x7 all projects: the hint row is the last line, intact
+PASS: zh 52x7 rename editor: nothing overflows the width
+PASS: zh 52x7 rename editor: the hint row is the last line, intact
+PASS: zh 52x7 rename cancelled: nothing overflows the width
+PASS: zh 52x7 rename cancelled: the hint row is the last line, intact
+PASS: zh 52x7 delete confirmation: nothing overflows the width
+PASS: zh 52x7 delete confirmation: the hint row is the last line, intact
+PASS: zh 52x7 confirmation cancelled: nothing overflows the width
+PASS: zh 52x7 confirmation cancelled: the hint row is the last line, intact
+PASS: zh 52x7 CJK query: nothing overflows the width
+PASS: zh 52x7 CJK query: the hint row is the last line, intact
+PASS: zh 52x7 resized to 112x19: nothing overflows the width
+PASS: zh 52x7 resized to 112x19: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: en 180x44 initial: nothing overflows the width
+PASS: en 180x44 initial: the hint row is the last line, intact
+PASS: en 180x44 preview on: nothing overflows the width
+PASS: en 180x44 preview on: the hint row is the last line, intact
+PASS: en 180x44 runs revealed: nothing overflows the width
+PASS: en 180x44 runs revealed: the hint row is the last line, intact
+PASS: en 180x44 all projects: nothing overflows the width
+PASS: en 180x44 all projects: the hint row is the last line, intact
+PASS: en 180x44 rename editor: nothing overflows the width
+PASS: en 180x44 rename editor: the hint row is the last line, intact
+PASS: en 180x44 rename cancelled: nothing overflows the width
+PASS: en 180x44 rename cancelled: the hint row is the last line, intact
+PASS: en 180x44 delete confirmation: nothing overflows the width
+PASS: en 180x44 delete confirmation: the hint row is the last line, intact
+PASS: en 180x44 confirmation cancelled: nothing overflows the width
+PASS: en 180x44 confirmation cancelled: the hint row is the last line, intact
+PASS: en 180x44 CJK query: nothing overflows the width
+PASS: en 180x44 CJK query: the hint row is the last line, intact
+PASS: en 180x44 resized to 200x50: nothing overflows the width
+PASS: en 180x44 resized to 200x50: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: en 120x30 initial: nothing overflows the width
+PASS: en 120x30 initial: the hint row is the last line, intact
+PASS: en 120x30 preview on: nothing overflows the width
+PASS: en 120x30 preview on: the hint row is the last line, intact
+PASS: en 120x30 runs revealed: nothing overflows the width
+PASS: en 120x30 runs revealed: the hint row is the last line, intact
+PASS: en 120x30 all projects: nothing overflows the width
+PASS: en 120x30 all projects: the hint row is the last line, intact
+PASS: en 120x30 rename editor: nothing overflows the width
+PASS: en 120x30 rename editor: the hint row is the last line, intact
+PASS: en 120x30 rename cancelled: nothing overflows the width
+PASS: en 120x30 rename cancelled: the hint row is the last line, intact
+PASS: en 120x30 delete confirmation: nothing overflows the width
+PASS: en 120x30 delete confirmation: the hint row is the last line, intact
+PASS: en 120x30 confirmation cancelled: nothing overflows the width
+PASS: en 120x30 confirmation cancelled: the hint row is the last line, intact
+PASS: en 120x30 CJK query: nothing overflows the width
+PASS: en 120x30 CJK query: the hint row is the last line, intact
+PASS: en 120x30 resized to 180x42: nothing overflows the width
+PASS: en 120x30 resized to 180x42: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: en 110x34 initial: nothing overflows the width
+PASS: en 110x34 initial: the hint row is the last line, intact
+PASS: en 110x34 preview on: nothing overflows the width
+PASS: en 110x34 preview on: the hint row is the last line, intact
+PASS: en 110x34 runs revealed: nothing overflows the width
+PASS: en 110x34 runs revealed: the hint row is the last line, intact
+PASS: en 110x34 all projects: nothing overflows the width
+PASS: en 110x34 all projects: the hint row is the last line, intact
+PASS: en 110x34 rename editor: nothing overflows the width
+PASS: en 110x34 rename editor: the hint row is the last line, intact
+PASS: en 110x34 rename cancelled: nothing overflows the width
+PASS: en 110x34 rename cancelled: the hint row is the last line, intact
+PASS: en 110x34 delete confirmation: nothing overflows the width
+PASS: en 110x34 delete confirmation: the hint row is the last line, intact
+PASS: en 110x34 confirmation cancelled: nothing overflows the width
+PASS: en 110x34 confirmation cancelled: the hint row is the last line, intact
+PASS: en 110x34 CJK query: nothing overflows the width
+PASS: en 110x34 CJK query: the hint row is the last line, intact
+PASS: en 110x34 resized to 170x46: nothing overflows the width
+PASS: en 110x34 resized to 170x46: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: en 99x24 initial: nothing overflows the width
+PASS: en 99x24 initial: the hint row is the last line, intact
+PASS: en 99x24 preview on: nothing overflows the width
+PASS: en 99x24 preview on: the hint row is the last line, intact
+PASS: en 99x24 runs revealed: nothing overflows the width
+PASS: en 99x24 runs revealed: the hint row is the last line, intact
+PASS: en 99x24 all projects: nothing overflows the width
+PASS: en 99x24 all projects: the hint row is the last line, intact
+PASS: en 99x24 rename editor: nothing overflows the width
+PASS: en 99x24 rename editor: the hint row is the last line, intact
+PASS: en 99x24 rename cancelled: nothing overflows the width
+PASS: en 99x24 rename cancelled: the hint row is the last line, intact
+PASS: en 99x24 delete confirmation: nothing overflows the width
+PASS: en 99x24 delete confirmation: the hint row is the last line, intact
+PASS: en 99x24 confirmation cancelled: nothing overflows the width
+PASS: en 99x24 confirmation cancelled: the hint row is the last line, intact
+PASS: en 99x24 CJK query: nothing overflows the width
+PASS: en 99x24 CJK query: the hint row is the last line, intact
+PASS: en 99x24 resized to 159x36: nothing overflows the width
+PASS: en 99x24 resized to 159x36: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: en 80x20 initial: nothing overflows the width
+PASS: en 80x20 initial: the hint row is the last line, intact
+PASS: en 80x20 preview on: nothing overflows the width
+PASS: en 80x20 preview on: the hint row is the last line, intact
+PASS: en 80x20 runs revealed: nothing overflows the width
+PASS: en 80x20 runs revealed: the hint row is the last line, intact
+PASS: en 80x20 all projects: nothing overflows the width
+PASS: en 80x20 all projects: the hint row is the last line, intact
+PASS: en 80x20 rename editor: nothing overflows the width
+PASS: en 80x20 rename editor: the hint row is the last line, intact
+PASS: en 80x20 rename cancelled: nothing overflows the width
+PASS: en 80x20 rename cancelled: the hint row is the last line, intact
+PASS: en 80x20 delete confirmation: nothing overflows the width
+PASS: en 80x20 delete confirmation: the hint row is the last line, intact
+PASS: en 80x20 confirmation cancelled: nothing overflows the width
+PASS: en 80x20 confirmation cancelled: the hint row is the last line, intact
+PASS: en 80x20 CJK query: nothing overflows the width
+PASS: en 80x20 CJK query: the hint row is the last line, intact
+PASS: en 80x20 resized to 140x32: nothing overflows the width
+PASS: en 80x20 resized to 140x32: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: en 60x14 initial: nothing overflows the width
+PASS: en 60x14 initial: the hint row is the last line, intact
+PASS: en 60x14 preview on: nothing overflows the width
+PASS: en 60x14 preview on: the hint row is the last line, intact
+PASS: en 60x14 runs revealed: nothing overflows the width
+PASS: en 60x14 runs revealed: the hint row is the last line, intact
+PASS: en 60x14 all projects: nothing overflows the width
+PASS: en 60x14 all projects: the hint row is the last line, intact
+PASS: en 60x14 rename editor: nothing overflows the width
+PASS: en 60x14 rename editor: the hint row is the last line, intact
+PASS: en 60x14 rename cancelled: nothing overflows the width
+PASS: en 60x14 rename cancelled: the hint row is the last line, intact
+PASS: en 60x14 delete confirmation: nothing overflows the width
+PASS: en 60x14 delete confirmation: the hint row is the last line, intact
+PASS: en 60x14 confirmation cancelled: nothing overflows the width
+PASS: en 60x14 confirmation cancelled: the hint row is the last line, intact
+PASS: en 60x14 CJK query: nothing overflows the width
+PASS: en 60x14 CJK query: the hint row is the last line, intact
+PASS: en 60x14 resized to 120x26: nothing overflows the width
+PASS: en 60x14 resized to 120x26: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: en 46x10 initial: nothing overflows the width
+PASS: en 46x10 initial: the hint row is the last line, intact
+PASS: en 46x10 preview on: nothing overflows the width
+PASS: en 46x10 preview on: the hint row is the last line, intact
+PASS: en 46x10 runs revealed: nothing overflows the width
+PASS: en 46x10 runs revealed: the hint row is the last line, intact
+PASS: en 46x10 all projects: nothing overflows the width
+PASS: en 46x10 all projects: the hint row is the last line, intact
+PASS: en 46x10 rename editor: nothing overflows the width
+PASS: en 46x10 rename editor: the hint row is the last line, intact
+PASS: en 46x10 rename cancelled: nothing overflows the width
+PASS: en 46x10 rename cancelled: the hint row is the last line, intact
+PASS: en 46x10 delete confirmation: nothing overflows the width
+PASS: en 46x10 delete confirmation: the hint row is the last line, intact
+PASS: en 46x10 confirmation cancelled: nothing overflows the width
+PASS: en 46x10 confirmation cancelled: the hint row is the last line, intact
+PASS: en 46x10 CJK query: nothing overflows the width
+PASS: en 46x10 CJK query: the hint row is the last line, intact
+PASS: en 46x10 resized to 106x22: nothing overflows the width
+PASS: en 46x10 resized to 106x22: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: en 40x8 initial: nothing overflows the width
+PASS: en 40x8 initial: the hint row is the last line, intact
+PASS: en 40x8 preview on: nothing overflows the width
+PASS: en 40x8 preview on: the hint row is the last line, intact
+PASS: en 40x8 runs revealed: nothing overflows the width
+PASS: en 40x8 runs revealed: the hint row is the last line, intact
+PASS: en 40x8 all projects: nothing overflows the width
+PASS: en 40x8 all projects: the hint row is the last line, intact
+PASS: en 40x8 rename editor: nothing overflows the width
+PASS: en 40x8 rename editor: the hint row is the last line, intact
+PASS: en 40x8 rename cancelled: nothing overflows the width
+PASS: en 40x8 rename cancelled: the hint row is the last line, intact
+PASS: en 40x8 delete confirmation: nothing overflows the width
+PASS: en 40x8 delete confirmation: the hint row is the last line, intact
+PASS: en 40x8 confirmation cancelled: nothing overflows the width
+PASS: en 40x8 confirmation cancelled: the hint row is the last line, intact
+PASS: en 40x8 CJK query: nothing overflows the width
+PASS: en 40x8 CJK query: the hint row is the last line, intact
+PASS: en 40x8 resized to 100x20: nothing overflows the width
+PASS: en 40x8 resized to 100x20: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: en 52x7 initial: nothing overflows the width
+PASS: en 52x7 initial: the hint row is the last line, intact
+PASS: en 52x7 preview on: nothing overflows the width
+PASS: en 52x7 preview on: the hint row is the last line, intact
+PASS: en 52x7 runs revealed: nothing overflows the width
+PASS: en 52x7 runs revealed: the hint row is the last line, intact
+PASS: en 52x7 all projects: nothing overflows the width
+PASS: en 52x7 all projects: the hint row is the last line, intact
+PASS: en 52x7 rename editor: nothing overflows the width
+PASS: en 52x7 rename editor: the hint row is the last line, intact
+PASS: en 52x7 rename cancelled: nothing overflows the width
+PASS: en 52x7 rename cancelled: the hint row is the last line, intact
+PASS: en 52x7 delete confirmation: nothing overflows the width
+PASS: en 52x7 delete confirmation: the hint row is the last line, intact
+PASS: en 52x7 confirmation cancelled: nothing overflows the width
+PASS: en 52x7 confirmation cancelled: the hint row is the last line, intact
+PASS: en 52x7 CJK query: nothing overflows the width
+PASS: en 52x7 CJK query: the hint row is the last line, intact
+PASS: en 52x7 resized to 112x19: nothing overflows the width
+PASS: en 52x7 resized to 112x19: the hint row is the last line, intact
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+all session-browser layout checks passed
+::endgroup::
+
+session-workspace 汇总：
+  ✓ verify-cordis-approval
+  ✓ verify-working-activity
+  ✓ verify-workspace-attachment
+  ✓ verify-workspaces-degrade
+  ✓ verify-extension-events
+  ✓ verify-extension-ui
+  ✓ verify-session-titles
+  ✓ verify-resume-legacy-events
+  ✓ verify-session-cwd
+  ✓ verify-plain-enter-guard
+  ✓ verify-word-jump
+  ✓ verify-batched-prompt-input
+  ✓ verify-keymap
+  ✓ verify-prompt-history-draft
+  ✓ verify-file-completion
+  ✓ verify-resume-manage
+  ✓ verify-resume-route
+  ✓ verify-resume-rename-mru
+  ✓ verify-session-kinds
+  ✓ verify-session-index
+  ✓ verify-session-browser
+  ✓ verify-session-browser-layout
+
+session-workspace：全部 22 项通过

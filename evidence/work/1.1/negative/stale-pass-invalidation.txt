@@ -1,0 +1,24 @@
+$ node scripts/check-work.mjs --item 1.1 --evidence evidence/work/1.1
+Error: required work-check setup is missing
+    at file:///opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/scripts/check-work.mjs:221:63
+    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
+    at async node:internal/modules/esm/loader:639:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+[ELIFECYCLE] Command failed with exit code 2.
+
+exit=2
+{
+  "before": {
+    "runId": "acf81308-1abf-402c-b652-cb1dc6cd99c6",
+    "state": "complete",
+    "canonicalPass": true,
+    "sha256": "a35972f561287db8078edd3cad5da2f173fbd3c519020d649b9735b54e59790f"
+  },
+  "after": {
+    "runId": "8c2baa55-fc58-4af1-a0ab-ea1a7db38bf7",
+    "state": "failed",
+    "canonicalPass": false,
+    "error": "required work-check setup is missing",
+    "sha256": "223110ddac4d99de9bd7c913c9d0009f41baf845238c6791a8897334e756d0eb"
+  }
+}

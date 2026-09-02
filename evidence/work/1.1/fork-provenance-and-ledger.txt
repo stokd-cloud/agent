@@ -1,0 +1,8 @@
+$ /Users/stoked/.nvm/versions/node/v24.15.0/bin/node /opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/tests/work-1.1/provenance-and-ledger.mjs
+exit=0
+signal=<none>
+
+[stdout]
+{"ok":true,"checks":[{"script":"scripts/verify-repository-provenance.mjs","output":{"ok":true,"inventory":{"status":"existing-authorized-fork","repoPath":"/opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp","origin":"https://github.com/stokd-cloud/agent.git","upstream":"https://github.com/ccch1mneyyy/dsh-TUI.git","head":"7d75e2590ad58200dbc54a82cd846f934d27158c"},"toolchain":{"schemaVersion":"1.0","node":"24.15.0","pnpm":"11.25.0","manifests":["package.json","packages/protocol/package.json","packages/runtime/package.json","packages/dsh/package.json","packages/storage/package.json","packages/stokd-bridge/package.json","apps/api/package.json","apps/host/package.json","apps/cli/package.json"]},"donorCommit":"a3439a3c7d7e7b3c9cfc505e833525376e8558d0","collisionRefused":true,"upstreamBootstrap":"idempotent-and-explicit","noticesPreserved":true,"dshPin":"0.1.1-rc.2","dshOverrides":41}},{"script":"scripts/verify-donor-ledger.mjs","output":{"ok":true,"digest":"0dddd7a01fbf1ee38473c6fb113ac3650c6bde1a2ef883be283d1b5a1c9c6b10","count":112,"counts":{"render-scroll":26,"session-workspace":22,"input-terminal":20,"flaky-observation":2,"channel-ui":42},"categoryCounts":{"replace_native":60,"retain_presentation":50,"retain_observation":2}}}]}
+
+[stderr]

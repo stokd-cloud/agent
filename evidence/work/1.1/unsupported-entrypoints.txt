@@ -1,0 +1,8 @@
+$ /Users/stoked/.nvm/versions/node/v24.15.0/bin/node /opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/tests/work-1.1/unsupported-stubs.mjs
+exit=0
+signal=<none>
+
+[stdout]
+{"ok":true,"operations":["admitMessage","getWakeStatus","cancelWake","respondApproval","getArtifactReference"],"entrypoints":["runtime","storage","dsh","stokd-bridge","api","host","cli"],"exitCode":7,"donorFallback":false}
+
+[stderr]

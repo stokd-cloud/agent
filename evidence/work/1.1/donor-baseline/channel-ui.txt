@@ -1,0 +1,1013 @@
+::group::channel-ui（42 项，失败不中断）
+
+===== verify-submit =====
+PASS: submit → agent.followup
+PASS: submit tracked as pending followup  ([{"id":"a200be7f-17ba-42b2-b977-f5c5b03c174c","text":"第一条消息","placement":"followup"}])
+PASS: steer → agent.steer
+PASS: steer tracked as pending steer  ([{"id":"a200be7f-17ba-42b2-b977-f5c5b03c174c","text":"第一条消息","placement":"followup"},{"id":"1b7a40f2-8f6a-4721-98d4-fd3eef3032c1","text":"第二条消息","placement":"steer"}])
+PASS: blank steer ignored
+PASS: claimed handler registered
+PASS: claimed retires the steer item  ([{"id":"a200be7f-17ba-42b2-b977-f5c5b03c174c","text":"第一条消息","placement":"followup"}])
+PASS: discarded retires the followup item  ([])
+PASS: steer for removal tracked  ([{"id":"da8dcb57-63ef-4908-a562-fdf5e56c5d23","text":"撤回我","placement":"steer"}])
+PASS: removePending → agent.inbox.remove
+PASS: removePending clears the item
+PASS: removePending unknown id is false
+PASS: refused pull-back keeps pending  ([{"id":"a7cd1b98-f198-47d8-9ef5-e23e936b1a91","text":"已被认领","placement":"steer"}])
+PASS: pull-back succeeds once unclaimed
+PASS: interruptAndDeliver trims and counts
+PASS: interruptAndDeliver cancels without keepInbox  ([{"cause":{"kind":"user"}}])
+PASS: re-queued without waiting for idle (all texts)  (["插话一","插话二"])
+PASS: re-queued as followup
+PASS: double interrupt does not double-deliver  (["插话一","插话二","y"])
+PASS: cancel convergence does not depend on whenIdle  ([{"content":[{"type":"text","text":"取消后立即恢复"}],"source":{"kind":"user"},"role":"user","id":"ba018826-0371-4a26-980a-432dc9e77e17"}])
+PASS: no-whenIdle agent still receives the wake  ([{"content":[{"type":"text","text":"兜底投递"}],"source":{"kind":"user"},"role":"user","id":"2410ea98-c280-4387-b8de-1e74a17bf774"}])
+
+===== verify-compact =====
+PASS: pre-compact tokens.input accumulated  (5000)
+PASS: pre-compact lastUsage set  ({"input":5000,"output":100,"cacheRead":3000,"cacheWrite":0})
+PASS: pre-compact segments populated  ({"system":6,"prompt":5,"assistant":6,"thinking":0,"tools":0})
+PASS: checkpoint renders notice row  ({"id":2,"kind":"notice","text":"Conversation compacted"})
+PASS: checkpoint renders compact row with full summary  ({"id":3,"kind":"compact","text":"Summary of the entire conversation history up to this point."})
+PASS: segments reset to system + summary  ({"system":6,"prompt":15,"assistant":0,"thinking":0,"tools":0})
+PASS: lastUsage refreshed to current context estimate  ({"input":21,"output":0,"cacheRead":0,"cacheWrite":0})
+PASS: tokens.input dropped by the removed history  (5004)
+PASS: empty summary adds no compact row  ({"id":4,"kind":"notice","text":"Conversation compacted"})
+PASS: empty summary clears the prompt segment  ({"input":6,"output":0,"cacheRead":0,"cacheWrite":0})
+PASS: compact scenario renders at all
+PASS: folded summary shows the fold line
+PASS: folded summary hides the full text
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: expanded summary shows the full text
+PASS: expanded summary hides the fold line
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+===== verify-channel-goal-todo =====
+PASS: goal folded from seed  ({"id":"g1","revision":2,"objective":"Ship the release","phase":"paused","maxGoalRounds":5,"roundsStarted":1})
+PASS: goal revision from last change
+PASS: goal roundsStarted from last change
+PASS: goal maxGoalRounds kept
+PASS: todos = last whole-list snapshot  ([{"content":"Prepare the release notes","status":"completed"},{"content":"Cut the tag","status":"completed"},{"content":"Announce on Slack","status":"pending"}])
+PASS: live resume updates phase
+PASS: subscriber notified after goal change
+PASS: version bumped after goal change
+PASS: live todo/write replaces the list
+PASS: subscriber notified after todo write
+PASS: continuation round advances roundsStarted
+PASS: clear removes the goal
+PASS: non-goal injected message ignored
+PASS: real-shape replay folds the goal  ({"id":"goal-x1","revision":2,"objective":"Demonstrate the goal chip","phase":"complete","maxGoalRounds":1,"roundsStarted":1})
+PASS: real-shape replay reaches complete phase
+PASS: real-shape round prompt advanced roundsStarted
+PASS: live real-shape pause folds
+PASS: live real-shape clear folds
+
+===== verify-whale-toggle =====
+PASS: channel defaults whale to on
+PASS: channel preserves an explicit whale=false
+PASS: setWhale(false) updates and notifies once
+PASS: repeated setWhale(false) is a no-op
+PASS: setWhale(true) restores the default view
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: wide LogoHeader shows whale by default
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: LogoHeader forwards whale=false while preserving the text logo
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: narrow terminal hides whale but preserves the text logo
+
+All 8 whale-toggle checks passed.
+
+===== verify-session-tree =====
+PASS: extractEntries: 5 个条目（用户/工具/助手×2/用户），标题不成条目  (user,tool,assistant,user,assistant)
+PASS: extractEntries: 完整日志的首轮 user 带 firstTurn
+PASS: extractEntries: 工具卡 settled 为 ok
+PASS: extractEntries: 第二轮 user 不带 firstTurn
+PASS: extractEntries: chunk 合并为一条并标 aborted
+PASS: extractEntries: settled 落定后 tentative 去重
+PASS: rewindTarget: 首轮 user → boundary -1（首条消息不可回退）
+PASS: rewindTarget: 轮内工具 → 步末切割 + closeTurn  ({"boundary":5,"closeTurn":0})
+PASS: rewindTarget: 步后助手 → 保留到 turn/end
+PASS: rewindTarget: 轮间条目 → 自身 seq
+PASS: forkTarget: user → 保留该消息 + closeTurn  ({"boundary":9,"closeTurn":1})
+PASS: turnUserText: user 回退取回该轮提示词
+PASS: turnUserText: 保留式目标（助手）不取回文本
+PASS: liveTailWindow: 尾窗对齐到完整轮  (start=13 len=4)
+PASS: buildSessionTree: 单根（R）
+PASS: buildSessionTree: live 叶在 F1 链尾  (F1:10)
+PASS: buildSessionTree: 活动路径含 R 的前缀条目与 F1 全链
+PASS: buildSessionTree: 死分支（R 自有尾、F2）不在活动路径
+PASS: buildSessionTree: 会话元数据标题
+PASS: flattenTree: 活动子树优先于死分支  (f1=3 rOwn=5 f2=7)
+PASS: flattenTree: fork 行带连接线
+PASS: droppedTurnInfo: 单轮分支命中 coversBranch 陷阱
+PASS: filterTree: user-only 只剩用户行（活动叶除外）
+PASS: filterTree: 搜索命中目标行
+PASS: nearestVisibleIndex: 沿父链上溯到可见祖先  (R:9)
+PASS: reader: 全量读回 13 条事件  (len=13)
+PASS: reader: 事件预算截断
+PASS: reader: 继承前缀跳过（标题例外）  (len=4)
+PASS: reader: 不存在的日志返回 undefined
+PASS: screen: 标题渲染
+PASS: screen: 树行渲染（根问句）
+PASS: screen: fork 分支渲染（新方向）
+PASS: screen: 连接线渲染
+PASS: screen: 预览面板渲染
+PASS: screen: 鼠标滚轮下移光标一行  (❯ └─ user: u1-第二问)
+PASS: screen: 鼠标滚轮上移回去  (❯ │     • assistant: f1-回答)
+PASS: screen: Enter 打开操作菜单
+PASS: screen: live 会话不提供切换选项
+PASS: screen: 死分支提供切换选项
+PASS: screen: 字母直达执行分叉  ([{"sessionId":"F2","seq":14,"mode":"fork"}])
+PASS: screen: 执行成功后关屏
+[?2026h[0m]8;;[?25h[?2026l[?1049l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: screen: Esc 直接退出
+[?2026h[0m]8;;[?25h[?2026l[?1049l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+verify-session-tree: ALL PASS
+
+===== verify-empty-assistant-row =====
+PASS: reasoning-only step leaves no assistant row  (["user","reasoning"])
+PASS: reasoning row kept
+PASS: non-streaming text still lands its assistant row  ({"id":2,"kind":"assistant","text":"答复全文","streaming":false,"seq":4})
+PASS: streamed row settles with full text  ({"id":3,"kind":"assistant","text":"流式文本","streaming":false,"seq":5})
+PASS: no empty-text assistant rows anywhere
+
+===== verify-empty-assistant =====
+PASS: 工具卡正常渲染
+PASS: 真实正文正常渲染
+PASS: ⏵ 行 + 正文混合行保留正文
+PASS: 空文本 streaming 行保留（live dot）
+PASS: 空 settled assistant 行被过滤（工具卡上方无孤立 ●）  (toolRow=20)
+PASS: 叙述-only settled 行被过滤（⏵ 行不渲染、上方无孤立 ●）
+PASS: 落定翻转后空 assistant 行被过滤（缓存流位指纹生效）  (lone dots=0)
+PASS: 翻转后真实正文仍在
+PASS: 空 user 行不受 assistant 过滤影响（无崩溃、界面存活）
+[?2026h[0m]8;;[?25h[?2026l[?1049l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+ALL PASS
+
+===== verify-skill-commands =====
+PASS: registry command merged synchronously
+PASS: skills not in the synchronous list
+PASS: user-invocable skill merged (i-h)
+PASS: user-invocable skill merged (helper)
+PASS: skill entries carry the skill marker + description
+PASS: model-only skill excluded
+PASS: registry command wins a name collision
+PASS: review (removed from locals) stays single in the menu as the registered skill command
+PASS: locals all kept
+PASS: skills/change handler captured
+PASS: removed skill leaves the menu
+PASS: added skill enters the menu
+PASS: kept skill stays
+PASS: failed skill read keeps locals + registry and logs a warning  (warned=2)
+PASS: failed skill read restores the last-good skills  (new,clear,compact,resume,rename,recap,rewind,tree,fork,export,btw,trace,context,status,cost,config,reload,settings,doctor,init,agents,activity,preset,theme,color,lang,model,effort,thinking,tokens,balance,provider,login,logout,add-dir,hooks,mcp,skills,plugins,update,vim,terminal-setup,connect,workspace,help,tips,restart,exit,quit,q,plan,i-h,review,newskill)
+PASS: incomplete observation logs a warning  (warned=1)
+PASS: incomplete observation keeps the last-good skills  (new,clear,compact,resume,rename,recap,rewind,tree,fork,export,btw,trace,context,status,cost,config,reload,settings,doctor,init,agents,activity,preset,theme,color,lang,model,effort,thinking,tokens,balance,provider,login,logout,add-dir,hooks,mcp,skills,plugins,update,vim,terminal-setup,connect,workspace,help,tips,restart,exit,quit,q,plan,i-h,review,newskill)
+PASS: complete empty observation authoritatively clears skills  (new,clear,compact,resume,rename,recap,rewind,tree,fork,export,btw,trace,context,status,cost,config,reload,settings,doctor,init,agents,activity,preset,theme,color,lang,model,effort,thinking,tokens,balance,provider,login,logout,add-dir,hooks,mcp,skills,plugins,update,vim,terminal-setup,connect,workspace,help,tips,restart,exit,quit,q,plan)
+PASS: superseding read repopulates the menu
+PASS: stale read failure logs no warning  (warned=0)
+PASS: stale read failure does not touch the live menu
+PASS: user-invocable skill is registered as a real command
+PASS: model-only skill is not registered
+PASS: a name another plugin owns is left alone
+PASS: a built-in skill name registers as a dispatch command
+PASS: the command does not record its own raw input  (recordInput=false)
+PASS: kernel path reports success  ({"kind":"success"})
+PASS: kernel path delivers exactly one message
+PASS: kernel path submits the gesture as a plain user message with args  ({"source":{"kind":"user"},"text":"/i-h 做年终总结"})
+PASS: fallback reports success  ({"kind":"success"})
+PASS: fallback injects exactly one message
+PASS: fallback message carries the rendered skill body
+PASS: fallback message is marked as a user skill invocation  ({"kind":"skill-invocation","name":"i-h","form":"instructions"})
+PASS: a vanished skill reports an error instead of throwing  ({"kind":"error","text":"技能 i-h 已不可用或未开放用户直调"})
+PASS: releaseContributions disposes the skill commands
+PASS: releaseContributions leaves other owners alone
+PASS: pending /skills read starts from the independent agent A
+PASS: newSession switches the independent channel to agent B
+PASS: stale /skills snapshot is hidden after an agent swap
+PASS: current agent B returns a fresh /skills snapshot
+ALL PASS
+
+===== verify-skill-direct-invocation =====
+
+[1] LOCAL_COMMANDS 不含打包技能名（交还直调路径）
+  ✓ isLocalCommandName('audit') === false
+  ✓ isLocalCommandName('bug') === false
+  ✓ isLocalCommandName('practice') === false
+  ✓ isLocalCommandName('pr-comments') === false
+  ✓ isLocalCommandName('release-notes') === false
+  ✓ isLocalCommandName('review') === false
+  ✓ isLocalCommandName('vuln-check') === false
+  ✓ 下划线旧名 'pr_comments' 已从 LOCAL_COMMANDS 移除
+
+[2] 打包技能全部通过 parseCommandName + 撞名过滤
+  ✓ 'audit' 可被命令文法解析
+  ✓ 'audit' 不与本地命令撞名
+  ✓ 'bug' 可被命令文法解析
+  ✓ 'bug' 不与本地命令撞名
+  ✓ 'practice' 可被命令文法解析
+  ✓ 'practice' 不与本地命令撞名
+  ✓ 'pr-comments' 可被命令文法解析
+  ✓ 'pr-comments' 不与本地命令撞名
+  ✓ 'release-notes' 可被命令文法解析
+  ✓ 'release-notes' 不与本地命令撞名
+  ✓ 'review' 可被命令文法解析
+  ✓ 'review' 不与本地命令撞名
+  ✓ 'vuln-check' 可被命令文法解析
+  ✓ 'vuln-check' 不与本地命令撞名
+
+[3] registerPackagedSkills 注册 7 个打包技能
+  ✓ 注册名集合 === 打包技能目录（实际：audit, bug, pr-comments, practice, release-notes, review, vuln-check）
+  ✓ resolveSkillsRoot('/opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/src/dsh-adapter') 命中包根 skills/（实际：/opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/skills）
+  ✓ resolveSkillsRoot('/opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/lib/types/dsh-adapter') 命中包根 skills/（实际：/opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/skills）
+
+[4] SKILL_PROMPTS 与 skill-*-prompt i18n 键不再存在
+  ✓ Chat.tsx 无 SKILL_PROMPTS
+  ✓ i18n.ts 无 'skill-audit-prompt'
+  ✓ i18n.ts 无 'skill-bug-prompt'
+  ✓ i18n.ts 无 'skill-practice-prompt'
+  ✓ i18n.ts 无 'skill-review-prompt'
+  ✓ i18n.ts 无 'skill-pr-comments-prompt'
+  ✓ i18n.ts 无 'skill-release-notes-prompt'
+  ✓ i18n.ts 无 'skill-vuln-check-prompt'
+
+[5] cmd-desc 键对齐连字符注册名
+  ✓ 存在 'cmd-desc-pr-comments'
+  ✓ 不存在 'cmd-desc-pr_comments'
+
+全部断言通过
+
+===== verify-trace-projection =====
+PASS: fixture folds to a non-trivial ledger  (90 rows from 188 events)
+PASS: incremental fold equals from-scratch at every split point  (189 splits)
+PASS: one-event-at-a-time replay equals from-scratch
+PASS: unchanged snapshot returns the same build object
+PASS: tool row pairs with its result
+PASS: tool row keeps its raw arguments unflattened
+PASS: tool row carries the result preview source
+PASS: failed tool carries its error code
+PASS: code-dispatch pairs by subCallId
+PASS: retry sequence folds to one row
+PASS: retry accumulates attempts and backoff  (2 attempts / 1500ms)
+PASS: retry closes without overwriting its backoff
+PASS: retry carries the failure classifier
+PASS: denied approval renders as an error
+PASS: compaction pairs by nesting and reports removals
+PASS: cancelled turn closes as an error
+PASS: seed history is marked by session/end-seed  (2 seed rows)
+PASS: non-human user-role messages become context rows
+PASS: human prompts stay USER rows
+PASS: mode/route/command changes become system rows  (mode,deepseek-v4,/permission)
+PASS: orphan closers neither throw nor create rows  (0 rows)
+PASS: guards never throw on a malformed payload  (570 fuzz cases)
+PASS: guards never emit a half-populated row
+PASS: unknown and log-only events add no rows  (1 rows)
+PASS: two same-name calls do not fold
+PASS: three same-name calls fold to one row
+PASS: a longer run keeps folding into the same row
+PASS: folded members keep their own durations
+PASS: an interleaved call breaks the run into two  (grepx3 otherx1 grepx3)
+PASS: runs shortened by an intruder do not fold  (5 rows)
+PASS: a run spanning an incremental boundary keeps growing  (15 splits)
+PASS: a streamed step contributes exactly one TTFT sample  (1)
+PASS: a step without chunks fabricates no timing
+PASS: burst members expand in the aggregate call count  (20 calls)
+PASS: tool rows rank by total duration
+PASS: model section separates decode, ttft and retry  (retry,decode,ttft)
+PASS: retry backoff is counted once
+PASS: turn rows exist for every turn  (5)
+PASS: token accounting is attached once per step  (1200)
+PASS: error count includes tool, approval and retry failures  (6)
+PASS: sorting by count reorders the tool section
+PASS: wave is well formed across projections and widths  (3 projections x 5 widths)
+PASS: wave floor is the smallest non-empty column  (120 vs 120)
+PASS: wave peak is the p95 column, not the maximum  (770 <= 1750)
+PASS: wave surfaces the error column
+PASS: wave surfaces the retry column
+PASS: wave records turn boundaries  (5)
+PASS: dominant channel is defined for non-empty columns
+PASS: columnOfIndex is monotonic
+PASS: empty ledger yields an empty band
+PASS: preview is capped  (41 chars)
+PASS: preview cost is bounded, not proportional to the source  (238us on 500KB)
+PASS: preview collapses whitespace
+PASS: preview marks truncation of a long whitespace-heavy source
+PASS: preview of a short source is exact
+PASS: preview handles a zero budget
+PASS: empty log folds to an empty ledger
+PASS: empty log aggregates to zeroes
+PASS: events before the first turn fold under turn 0
+
+All trajectory projection checks passed.
+
+===== repro-effort =====
+PASS: startup status line seeds the configured effort  (high)
+PASS: config effort: high reaches the request config (issue #51)  (reasoningEffort=high (undefined would materialize the adapter default "max" at prepareCall))
+PASS: control: no configured effort leaves the seed untouched (adapter default applies)  (reasoningEffort=undefined)
+
+===== verify-subagent-model-route =====
+PASS: route-less child inherits the active TUI route (issue #191)  (provider=deepseek-official, model=deepseek-v4-flash)
+PASS: unrelated request options survive fallback routing
+PASS: complete child-specific routes are not overwritten  (provider=custom-provider, model=custom-model)
+PASS: partial routes are replaced atomically  (provider=deepseek-official, model=deepseek-v4-flash)
+
+===== verify-child-stderr =====
+PASS  未接管：inherit 的子进程 stderr 直达 fd 2（复现 issue 场景）
+PASS  未接管：inherit 的子进程 stderr 不可读（STDERR-NULL）
+PASS  接管（数组 stdio）：裸 stderr 不再到达 fd 2
+PASS  接管（数组 stdio）：stderr 被改成管道（STDERR-PIPED）
+PASS  接管（数组 stdio）：输出行进入受控 sink
+PASS  接管（字符串 stdio）：裸 stderr 不再到达 fd 2
+PASS  接管（字符串 stdio）：输出行进入受控 sink
+PASS  去重：同一行连发 3 次只出一条通知
+PASS  去重：通知带重复计数（重复 3 次）
+PASS  冷却：刚通知过的行在冷却期内静默
+PASS  冷却结束：同一行可再次通知
+PASS  不同的行各自成条通知
+PASS  ANSI 转义被剥离
+PASS  超长行被截断（带省略号）
+PASS  空行/纯空白行被丢弃
+
+all child-stderr guard checks passed
+
+===== verify-model-route =====
+PASS: provider-only config + pref -> pref wins whole  ({"provider":"my-gateway","model":"glm-5.3"})
+PASS: complete config -> config wins whole  ({"provider":"my-gateway","model":"glm-5.3-air"})
+PASS: model-only config + pref -> pref wins whole  ({"provider":"my-gateway","model":"glm-5.3"})
+PASS: no config, no pref -> default route  ({"provider":"deepseek-official","model":"deepseek-v4-flash"})
+PASS: provider-only config, no pref -> default route whole (half pin ignored)  ({"provider":"deepseek-official","model":"deepseek-v4-flash"})
+PASS: empty-string config halves count as unset  ({"provider":"my-gateway","model":"glm-5.3"})
+PASS: explicitModelRoute rejects half-pinned config
+PASS: /new fallback -> startup route whole (never halves from two sources)  ({"provider":"my-gateway","model":"glm-5.3"})
+PASS: catalog contains the route -> kept
+PASS: catalog rejects the route -> wholesale fallback  ({"route":{"provider":"deepseek-official","model":"deepseek-v4-flash"},"rejected":{"provider":"my-gateway","model":"glm-4"}})
+PASS: empty catalog -> trusted (cannot verify)
+PASS: failing catalog -> trusted (best effort)
+PASS: no llm service -> trusted
+PASS: unregistered provider -> wholesale fallback  ({"route":{"provider":"deepseek-official","model":"deepseek-v4-flash"},"rejected":{"provider":"fake-provider","model":"deepseek-v4-flash"}})
+PASS: transport failure that reads like NO_ADAPTER -> still trusted  ({"route":{"provider":"my-gateway","model":"glm-5.3"}})
+PASS: non-Error rejection -> trusted, no throw
+PASS: resume -> last request/header route wins (status line follows the session)  ({"provider":"deepseek-official","model":"deepseek-v4-pro"})
+PASS: resume -> a bare log records no route (caller falls back best-effort)
+PASS: resume -> malformed header data is skipped
+
+All model-route checks passed
+
+===== verify-balance =====
+PASS: fetchBalance 成功解析多币种  ({"ok":true,"isAvailable":true,"balances":[{"currency":"CNY","total":110,"granted":10,"toppedUp":100},{"currency":"USD","total":5.5,"granted":0,"toppedUp":5.5}]})
+PASS: fetchBalance is_available=true
+PASS: fetchBalance 币种数量
+PASS: fetchBalance 字符串数字转数值  ({"currency":"CNY","total":110,"granted":10,"toppedUp":100})
+PASS: fetchBalance 币种名
+PASS: fetchBalance is_available=false  ({"ok":true,"isAvailable":false,"balances":[{"currency":"CNY","total":0,"granted":0,"toppedUp":0}]})
+PASS: fetchBalance 401 → unauthorized  ({"ok":false,"reason":"unauthorized","status":401})
+PASS: fetchBalance 500 → http  ({"ok":false,"reason":"http","status":500})
+PASS: fetchBalance 网络异常 → network  ({"ok":false,"reason":"network"})
+PASS: fetchBalance 非 JSON → invalid  ({"ok":false,"reason":"invalid"})
+PASS: fetchBalance 缺 balance_infos → invalid  ({"ok":false,"reason":"invalid"})
+PASS: fetchBalance 非法数字 → invalid  ({"ok":false,"reason":"invalid"})
+PASS: fetchBalance 空 key → no-key（不发请求）  ({"ok":false,"reason":"no-key"})
+PASS: fetchBalance baseUrl 拼接去尾斜杠  (https://mirror.example.com/user/balance)
+PASS: fetchBalance 超时 → network  ({"ok":false,"reason":"network"})
+PASS: isPeakHour 周一北京 10:00 → 高峰
+PASS: isPeakHour 周一北京 13:00 → 空闲
+PASS: isPeakHour 周一北京 08:00 → 空闲
+PASS: isPeakHour 周一北京 15:00 → 高峰
+PASS: isPeakHour 周五北京 17:59 → 高峰
+PASS: isPeakHour 周五北京 18:00 → 空闲
+PASS: isPeakHour 周日北京 10:00 → 空闲
+PASS: priceForModel 精确匹配 flash
+PASS: priceForModel 最长前缀匹配 vision（flash 价）
+PASS: priceForModel 未知模型
+PASS: 估算 高峰桶 1M 输入未命中 = 3.0  (cost=3)
+PASS: 估算 空闲桶 1M 输入未命中 = 1.5  (cost=1.5)
+PASS: 估算 跨时段分桶各按对应单价 = 1.8  (cost=1.7999999999999998)
+PASS: 估算 缓存命中按命中价 = 0.68  (cost=0.68)
+PASS: 估算 输出按输出价（vision 前缀）= 2.25  (cost=2.25)
+PASS: 估算拆分 peak=3.0 idle=1.5 total=4.5  (split={"total":4.5,"peak":3,"idle":1.5})
+PASS: 估算 cacheRead 超 input 时钳制  (cost=0.00001)
+PASS: 估算 零 token → undefined  (cost=undefined)
+PASS: 估算 未知模型 → undefined  (cost=undefined)
+PASS: isDeepSeekOfficialProvider deepseek-official
+PASS: isDeepSeekOfficialProvider deepseek
+PASS: isDeepSeekOfficialProvider deepseek-vision
+PASS: isDeepSeekOfficialProvider kimi-coding 为 false
+PASS: isDeepSeekOfficialProvider 空串为 false
+PASS: 摘要行显示余额
+PASS: 触发恰好一次 balanceInfo  (1)
+PASS: 摘要行不可用标记未出现
+PASS: 摘要行在视口内
+PASS: hover 显示币种拆分
+PASS: hover 显示 token 与花费估算
+PASS: hover 显示刷新 chip
+PASS: hover 显示关闭 chip
+PASS: hover 显示口径说明
+PASS: 关闭 chip 在视口内
+PASS: 点击 × 关闭报告
+PASS: 重新触发后摘要恢复
+PASS: 累计两次 balanceInfo  (2)
+PASS: 点击摘要行重新查询  (3)
+PASS: 刷新后摘要仍在
+PASS: 失败态摘要
+PASS: 失败态 hover 显示原因
+PASS: 失败态 hover 显示重试
+
+All balance/cost checks passed
+[?2026h[0m]8;;[?25h[?2026l[?1049l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+===== verify-model-picker-groups =====
+PASS: 1 grouping: first-appearance order
+PASS: 1 grouping: registry labels with route-key fallback
+PASS: 1 grouping: counts include interleaved members
+PASS: 1 grouping: empty catalog yields no groups
+PASS: 2 single: drills into the only group
+PASS: 2 single: current model on another route lands on the first row
+PASS: 2 single: no current model lands on the first row
+PASS: 3 multi: lands at the top focused on the current provider group
+PASS: 3 multi: unknown current provider lands on the first group
+PASS: 3 multi: no current provider lands on the first group
+PASS: 4 empty: top level, index 0
+PASS: 5 recents: pinned first with placeholder label and intersected count  ({"provider":"__recents__","label":"__recent__","count":2})
+PASS: 5 recents: provider groups follow unchanged
+PASS: 5 recents: empty intersection pins nothing
+PASS: 5 recents: recentCatalogModels keeps recency order, drops vanished, caps at 10
+PASS: 6 landing: recents pin focuses the recents row
+PASS: 6 landing: single provider without recents keeps the fast path
+PASS: 6 landing: single provider with only the seeded current model keeps the fast path
+PASS: 6 landing: single provider with a second used model shows the top level
+PASS: 6 landing: single provider fast path focuses the current model
+PASS: 7 persist: newest first
+PASS: 7 persist: re-use moves to front, deduped
+PASS: 7 persist: capped at the limit  (len=10 first=bulk-19)
+PASS: 7 persist: corrupt file reads as empty
+
+All model-picker group checks passed
+
+===== verify-fullscreen-migration =====
+ok — resolved false without marker plans unset
+ok — resolved true without marker plans mark
+ok — unset resolution without marker plans mark
+ok — marker present: post-migration false is a deliberate choice and stands
+ok — marker present: done regardless of resolution
+ok — only the fullscreen marker id counts as applied
+ok — absent migrations.json reads empty
+ok — corrupt migrations.json reads empty
+ok — mark write succeeds
+ok — fullscreen marker write succeeds
+ok — merge write keeps sibling keys
+ok — done: no unset op, no marker write
+ok — mark: marker written, unset op untouched
+ok — unset: failed doc write leaves marker unwritten (next boot retries)
+ok — plugin-supplied unset op only invoked on the unset plan
+ok — unset: doc write invoked
+ok — unset: marker lands after successful doc write
+ok — first apply value omits the stale key entirely (absent, not false)
+verify-fullscreen-migration: all checks passed
+
+===== verify-cjk-truncate =====
+truncateToWidth 单元断言:
+  ✓ '你好世界' 截到 0 列 → ''（宽 0）不超限
+  ✓ '你好世界' 截到 1 列 → ''（宽 0）不超限
+  ✓ '你好世界' 截到 2 列 → '你'（宽 2）不超限
+  ✓ '你好世界' 截到 3 列 → '你'（宽 2）不超限
+  ✓ '你好世界' 截到 4 列 → '你好'（宽 4）不超限
+  ✓ '你好世界' 截到 5 列 → '你好'（宽 4）不超限
+  ✓ '你好世界' 截到 7 列 → '你好世'（宽 6）不超限
+  ✓ '你好世界' 截到 8 列 → '你好世界'（宽 8）不超限
+  ✓ limit=3 只保留 1 个整字，不劈开第二个字
+  ✓ limit=4 恰好 2 个字
+  ✓ 中英混排截到 4 列 → 'ab中'
+  ✓ 宽字符卡边界时不塞半个字
+  ✓ 短字符串原样返回
+FileSuggestions 窄终端渲染:
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;  ✓ 第 0 行宽 28 ≤ 终端宽 28：'╭─ 文件 · 共 3 项 ─────────╮'
+  ✓ 第 1 行宽 28 ≤ 终端宽 28：'│ ❯ ▸ 中文目录名          …│'
+  ✓ 第 2 行宽 28 ≤ 终端宽 28：'│   + src/中文文件.ts     …│'
+  ✓ 第 3 行宽 28 ≤ 终端宽 28：'│   + README.md           …│'
+  ✓ 第 4 行宽 28 ≤ 终端宽 28：'╰──────────────────────────╯'
+  ✓ 窄宽度下 directory 描述被截断并带省略号
+
+全部断言通过
+
+===== verify-loaded-context-width =====
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;loaded context narrow-width regression passed
+
+===== repro-thinking =====
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: thinking spinner 无残影（100x28，spinner 状态行恰 1 行）
+
+===== verify-i18n-command-descriptions =====
+CommandSuggestions 随 /lang 切换:
+  ✓ zh：内置命令显示中文描述（新开会话）
+  ✓ zh：compact 显示中文描述
+  ✓ zh：外部命令 plan 走 cmd-desc 中文映射
+  ✓ zh：未收录外部命令回退注册表原文
+  ✓ zh：已收录外部命令不再显示英文原文
+  ✓ en：内置命令回退 LOCAL_COMMANDS 英文原文
+  ✓ en：外部命令 plan 回退注册表英文原文
+  ✓ en：不再残留中文描述
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;HelpMenu 随 /lang 切换:
+  ✓ zh：帮助菜单显示 /new — 新开会话
+  ✓ zh：帮助菜单显示 rewind 中文描述
+  ✓ en：帮助菜单显示英文原文
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;窄终端中文描述截断:
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;  ✓ 第 0 行宽 36 ≤ 终端宽 36：'╭─ 命令 · 共 5 项 ─────────────────╮'
+  ✓ 第 1 行宽 36 ≤ 终端宽 36：'│ ❯ new         新开会话           │'
+  ✓ 第 2 行宽 36 ≤ 终端宽 36：'│   compact     压缩会话历史       │'
+  ✓ 第 3 行宽 36 ≤ 终端宽 36：'│   rewind      回退会话到历史消…  │'
+  ✓ 第 4 行宽 36 ≤ 终端宽 36：'│   plan        切换计划模式（/p…  │'
+  ✓ 第 5 行宽 36 ≤ 终端宽 36：'│   unlisted-extRegistry fallbac…  │'
+  ✓ 第 6 行宽 36 ≤ 终端宽 36：'╰──────────────────────────────────╯'
+  ✓ 窄终端下超长中文描述被截断并带省略号
+
+全部断言通过
+
+===== verify-help-scroll =====
+PASS: help opens at the first command
+PASS: shortcut reference is visible at the top
+PASS: a persistent scroll hint is visible
+PASS: tail commands start outside the viewport
+PASS: pending preview stays behind the help overlay
+PASS: PageDown advances by a viewport
+PASS: PageUp returns by a viewport
+PASS: Down reaches the final command
+PASS: the viewport actually moved away from the top
+PASS: Home returns to the first command
+PASS: End jumps to the final command
+PASS: shortcut reference stays fixed at the tail
+PASS: help suppresses transcript wheel scrolling
+PASS: mouse wheel scrolls the help viewport
+PASS: Escape closes help
+PASS: pending preview returns after help closes
+PASS: reopening help resets the viewport to the top
+PASS: reopened help remains visually exclusive
+PASS: scroll hint remains visible after resize
+PASS: resized help can still reach the tail
+PASS: narrow Help stacks shortcuts into the scroll viewport
+PASS: narrow Help keeps the command-list tail reachable after End and navigation
+PASS: narrow Help keeps the navigation hint fixed
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: /help opens Help through the real Chat command path
+PASS: ordinary Esc then slash stays in command completion
+PASS: ordinary slash completion is visible after Help closes
+PASS: /help reopens through the real Chat command path
+PASS: slash after Help does not open transcript search
+PASS: slash completion remains available after Help closes
+PASS: /help can be submitted again after closing Help
+PASS: Ctrl+T does not open trajectory behind Help
+PASS: Ctrl+P does not toggle loaded context behind Help
+PASS: Ctrl+E does not expand transcript behind Help
+PASS: plugin shortcut does not dispatch behind Help
+PASS: Shift+Tab does not cycle session mode behind Help
+PASS: typing after Shift+Up dismisses Help instead of being trapped in selection mode
+PASS: full Chat fixture enters working state
+PASS: Escape still closes Help while a turn is working
+PASS: Escape closes Help without cancelling a working turn
+PASS: slash typed in Help does not open transcript search
+PASS: slash typed in Help returns to command completion
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;verify-help-scroll OK
+
+===== verify-external-editor =====
+PASS: split: 空白拆分带参数
+PASS: split: 双引号包住带空格路径
+PASS: split: 单引号参数
+PASS: split: 空串 → 空数组
+PASS: split: 空引号 → 空串参数
+PASS: resolve: VISUAL 优先
+PASS: resolve: VISUAL 空白跳过用 EDITOR
+PASS: resolve: 带参数整串解析
+PASS: resolve: 未设置 VISUAL/EDITOR → undefined（无 vi 兜底）
+PASS: cmd-escape: 带空格命令路径 → 插入符转义  (C:\VS^ Code\bin\code.cmd)
+PASS: cmd-escape: 无元字符参数 → 引用+插入符  (^"--wait^")
+PASS: cmd-escape: 内嵌引号 → 反斜杠转义再整体引用  (^"say^ \^"hi\^"^")
+PASS: cmd-escape: 尾部反斜杠翻倍  (^"C:\\^")
+PASS: cmd-escape: node_modules/.bin shim 双转义  (^^^"--wait^^^")
+PASS: cmd-spawn: comspec 默认 + /d /s /c + 单对外层引用 + verbatim  ({"file":"cmd.exe","args":["/d","/s","/c","\"C:\\VS^ Code\\bin\\code.cmd ^\"--wait^\" ^\"C:\\T^ m^ p\\f.md^\"\""],"verbatim":true})
+PASS: cmd-spawn: .bin shim 参数双转义 + 尊重 comspec  ({"file":"C:\\Windows\\System32\\cmd.exe","args":["/d","/s","/c","\"proj\\node_modules\\.bin\\tsc.cmd ^^^\"--watch^^^\"\""],"verbatim":true})
+PASS: cmd-spawn: 正斜杠路径先 win32.normalize 再转义  ({"file":"cmd.exe","args":["/d","/s","/c","\"C:\\Program^ Files\\Microsoft^ VS^ Code\\bin\\code.cmd ^\"--wait^\"\""],"verbatim":true})
+PASS: cmd-spawn: 空 ComSpec 回退 cmd.exe  ({"file":"cmd.exe","args":["/d","/s","/c","\"x.cmd\""],"verbatim":true})
+PASS: shim: code → code.cmd 走 cmd.exe  ({"command":"/var/folders/53/dd576_xj6gq_qtjqyblf1xjw0000gn/T/dsh-tui-verify-editor-LoZ3wY/shim-bin/code.CMD","viaCmd":true})
+PASS: shim: gvim → gvim.exe 直接 spawn  ({"command":"/var/folders/53/dd576_xj6gq_qtjqyblf1xjw0000gn/T/dsh-tui-verify-editor-LoZ3wY/shim-bin/gvim.EXE","viaCmd":false})
+PASS: shim: 显式 .cmd 扩展名原样通过
+PASS: shim: 解析不到回退裸命令
+PASS: 往返: 追加写入 → edited，编辑器补的终止换行剥离  ({"kind":"edited","text":"hello\nedited"})
+PASS: 往返: 空草稿被整体替换 → edited  ({"kind":"edited","text":"replaced content"})
+PASS: 往返: 未改动 → unchanged  ({"kind":"unchanged"})
+PASS: 往返: 草稿自带尾部换行 + 无操作保存 → unchanged（不得误判 edited 丢换行）  ({"kind":"unchanged"})
+PASS: 往返: 编辑器仅补终止换行 → unchanged（不算编辑）  ({"kind":"unchanged"})
+PASS: 往返: 草稿自带尾部空行（Shift+Enter）在编辑后保留  ({"kind":"edited","text":"tail\n\n\nedited\n"})
+PASS: CRLF: 内部 \r\n 无操作保存 → unchanged  ({"kind":"unchanged"})
+PASS: CRLF: 单个尾部 \r\n 无操作保存 → unchanged  ({"kind":"unchanged"})
+PASS: CRLF: 多个尾部 \r\n 无操作保存 → unchanged  ({"kind":"unchanged"})
+PASS: CRLF: 草稿带 \r\n 且确有编辑 → edited（结果规范化为 LF）  ({"kind":"edited","text":"keep\n\nedited\n"})
+PASS: 往返: 非零退出（:cq）→ unchanged 保留原稿  ({"kind":"unchanged"})
+PASS: 往返: 编辑器不存在 → failed 并报出命令名  ({"kind":"failed","message":"/nonexistent-editor-dsh-tui-xyz"})
+PASS: 异常: EDITOR=空引号 → failed 不抛出  ({"kind":"failed","message":""})
+PASS: 异常: 空命令失败后无临时目录泄漏  (before=0 after=0)
+PASS: 异常: EDITOR=/bin/rm（文件被删）→ unchanged 不抛出  ({"kind":"unchanged"})
+PASS: 异常: 临时目录不可写 → failed（不抛出、不杀进程）  ({"kind":"failed","message":"ENOENT: no such file or directory, mkdtemp '/nonexistent-tmpdir-dsh-tui-xyz/dsh-tui-prompt-wXL68e'"})
+PASS: 终端: enter 抛错 → failed 且 exit 仍被调用  ({"outcome":{"kind":"failed","message":"enter exploded"},"calls":["enter","exit"]})
+PASS: 终端: enter 抛错后无临时目录泄漏
+PASS: 终端: exit 抛错 → outcome 不被覆盖、不拒绝  ({"outcome":{"kind":"unchanged"},"calls":["enter","exit"]})
+PASS: 终端: exit 抛错后无临时目录泄漏
+OK
+
+===== repro-external-editor =====
+PASS: 预备: transcript 历史消息可见
+PASS: 预备: 草稿已入输入框
+PASS: 往返: 编辑结果回填输入框
+PASS: bug1: transcript 历史消息仍可见（全量重绘）
+PASS: bug2: 输入框内容完整（未被 ESC 清空）
+PASS: bug2: rewind 选择器未被残留双击 Esc 打开
+PASS: bug3: 终端应答残片未落入界面
+PASS: 活性: 抑制窗口结束后输入正常
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+===== verify-effort-slider-ui =====
+PASS: en: Help opens before slider
+PASS: en: Esc closes Help only
+PASS: slider opens with Reasoning effort title
+PASS: slider lists all three levels
+PASS: current level marked
+PASS: right arrow applied setEffort(max)  (["max"])
+PASS: statusline effort shows max
+PASS: Esc closed the slider
+PASS: /effort off applied  (["max","off"])
+PASS: statusline shows mode label  (         
+
+╭────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+❯            
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ deepseek-v4-flash · off · plan mode · tmp
+
+
+
+
+
+
+
+
+
+
+)
+PASS: second backtab → full  (full)
+PASS: third backtab → default (no segment)  (0)
+PASS: zh: Help opens before slider
+PASS: zh: Esc closes Help only
+PASS: zh: slider title 推理强度
+PASS: zh: hint line localized
+PASS: zh: Esc closed the slider
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+===== verify-thinking-display =====
+PASS: 切换前流式思考行可见
+PASS: 对话框明确这是思考过程显示设置
+PASS: 对话框明确不改变模型思考行为
+PASS: 隐藏项说明模型仍会照常思考
+PASS: 通知准确说明思考过程已隐藏  (["思考过程：隐藏"])
+PASS: 隐藏立即生效，不出现质量警告
+PASS: 隐藏后思考行不可见
+PASS: 隐藏后模型 effort 保持不变  (max)
+PASS: 隐藏不调用 setEffort  ([])
+PASS: English dialog describes thinking display
+PASS: English dialog says model behavior is unchanged
+PASS: English shown option describes conversation visibility
+PASS: showing reasoning again takes effect immediately
+PASS: showing reasoning keeps model effort unchanged  (max)
+PASS: showing reasoning does not call setEffort  ([])
+PASS: English notification says reasoning is shown  (["思考过程：隐藏","Thinking display: shown"])
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+===== verify-themes =====
+  ok   parse: valid theme fields
+  ok   parse: name/displayName default to file name
+  ok   parse: displayName internal CR/LF flattened at the entry
+  ok   parse: bad JSON rejected, no throw
+  ok   parse: bad base rejects the whole file
+  ok   parse: unknown key skipped, valid sibling kept
+  ok   parse: invalid color skipped, valid sibling kept
+  ok   parse: every accepted color form passes
+  ok   load: missing file is silent (undefined, no warning added)
+  ok   load: unsafe name never touches the fs
+  ok   list: valid + salvageable files only, sorted by theme name
+  ok   build: overrides land on the base palette
+  ok   resolve: cached full palette via the name
+  ok   resolve: a name field differing from the file name still resolves
+  ok   isThemeAvailable: built-ins and valid user themes, not the rest
+  ok   getTheme: registry resolves user themes, built-ins untouched
+  ok   auto: available, resolves to the detected base, shadows user themes
+  ok   themePrefs: the auto choice round-trips like any theme name
+  ok   themePrefs: write/read round-trip under the temp HOME
+  ok   themePrefs: corrupt file yields undefined, no throw
+  ok   themePrefs: invalid shapes and unsafe names rejected
+  ok   warnings: each failure mode warns once with a distinct message
+
+verify-themes: PASS (18 expected warnings captured, themes dir: /var/folders/53/dd576_xj6gq_qtjqyblf1xjw0000gn/T/dshtui-theme-test-ayEwbw/.dsh-tui/themes)
+
+===== verify-text-background =====
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;text background color regression passed
+
+===== verify-effort-ignition =====
+PASS: crest: 1 at the crest, 0 at one half-width out
+PASS: crest: beyond the half-width is silent, both directions
+PASS: easings: endpoints are exact
+PASS: easings: clamped outside [0,1]
+PASS: line colors: exactly one entry per column
+PASS: line colors: empty before start and after the end
+PASS: line colors: boundary guards (width 0, negative/NaN/at-total elapsed)
+PASS: line colors: single-column terminal yields one entry
+PASS: line colors: every painted entry is a truecolor rgb() string
+PASS: line colors: some columns are painted mid-wave
+PASS: rest: plain theme border, no letters, one colour
+PASS: rest: exactly three rows — bottom border sits directly under the input row
+PASS: act 1 sweep: a light band runs left→right on BOTH borders, no letters yet (6/6 colours)
+PASS: act 2 label: letters emerged CENTERED while still converging (gap > 1) (col 22: H    I   G    H)
+PASS: act 2 label: letters settled at one-space gap (H I G H)
+PASS: act 2 label: settled dead-center on the terminal (mid at 30, center 30)
+PASS: act 2 label: no extra row — bottom border never moves
+PASS: act 2 label: the badge carries the accent family (1 colours)
+PASS: act 3 fade: badge and sweep are gone, border back to rest
+PASS: lifecycle: no scroll sequences at any point
+PASS: after the fade both borders rest in a single colour
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: cold mount on the top tier: nothing plays
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: single-tier table: nothing plays
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: missing level table: nothing plays
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: leaving the top tier: nothing plays
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;all checks passed
+
+===== verify-effort-accent =====
+PASS: off the top tier: plain prefix, no accent
+PASS: charging onto the top tier: bold + truecolor accent
+PASS: charge ramps dark→full (sampled, monotone) (7 samples, luma 97→177)
+PASS: past the charge window: accent stays solid
+PASS: off the top tier again: accent gone
+all checks passed
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+===== verify-resize-reflow =====
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: 90x30 → 150x30 matches a fresh render
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: 150x30 → 90x30 matches a fresh render
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: 150x30 → 110x30 matches a fresh render
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: 150x30 → 90x36 matches a fresh render
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: 100x24 → 170x40 matches a fresh render
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: 170x40 → 100x24 matches a fresh render
+
+All resize reflow checks passed.
+
+===== verify-ctrl-t-scope =====
+PASS: the startup context panel is on screen
+PASS: the collapsed panel claims Ctrl+P  (▶ （Ctrl+P展开） 已加载上下文 · 系统提示词 2 段 · 工作区指令 ×1 · 运行时上下文 1 项 · 技能 1 · 工…)
+PASS: Ctrl+P expands the panel before the first message  (harness:identity)
+PASS: the expanded details still point to /context  ( · /context)
+PASS: Ctrl+P collapses the panel again  (▶ （Ctrl+P展开） 已加载上下文 · 系统提示词 2 段 · 工作区指令 ×1 · 运行时上下文 1 项 · 技能 1 · 工…)
+PASS: Ctrl+T opens the trajectory even before the first message  (✦ 轨迹  ctrl-t probe                                                        1 轮 · 3 步 · 1.5s ✕)
+PASS: q returns to the context summary
+PASS: /context emits one local report
+PASS: the report contains loaded-context details
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: the startup panel is gone once a row exists
+PASS: Ctrl+T opens the trajectory scene  (✦ 轨迹  ctrl-t probe                                                        1 轮 · 3 步 · 1.5s ✕)
+PASS: q returns to the conversation
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+All Ctrl+T scope checks passed.
+
+===== repro-collapse-shrink =====
+PASS: the expanded frame is taller than the viewport  (23 rows visible of 24)
+PASS: the collapsed screen has no leftover body lines  (0 leftover)
+PASS: the header appears exactly once  (1 copies)
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: the collapsed screen matches a fresh render
+
+All collapse-shrink checks passed.
+
+===== verify-provider-wizard =====
+PASS: 1 catalog: outcome added  (added)
+PASS: 1 catalog: credential under derived ref  ([["DEEPSEEK_API_KEY","sk-test-key"]])
+PASS: 1 catalog: profile shape (no api/baseURL, id-only models)  ([["deepseek",{"apiKeyEnv":"DEEPSEEK_API_KEY","models":[{"id":"deepseek-chat"},{"id":"deepseek-extra"}]}]])
+PASS: 1 catalog: keep → no switch
+PASS: 1 catalog: transcript summary pushed without the key
+PASS: 2 catalog bare: outcome added  (added)
+PASS: 2 catalog bare: profile omits models  ([["openai",{"apiKeyEnv":"OPENAI_API_KEY"}]])
+PASS: 2 catalog bare: switch never asked
+PASS: 3 custom fallback: outcome added  (added)
+PASS: 3 custom fallback: profile carries api + baseURL + id models  ([["acme-gateway",{"apiKeyEnv":"ACME_GATEWAY_API_KEY","baseURL":"https://gw.example/v1","api":"openai-completions","models":[{"id":"acme-large"},{"id":"acme-think"}]}]])
+PASS: 3 custom fallback: discovery-failure warning notified
+PASS: 3 custom fallback: accepted switch to first model  ([["acme-gateway","acme-large"]])
+PASS: 4 custom discovered: outcome added  (added)
+PASS: 4 custom discovered: capacities adopted  ([{"id":"qwen3-32b","contextWindow":131072,"maxTokens":8192}])
+PASS: 5 rollback: outcome failed  (failed)
+PASS: 5 rollback: credential unset after profile failure  (["DEEPSEEK_API_KEY"])
+PASS: 5 rollback: error notified
+PASS: 10 overwrite rollback: outcome failed  (failed)
+PASS: 10 overwrite rollback: old key restored, never unset  ({"removed":[],"credentials":[["DEEPSEEK_API_KEY","sk-new"],["DEEPSEEK_API_KEY","sk-old"]]})
+PASS: 11 channel: no listModelDiscoveryNamespaces call (absent in rc.6)
+PASS: 11 channel: availability guard uses the settings descriptor
+PASS: 6 shadow: outcome added  (added)
+PASS: 6 shadow: credential write skipped
+PASS: 6 shadow: profile still references the ref
+PASS: 7 cancel: outcome cancelled  (cancelled)
+PASS: 7 cancel: nothing written
+PASS: 8 invalid route: re-asked then proceeded  (asks=2 outcome=added)
+PASS: 8 invalid route: warning notified
+PASS: 8 invalid route: written under the corrected route  ("good-route")
+PASS: 9 deriveKeyRef
+PASS: 12 hide flags (catalog path)  ({"mode":true,"catalog":true,"apikey":false,"baseurl-choice":true,"models":false,"confirm":true,"switch":true})
+PASS: 12 catalog omits a duplicate display name  ({"deepseek":"DeepSeek","openai":"OpenAI","其他（手动输入路由名）":"目录里没列出的 catalog 路由"})
+PASS: 12 hide flags (custom path)  ({"mode":true,"route-id":false,"apikey":false,"baseurl":false,"protocol":true,"models-fallback":false,"confirm":true,"switch":true})
+PASS: 13 oauth: outcome added  (added)
+PASS: 13 oauth: mode offered the OAuth option  (["内置 provider","自定义 API 端点","订阅账号登录（OAuth）"])
+PASS: 13 oauth: login ran for the chosen provider  (["openai-codex"])
+PASS: 13 oauth: masked summary pushed with the /model hint  ([{"title":"/provider","lines":["路由：openai-codex","登录方式：OpenAI (ChatGPT Plus/Pro)","令牌到期：2026-08-17T20:53:20.000Z","运行 /model 可切换到新 provider 的模型"]}])
+PASS: 13 oauth: success notified
+PASS: 14 oauth sign-out: outcome signed-out  (signed-out)
+PASS: 14 oauth sign-out: logout ran, no login
+PASS: 14 oauth sign-out: summary notes the removed credential
+PASS: 15 oauth failure: outcome failed  (failed)
+PASS: 15 oauth failure: error notified with the cause  ([{"text":"OAuth 登录失败 · {invalid_grant}","color":"error"}])
+PASS: 15 oauth failure: nothing pushed
+PASS: 16 no oauth service: mode stayed two options  (["内置 provider","自定义 API 端点"])
+PASS: 16 no oauth service: catalog cancel still cancels  (cancelled)
+
+All provider-wizard checks passed
+
+===== verify-login-credentials =====
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;/login credential status verified (configured, missing, unavailable, rejected)
+
+===== verify-askpanel-hide-custom-input =====
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+All hide-custom-input checks passed
+
+===== verify-askpanel-long-list =====
+PASS: initial focus label is visible
+PASS: initial viewport has exactly one selected/focused row
+PASS: focus 25 label is visible after navigation
+PASS: moved viewport has exactly one selected/focused row
+PASS: focus 25 stays visible after shrinking to 18 rows
+PASS: resized viewport has exactly one selected/focused row
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+AskPanel long-list windowing verified
+
+===== verify-plugin-scene-boundary =====
+PASS: healthy scene content painted
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: boundary reports the crash exactly once  (reports=1)
+PASS: report carries scene id and error message  ({"id":"demo","message":"boom-场景炸了"})
+PASS: crashed scene paints nothing afterwards
+[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+All plugin-scene boundary checks passed
+
+===== verify-clickable-targets =====
+ok   looksLikeFilePath('src/foo.ts') true  (true)
+ok   looksLikeFilePath('src/components/Box.tsx') true  (true)
+ok   looksLikeFilePath('./a/b.txt') true  (true)
+ok   looksLikeFilePath('../up/x.js') true  (true)
+ok   looksLikeFilePath('/abs/path.md') true  (true)
+ok   looksLikeFilePath('~/cfg/x.json') true  (true)
+ok   looksLikeFilePath('C:\repo\src\a.ts') true  (true)
+ok   looksLikeFilePath('C:/repo/src/a.ts') true  (true)
+ok   looksLikeFilePath('a/b/c.log') true  (true)
+ok   looksLikeFilePath('node_modules/x/index.js') true  (true)
+ok   looksLikeFilePath('src/foo.ts.') true  (true)
+ok   looksLikeFilePath('dist/app.js') true  (true)
+ok   looksLikeFilePath('and/or') false  (false)
+ok   looksLikeFilePath('2024/01/15') false  (false)
+ok   looksLikeFilePath('https://example.com/a/b') false  (false)
+ok   looksLikeFilePath('http://x.io') false  (false)
+ok   looksLikeFilePath('www.example.com/x') false  (false)
+ok   looksLikeFilePath('a/b') false  (false)
+ok   looksLikeFilePath('1/2') false  (false)
+ok   looksLikeFilePath('owner/repo#123') false  (false)
+ok   looksLikeFilePath('hello world/file.ts') false  (false)
+ok   looksLikeFilePath('a/b.x') false  (false)
+ok   looksLikeFilePath('x.ts') false  (false)
+ok   looksLikeFilePath('github.com/foo/bar') false  (false)
+ok   looksLikeFilePath('src/foo.ts?query=1') false  (false)
+ok   looksLikeFilePath('') false  (false)
+ok   looksLikeFilePath('  ') false  (false)
+ok   looksLikeFilePath('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/b.ts') false  (false)
+ok   looksLikeFilePath('user@host/path') false  (false)
+ok   linkify single path in prose
+ok   linkify trailing punctuation stays outside
+ok   linkify multiple paths
+ok   non-path spans untouched (URL, fraction, issue ref)
+ok   URL slash run untouched (file:// too)
+ok   anchor path after a colon still links (C: drive)
+ok   empty text unchanged
+ok   round-trip 'src/foo.ts'  (dsh-file:src%2Ffoo.ts)
+ok   round-trip 'C:\Users\张三\我的 文件.ts'  (dsh-file:C%3A%5CUsers%5C%E5%BC%A0%E4%B8%89%5C%E6%88%91%E7%9A%84%20%E6%96%87%E4%BB%B6.ts)
+ok   round-trip 'a/b/100%.md'  (dsh-file:a%2Fb%2F100%25.md)
+ok   round-trip '~/.config/x.json'  (dsh-file:~%2F.config%2Fx.json)
+ok   round-trip 'src/文件/测试.txt'  (dsh-file:src%2F%E6%96%87%E4%BB%B6%2F%E6%B5%8B%E8%AF%95.txt)
+ok   scheme prefix  (dsh-file:x.ts)
+ok   parse rejects non-scheme
+ok   parse rejects malformed encoding
+ok   relative resolves against base  (C:\repo\src\a.ts)
+ok   posix relative resolves against base  (/repo/src/a.ts)
+ok   windows drive path passes through  (C:\abs\x.ts)
+ok   absolute posix passes through  (/abs/x.ts)
+ok   tilde expands to home (not the base dir)  (true)
+ok   tilde result is stable under re-resolution  (true)
+ok   file URL to path  (/tmp/foo.ts)
+ok   invalid file URL rejected
+ok   win32 start file is cmd  (cmd.exe)
+ok   win32 start args carry title + quoted target  (/d /s /c "start ^"^" ^"C:\repo\a.ts^"")
+ok   win32 start verbatim
+ok   win32 start stays detached (field-proven channel)
+ok   win32 start quotes space-carrying targets  (/d /s /c "start ^"^" ^"C:\My^ Folder\a.ts^"")
+ok   open spawn for a file stays on start  (cmd.exe /d /s /c "start ^"^" ^"C:\repo\a.ts^"")
+ok   open spawn for a URL stays on start  (cmd.exe)
+ok   open spawn for a missing path stays on start  (cmd.exe)
+
+verify-clickable-targets: all checks passed
+
+===== verify-session-color-recap =====
+PASS: 输入框顶边框存在
+PASS: 顶边框右侧渲染会话名标签（与右圆角留白）  (╭────────────────────────────────────────────────────────────────────────────────────── 我的会话 ──╮)
+PASS: 未设置颜色时边框为主题 promptBorder 灰蓝  (0x55606f)
+PASS: 关闭开关后会话名标签隐藏
+PASS: 重新开启后标签恢复（右上角）
+PASS: /color red 调用 setSessionColor  (["red"])
+PASS: setSessionColor 收到 red  (red)
+PASS: 会话状态记录颜色 red  (red)
+PASS: 通知说明已设置  (["会话颜色已设为 red"])
+PASS: 边框重绘为会话红 #E5484D  (0xe5484d)
+PASS: /color status 报告当前颜色  ([{"title":"/color","lines":["当前会话颜色  red","用法：/color <red/orange/yellow/green/blue/purple/pink/cyan|reset> —— 颜色按会话保存，resume 后仍在"]}])
+PASS: 未知色名报错且不写状态
+PASS: /color reset 调用 setSessionColor('')  (["red",""])
+PASS: 会话颜色清空
+PASS: 边框恢复主题色  (0x55606f)
+PASS: 无参 /color 打开调色板选择器
+PASS: 选择器聚焦当前色（reset 后无当前色 → 首行 red）  (  ❯ ● red)
+PASS: 方向键移动焦点到 orange
+PASS: 选择器 Enter 应用 orange  (["red","","orange"])
+PASS: 选择器应用后关闭
+PASS: 选择器设置后边框重绘为橙色 #F76B15  (0xf76b15)
+PASS: recap 摘要渲染
+PASS: 建议标题渲染
+PASS: 应用按钮渲染
+PASS: 按 a 应用标题走 renameSession  (["会话标识 PR"])
+PASS: 会话标题已更新  (会话标识 PR)
+PASS: 面板标记已应用
+PASS: Esc 关闭 recap 面板
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+===== verify-auto-recap =====
+PASS: 挂载后灰行显示自动总结
+PASS: 自动触发恰好一次 recapRecent  (1)
+PASS: 手动面板未打开（无建议标题）
+PASS: 回顾行带「回顾：」前缀
+PASS: 回顾行上方有分隔线
+PASS: 灰行在视口内
+PASS: hover 显示展开提示
+PASS: hover 显示关闭 chip
+PASS: 点击展开完整面板
+PASS: 展开面板带标题栏
+PASS: 按 a 应用标题走 renameSession  (["AUTO_RECAP_TITLE"])
+PASS: 会话标题已更新  (AUTO_RECAP_TITLE)
+PASS: Esc 收起回灰行
+PASS: hover 后关闭 chip 出现
+PASS: 点击 × 后灰行消失
+PASS: 切换会话重新触发  (2)
+PASS: 切换后灰行重新出现
+PASS: 长摘要完整显示（换行不截断）
+PASS: 回顾行仍带前缀
+PASS: 失败静默（不显示灰行）
+PASS: 设置关闭后不再触发  (4)
+PASS: 设置关闭后无灰行
+PASS: 重新开启后切会话恢复灰行
+PASS: 发送新消息后自动摘要消失
+PASS: 发送消息不触发新的总结  (5)
+PASS: 空会话不触发总结  (5)
+PASS: 空会话无回顾行
+[?2026h[0m]8;;[?25h[?2026l[?1049l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+===== verify-mention-lines =====
+verify-mention-lines: all assertions passed
+::endgroup::
+
+channel-ui 汇总：
+  ✓ verify-submit
+  ✓ verify-compact
+  ✓ verify-channel-goal-todo
+  ✓ verify-whale-toggle
+  ✓ verify-session-tree
+  ✓ verify-empty-assistant-row
+  ✓ verify-empty-assistant
+  ✓ verify-skill-commands
+  ✓ verify-skill-direct-invocation
+  ✓ verify-trace-projection
+  ✓ repro-effort
+  ✓ verify-subagent-model-route
+  ✓ verify-child-stderr
+  ✓ verify-model-route
+  ✓ verify-balance
+  ✓ verify-model-picker-groups
+  ✓ verify-fullscreen-migration
+  ✓ verify-cjk-truncate
+  ✓ verify-loaded-context-width
+  ✓ repro-thinking
+  ✓ verify-i18n-command-descriptions
+  ✓ verify-help-scroll
+  ✓ verify-external-editor
+  ✓ repro-external-editor
+  ✓ verify-effort-slider-ui
+  ✓ verify-thinking-display
+  ✓ verify-themes
+  ✓ verify-text-background
+  ✓ verify-effort-ignition
+  ✓ verify-effort-accent
+  ✓ verify-resize-reflow
+  ✓ verify-ctrl-t-scope
+  ✓ repro-collapse-shrink
+  ✓ verify-provider-wizard
+  ✓ verify-login-credentials
+  ✓ verify-askpanel-hide-custom-input
+  ✓ verify-askpanel-long-list
+  ✓ verify-plugin-scene-boundary
+  ✓ verify-clickable-targets
+  ✓ verify-session-color-recap
+  ✓ verify-auto-recap
+  ✓ verify-mention-lines
+
+channel-ui：全部 42 项通过

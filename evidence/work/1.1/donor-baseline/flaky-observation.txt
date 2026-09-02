@@ -1,0 +1,115 @@
+::group::flaky-observation（2 项，失败不中断）
+
+===== verify-resize-temporal =====
+PASS  基线含 composer 与 sentinel  (composer=29 sentinel=27)
+PASS  resize 落定后 250ms 与 1000ms 画面一致（时间不变量）
+FAIL  20 次宽度循环后画面回到基线（无累计漂移）  (composer 29→29, sentinel 27→27)
+[?2026h[0m]8;;\[?25h[?2026l[?1049l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS  finalize 后流式文本恰好出现一次（无重复）  (occurrences=1)
+[?2026h[0m]8;;\[?25h[?2026l[?1049l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS  流中 resize 终态 == 冷渲染（live mutation 竞争无残留几何）
+[?2026h[0m]8;;\[?25h[?2026l[?1049l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+1 项失败
+::error title=flaky-observation::测试 verify-resize-temporal 失败（exit 1）——已记录，继续跑同组其余测试
+
+===== verify-trace-scene =====
+PASS: scene shows its title and totals  (✦ 轨迹  trajectory probe                                                      3 轮 · 20 步 · 2 错 · 1 重试 · 20.4s ✕)
+PASS: scene shows both view tabs
+PASS: ledger renders tool rows with names
+PASS: ledger folds the burst run  (web_search ×4                                                                               ▄   s2.0)
+PASS: ledger surfaces the retry row
+PASS: ledger renders durations
+PASS: cursor pointer is visible
+PASS: wake band renders block glyphs
+PASS: hint line documents the keys
+PASS: cursor opens pinned to the newest row  (row 20)
+PASS: ↑ walks the cursor back up the ledger  (20 → 19 → 18)
+PASS: inspector follows the cursor with no keystroke
+PASS: cursor movement never shifts the layout below the inspector  (29 / 29 / 29)
+PASS: ] seeks to a failure
+PASS: query narrows the ledger
+PASS: query reports its match count  (3/20 匹配                                                                  压缩空闲)
+PASS: esc clears the query
+--- FULL BUFFER (len=44 vy=14) ---
+0| ✦ 轨迹  trajectory probe                                               
+1|
+2|
+3|
+4|
+5|
+6|
+7|
+8|
+9|
+10|
+11|
+12|
+13|
+14|
+15|
+16|
+17|
+18|
+19|
+20|
+21|
+22|
+23|
+24|
+25|
+26| ○ 时序  ● 热点                                                           
+27| ▁··▁··▁······▁··▅······▅············▁··▁···▁·····▁···▅·····▅·········
+28| 1 ▐▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+29|
+30| 工具
+31| ▸  web_search         ██████████████████████████████     2.0s 4× · ⌀5
+32|    grep_repo          ██████████████████████▌            1.5s 3× · ⌀5
+33|    read_file          ██████████████████████▌            1.5s 3× · ⌀5
+34| 模型
+35|    ttft               ██████████████████████████████     1.5s 3× · ⌀5
+36|    retry              ██████████████████                900ms 1× · ⌀9
+37| 轮次
+38|    turn 3             ██████████████████████████████    10.0s 1× · 24
+39|    turn 1             ███████████████                    5.0s 1× · 24
+40|    turn 2             ███████████████                    5.0s 1× · 24
+41|
+42| ↑/↓ 移动 · ←/→ 视图 · t 排序 · enter 回时序定位 · q 退出   600→120
+43|
+PASS: → switches to the hotspot view
+PASS: hotspot ranks tools by cost
+PASS: hotspot draws bars
+PASS: ← returns to the timeline
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: conversation renders before the scene opens
+PASS: Ctrl+T enters the alternate screen  (alternate)
+PASS: the conversation is no longer on screen
+PASS: the scene is painted there
+PASS: main screen returns to the conversation  (line 22: "· Mulling… (24532h 29m 44s · ↑ 640 · ↓ 0 tokens)" vs "✳ Caramelizing… (24532h 29m 46s · ↑ 640 · ↓ 0 tokens)  ")
+PASS: scrollback growth is bounded per round trip, not per frame  (0 lines over 20 trips = 0.0/trip)
+PASS: navigating inside the scene adds no scrollback at all  (30 → 30 over 42 keystrokes)
+PASS: idle animation emits no repaint escapes  (1154 bytes over ~12 ticks)
+PASS: idle animation does emit style updates  (1154 bytes)
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: frame-restore probe enters the alternate screen
+PASS: an unchanged main screen is not repainted after DEC 1049 restores it  (post-exit bytes=6424)
+PASS: reasoning that settles in the trajectory leaves no blank answer gap  (first=22, second=24, blank=1, buffer=34, waited=1ms)
+PASS: Ctrl+O expands settled reasoning after the round trip
+PASS: a second Ctrl+O folds settled reasoning again
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: the startup tip teaches the trajectory key
+PASS: the idle shortcuts hint appears exactly once  (1)
+PASS: the status line carries a live wake strip  (                       ▁▁▁▄▄▁▁▁▄▄▁▁▁▄▄█ ⌘t)
+PASS: the key hint rides beside the strip while unseen  (                       ▁▁▁▄▄▁▁▁▄▄▁▁▁▄▄█ ⌘t)
+PASS: a failed call carries exactly one trajectory footnote  (1)
+PASS: the footnote clears once the trajectory has been opened
+PASS: the key hint retires once the trajectory has been opened  (                          ▁▁▁▄▄▁▁▁▄▄▁▁▁▄▄█)
+PASS: the wake strip stays after the hint retires
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: wake sits at the right margin at 84 cols  (ends at 83, terminal is 84)
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: wake sits at the right margin at 100 cols  (ends at 99, terminal is 100)
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: wake sits at the right margin at 126 cols  (ends at 125, terminal is 126)
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: wake sits at the right margin at 150 cols  (ends at 149, terminal is 150)
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;PASS: wake sits at the right margin at 184 cols  (ends at 183, terminal is 184)
+[?2026h[0m]8;;[?25h[?2026l[?1006l[?1003l[?1002l[?1000l[>4m[<u[?9001l[?1004l[?2004l[?25h]9;4;0;
+All trajectory scene checks passed.
+::endgroup::
+
+flaky-observation 汇总：
+  ✗ verify-resize-temporal（exit 1）
+  ✓ verify-trace-scene
+
+flaky-observation：1/2 项失败——verify-resize-temporal

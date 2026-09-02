@@ -1,0 +1,116 @@
+Scope: all 8 workspace projects
+? Verifying lockfile against supply-chain policies (376 entries)...
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +337
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 337, reused 0, downloaded 53, added 0
+Packages are cloned from the content-addressable store to the virtual store.
+  Content-addressable store is at: /Users/stoked/Library/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 337, reused 0, downloaded 108, added 8
+Progress: resolved 337, reused 0, downloaded 214, added 16
+Progress: resolved 337, reused 0, downloaded 333, added 49
+✓ Lockfile passes supply-chain policies (376 entries in 5.3s)
+Progress: resolved 337, reused 0, downloaded 336, added 124
+Progress: resolved 337, reused 0, downloaded 336, added 208
+Progress: resolved 337, reused 0, downloaded 336, added 329
+Progress: resolved 337, reused 0, downloaded 337, added 335
+Progress: resolved 337, reused 0, downloaded 337, added 336
+Progress: resolved 337, reused 0, downloaded 337, added 337, done
+
+dependencies:
++ @alcalzone/ansi-tokenize 0.3.0
++ @deepseek-harness-tui/dsh-auth 0.1.0 <- dsh-auth
++ @dsh-std/command 0.1.0 <- vendor/dsh-std/packages/command
++ @dsh-std/connection 0.1.0 <- vendor/dsh-std/packages/connection
++ @dsh-std/core 0.1.0 <- vendor/dsh-std/packages/core
++ @dsh-std/manifest 0.1.0 <- vendor/dsh-std/packages/manifest
++ @dsh-std/messages 0.1.0 <- vendor/dsh-std/packages/messages
++ @dsh-std/presentation 0.1.0 <- vendor/dsh-std/packages/presentation
++ @dsh-std/storage 0.1.0 <- vendor/dsh-std/packages/storage
++ @earendil-works/pi-ai 0.82.1
++ auto-bind 5.0.1
++ bidi-js 1.0.3
++ chalk 5.6.2
++ cli-boxes 4.0.1
++ cli-highlight 2.1.11
++ code-excerpt 4.0.0
++ diff 8.0.4
++ dsh-working-activity 0.3.3
++ emoji-regex 10.6.0
++ figures 6.1.0
++ get-east-asian-width 1.6.0
++ highlight.js 11.12.0
++ indent-string 5.0.0
++ lodash-es 4.18.1
++ marked 18.0.9
++ react 19.2.8
++ react-reconciler 0.33.0
++ semver 7.8.5
++ signal-exit 4.1.0
++ stack-utils 2.0.6
++ strip-ansi 7.2.0
++ supports-hyperlinks 3.2.0
++ type-fest 4.41.0
++ usehooks-ts 3.1.1
++ wrap-ansi 9.0.2
+
+devDependencies:
++ @deepseek-ai/cordis 4.0.1
++ @deepseek-ai/cordis-plugin-include 1.0.6
++ @deepseek-ai/cordis-plugin-loader 1.0.2
++ @deepseek-ai/dsh-agent 0.1.1-rc.2
++ @deepseek-ai/dsh-agent-instructions 0.1.1-rc.2
++ @deepseek-ai/dsh-agent-presets 0.1.1-rc.2
++ @deepseek-ai/dsh-atomic-write 0.1.1-rc.2
++ @deepseek-ai/dsh-attachment 0.1.1-rc.2
++ @deepseek-ai/dsh-brand 0.1.1-rc.2
++ @deepseek-ai/dsh-code-runtime 0.1.1-rc.2
++ @deepseek-ai/dsh-commands 0.1.1-rc.2
++ @deepseek-ai/dsh-cordis-host-runner 0.1.1-rc.2
++ @deepseek-ai/dsh-fs 0.1.1-rc.2
++ @deepseek-ai/dsh-home-paths 0.1.1-rc.2
++ @deepseek-ai/dsh-invariants 0.1.1-rc.2
++ @deepseek-ai/dsh-llm 0.1.1-rc.2
++ @deepseek-ai/dsh-llm-pi-ai 0.1.1-rc.2
++ @deepseek-ai/dsh-persona 0.1.1-rc.2
++ @deepseek-ai/dsh-sandbox 0.1.1-rc.2
++ @deepseek-ai/dsh-sandbox-policy 0.1.1-rc.2
++ @deepseek-ai/dsh-scope 0.1.1-rc.2
++ @deepseek-ai/dsh-session 0.1.1-rc.2
++ @deepseek-ai/dsh-session-persistence 0.1.1-rc.2
++ @deepseek-ai/dsh-session-persistence-jsonl 0.1.1-rc.2
++ @deepseek-ai/dsh-session-persistence-sqlite 0.1.1-rc.2
++ @deepseek-ai/dsh-settings 0.1.1-rc.2
++ @deepseek-ai/dsh-skill 0.1.1-rc.2
++ @deepseek-ai/dsh-storage 0.1.1-rc.2
++ @deepseek-ai/dsh-storage-domain 0.1.1-rc.2
++ @deepseek-ai/dsh-storage-json 0.1.1-rc.2
++ @deepseek-ai/dsh-subprocess 0.1.1-rc.2
++ @deepseek-ai/dsh-system-prompt 0.1.1-rc.2
++ @deepseek-ai/dsh-terminal 0.1.1-rc.2
++ @deepseek-ai/dsh-terminal-bash 0.1.1-rc.2
++ @deepseek-ai/dsh-timeout 0.1.1-rc.2
++ @deepseek-ai/dsh-tool-ask-user 0.1.1-rc.2
++ @deepseek-ai/dsh-tool-bash-persistent 0.1.1-rc.2
++ @deepseek-ai/dsh-tool-cordis 0.1.1-rc.2
++ @deepseek-ai/dsh-tools 0.1.1-rc.2
++ @deepseek-ai/dsh-typert-protocol 0.1.1-rc.2
++ @deepseek-ai/dsh-user-approval 0.1.1-rc.2
++ @deepseek-ai/dsh-user-questions 0.1.1-rc.2
++ @deepseek-ai/dsh-web-app 0.1.1-rc.2
++ @deepseek-ai/dsh-workspace 0.1.1-rc.2
++ @deepseek-ai/schemastery 3.18.1
++ @types/lodash-es 4.17.12
++ @types/node 22.20.1
++ @types/react 19.2.18
++ @types/react-reconciler 0.33.0
++ @types/semver 7.8.0
++ @xterm/headless 6.0.0
++ tar 7.5.22
++ tsx 4.23.12
++ typescript 6.0.3
++ yaml 2.9.0
+
+Done in 10.6s using pnpm v11.25.0

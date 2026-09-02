@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "1.0",
+  "sealed": false,
+  "sourceCommit": "a3439a3c7d7e7b3c9cfc505e833525376e8558d0",
+  "nodeVersion": "v24.15.0",
+  "pnpmVersion": "11.25.0",
+  "environment": {
+    "DSH_TUI_LANG": "zh"
+  },
+  "submodules": {
+    "dsh-auth": "fba02bcf7fb57e3d9885f73882d5835ccdf526c4",
+    "dsh-ecosystem-spec": "04d6798152db1df8523d97f51541adf42d3e41d9",
+    "vendor/dsh-std": "614dfa1ac168db79fcf4577cf0ebb34e2e3b944b"
+  },
+  "commands": [
+    {
+      "id": "install",
+      "command": "pnpm install --frozen-lockfile --ignore-scripts",
+      "exitCode": 0,
+      "log": "install.txt"
+    },
+    {
+      "id": "compile",
+      "command": "pnpm compile",
+      "exitCode": 0,
+      "log": "compile.txt"
+    },
+    {
+      "id": "verify-build",
+      "command": "pnpm verify:build",
+      "exitCode": 0,
+      "log": "verify-build.txt"
+    },
+    {
+      "id": "verify-package",
+      "command": "pnpm verify:package",
+      "exitCode": 0,
+      "log": "verify-package.txt"
+    },
+    {
+      "id": "render-scroll",
+      "command": "node scripts/run-ci-group.mjs render-scroll",
+      "exitCode": 1,
+      "passed": 24,
+      "total": 26,
+      "failures": [
+        "repro-inline-scrollback",
+        "repro-idle-oscillation"
+      ],
+      "log": "render-scroll.txt"
+    },
+    {
+      "id": "input-terminal",
+      "command": "node scripts/run-ci-group.mjs input-terminal",
+      "exitCode": 0,
+      "passed": 20,
+      "total": 20,
+      "log": "input-terminal.txt"
+    },
+    {
+      "id": "session-workspace",
+      "command": "node scripts/run-ci-group.mjs session-workspace",
+      "exitCode": 0,
+      "passed": 22,
+      "total": 22,
+      "log": "session-workspace.txt"
+    },
+    {
+      "id": "channel-ui",
+      "command": "node scripts/run-ci-group.mjs channel-ui",
+      "exitCode": 0,
+      "passed": 42,
+      "total": 42,
+      "log": "channel-ui.txt"
+    },
+    {
+      "id": "flaky-observation",
+      "command": "node scripts/run-ci-group.mjs flaky-observation",
+      "exitCode": 1,
+      "passed": 1,
+      "total": 2,
+      "failures": [
+        "verify-resize-temporal"
+      ],
+      "log": "flaky-observation.txt"
+    }
+  ],
+  "disposition": "Untouched donor baseline only. Failures are retained observations and are not waived or converted to passes."
+}

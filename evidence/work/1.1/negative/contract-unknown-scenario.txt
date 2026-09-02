@@ -1,0 +1,5 @@
+$ node scripts/verify-contract.mjs --target VAL-REPO-001 --scenario undeclared
+unknown or undeclared scenario for VAL-REPO-001: undeclared
+[ELIFECYCLE] Command failed with exit code 2.
+
+exit=2

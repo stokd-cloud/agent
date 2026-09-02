@@ -1,0 +1,15 @@
+$ node scripts/verify-donor-ledger.mjs
+file:///opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/scripts/verify-donor-ledger.mjs:8
+if(process.env.AGENT_DONOR_LEDGER) throw new Error('AGENT_DONOR_LEDGER override is forbidden for canonical verification')
+                                         ^
+
+Error: AGENT_DONOR_LEDGER override is forbidden for canonical verification
+    at file:///opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/scripts/verify-donor-ledger.mjs:8:42
+    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
+    at async node:internal/modules/esm/loader:639:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.15.0
+[ELIFECYCLE] Command failed with exit code 1.
+
+exit=1
