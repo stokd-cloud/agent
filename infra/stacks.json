@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0",
+  "status": "unsupported",
+  "exitCode": 7,
+  "stacks": [
+    "api",
+    "mongodb",
+    "artifacts",
+    "kms",
+    "backups"
+  ]
+}

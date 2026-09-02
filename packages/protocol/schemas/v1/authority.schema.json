@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent.stokd.cloud/schemas/v1/authority.schema.json",
+  "title": "Cloud Agent authority context",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "ownerSubject",
+    "agentId",
+    "authorityRevision",
+    "hostId",
+    "expiresAt",
+    "permittedActions",
+    "permittedScopes"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "ownerSubject": {
+      "type": "string",
+      "pattern": "^own_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "agentId": {
+      "type": "string",
+      "pattern": "^agt_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "authorityRevision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "coordinatorAttemptId": {
+      "type": "string",
+      "pattern": "^atm_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "coordinatorGeneration": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "workId": {
+      "type": "string",
+      "pattern": "^wrk_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "workAttemptId": {
+      "type": "string",
+      "pattern": "^wka_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "workGeneration": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "hostId": {
+      "type": "string",
+      "pattern": "^hst_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "permittedActions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "permittedScopes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    }
+  }
+}

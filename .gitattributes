@@ -11,3 +11,6 @@
 
 # 二进制资源
 *.png binary
+
+# Raw terminal captures use trailing spaces to preserve rendered columns.
+evidence/**/*.txt text eol=lf -whitespace

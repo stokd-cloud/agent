@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1.0",
+  "oracles": {
+    "O-SOURCE": "pinned DST donor source and inherited source suites, with an explicit retained/replaced/unsupported surface ledger and expected diffs approved by this contract. Full native session semantics are intentionally replaced; rendering/input behavior retained by the ledger must pass source tests.",
+    "O-STATE": "the lifecycle, authority and command tables below, frozen into expected fixtures before implementation; real Mongo replica-set records plus fault traces. Never infer success from a worker's prose.",
+    "O-RELEASE": "isolated fresh clone/release artifact, exact Git SHAs/lockfiles, imports/process/network traces, independent cloud deployment and backup-restore drill."
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent.stokd.cloud/schemas/v1/context.schema.json",
+  "title": "Cloud Agent context snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "snapshotId",
+    "agentId",
+    "conversationId",
+    "wakeId",
+    "attemptId",
+    "authorityRevision",
+    "policy",
+    "identity",
+    "responsibilities",
+    "activeCommitments",
+    "memories",
+    "conversationSummary",
+    "recentTurns",
+    "currentPrompt",
+    "selections",
+    "modelVersion",
+    "toolVersion",
+    "policyVersion",
+    "tokenCounts"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "snapshotId": {
+      "type": "string",
+      "pattern": "^ctx_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "agentId": {
+      "type": "string",
+      "pattern": "^agt_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "conversationId": {
+      "type": "string",
+      "pattern": "^cnv_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "wakeId": {
+      "type": "string",
+      "pattern": "^wak_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "attemptId": {
+      "type": "string",
+      "pattern": "^atm_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "authorityRevision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "policy": {
+      "type": "object"
+    },
+    "identity": {
+      "type": "object"
+    },
+    "responsibilities": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "activeCommitments": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "memories": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "conversationSummary": {
+      "type": "string"
+    },
+    "recentTurns": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "currentPrompt": {
+      "type": "string"
+    },
+    "selections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sourceId",
+          "sourceRevision",
+          "reason",
+          "tokenCount"
+        ],
+        "properties": {
+          "sourceId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sourceRevision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tokenCount": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "modelVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "toolVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "policyVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tokenCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "currentPrompt"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 32000
+        },
+        "currentPrompt": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 32000
+        }
+      }
+    }
+  }
+}

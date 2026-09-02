@@ -23,5 +23,6 @@
     "noImplicitOverride": false,
     "noFallthroughCasesInSwitch": false
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/cloud-agent-client.ts"]
 }

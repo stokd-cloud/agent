@@ -46,10 +46,64 @@ overrides:
   '@deepseek-ai/dsh-user-questions': 0.1.1-rc.2
   '@deepseek-ai/dsh-web-app': 0.1.1-rc.2
   '@deepseek-ai/dsh-workspace': 0.1.1-rc.2
+  '@deepseek-ai/schemastery': 3.18.1
 
 importers:
 
   .:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.1
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+
+  apps/api:
+    dependencies:
+      '@stokd-cloud/agent-protocol':
+        specifier: workspace:*
+        version: link:../../packages/protocol
+
+  apps/cli:
+    dependencies:
+      '@stokd-cloud/agent-protocol':
+        specifier: workspace:*
+        version: link:../../packages/protocol
+
+  apps/host:
+    dependencies:
+      '@stokd-cloud/agent-protocol':
+        specifier: workspace:*
+        version: link:../../packages/protocol
+
+  packages/dsh:
+    dependencies:
+      '@stokd-cloud/agent-protocol':
+        specifier: workspace:*
+        version: link:../protocol
+
+  packages/protocol: {}
+
+  packages/runtime:
+    dependencies:
+      '@stokd-cloud/agent-protocol':
+        specifier: workspace:*
+        version: link:../protocol
+
+  packages/stokd-bridge:
+    dependencies:
+      '@stokd-cloud/agent-protocol':
+        specifier: workspace:*
+        version: link:../protocol
+
+  packages/storage:
+    dependencies:
+      '@stokd-cloud/agent-protocol':
+        specifier: workspace:*
+        version: link:../protocol
+
+  packages/tui:
     dependencies:
       '@alcalzone/ansi-tokenize':
         specifier: ^0.3.0
@@ -58,29 +112,32 @@ importers:
         specifier: link:./dsh-auth
         version: link:dsh-auth
       '@dsh-std/command':
-        specifier: workspace:*
+        specifier: link:./vendor/dsh-std/packages/command
         version: link:vendor/dsh-std/packages/command
       '@dsh-std/connection':
-        specifier: workspace:*
+        specifier: link:./vendor/dsh-std/packages/connection
         version: link:vendor/dsh-std/packages/connection
       '@dsh-std/core':
-        specifier: workspace:*
+        specifier: link:./vendor/dsh-std/packages/core
         version: link:vendor/dsh-std/packages/core
       '@dsh-std/manifest':
-        specifier: workspace:*
+        specifier: link:./vendor/dsh-std/packages/manifest
         version: link:vendor/dsh-std/packages/manifest
       '@dsh-std/messages':
-        specifier: workspace:*
+        specifier: link:./vendor/dsh-std/packages/messages
         version: link:vendor/dsh-std/packages/messages
       '@dsh-std/presentation':
-        specifier: workspace:*
+        specifier: link:./vendor/dsh-std/packages/presentation
         version: link:vendor/dsh-std/packages/presentation
       '@dsh-std/storage':
-        specifier: workspace:*
+        specifier: link:./vendor/dsh-std/packages/storage
         version: link:vendor/dsh-std/packages/storage
       '@earendil-works/pi-ai':
         specifier: ^0.82.1
-        version: 0.82.1(ws@8.21.3)(zod@4.4.3)
+        version: 0.82.1(supports-color@7.2.0)(ws@8.21.3)(zod@4.4.3)
+      '@stokd-cloud/agent-protocol':
+        specifier: workspace:*
+        version: link:../protocol
       auto-bind:
         specifier: ^4.0.0 || ^5.0.0
         version: 5.0.1
@@ -207,7 +264,7 @@ importers:
         version: 0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-attachment@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-brand@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-invariants@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)))(@deepseek-ai/dsh-invariants@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)))(@deepseek-ai/dsh-brand@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-invariants@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)))(@deepseek-ai/dsh-invariants@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1))(@deepseek-ai/dsh-timeout@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-invariants@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)))
       '@deepseek-ai/dsh-llm-pi-ai':
         specifier: 0.1.1-rc.2
-        version: 0.1.1-rc.2(d84e4a64caf8a8493785c52daa9086a6)
+        version: 0.1.1-rc.2(7671ff7587fe2a7a991fa2b9b4c2b7f0)
       '@deepseek-ai/dsh-persona':
         specifier: 0.1.1-rc.2
         version: 0.1.1-rc.2(c46449525c16bef5ec3490eab6722d56)
@@ -290,7 +347,7 @@ importers:
         specifier: 0.1.1-rc.2
         version: 0.1.1-rc.2(ca1aef6913f66bb64a14405a8170db89)
       '@deepseek-ai/schemastery':
-        specifier: ^3.18.1
+        specifier: 3.18.1
         version: 3.18.1
       '@types/lodash-es':
         specifier: ^4.17.0
@@ -322,56 +379,6 @@ importers:
       yaml:
         specifier: ^2.9.0
         version: 2.9.0
-
-  vendor/dsh-std/packages/command:
-    dependencies:
-      '@dsh-std/connection':
-        specifier: workspace:*
-        version: link:../connection
-      '@dsh-std/core':
-        specifier: workspace:*
-        version: link:../core
-      '@dsh-std/manifest':
-        specifier: workspace:*
-        version: link:../manifest
-      '@dsh-std/presentation':
-        specifier: workspace:*
-        version: link:../presentation
-
-  vendor/dsh-std/packages/connection:
-    dependencies:
-      '@dsh-std/core':
-        specifier: workspace:*
-        version: link:../core
-
-  vendor/dsh-std/packages/core: {}
-
-  vendor/dsh-std/packages/manifest:
-    dependencies:
-      '@dsh-std/core':
-        specifier: workspace:*
-        version: link:../core
-
-  vendor/dsh-std/packages/messages:
-    dependencies:
-      '@dsh-std/core':
-        specifier: workspace:*
-        version: link:../core
-
-  vendor/dsh-std/packages/presentation:
-    dependencies:
-      '@dsh-std/connection':
-        specifier: workspace:*
-        version: link:../connection
-      '@dsh-std/core':
-        specifier: workspace:*
-        version: link:../core
-
-  vendor/dsh-std/packages/storage:
-    dependencies:
-      '@dsh-std/core':
-        specifier: workspace:*
-        version: link:../core
 
 packages:
 
@@ -1533,7 +1540,7 @@ packages:
       '@deepseek-ai/cordis': ^4.0.1
       '@deepseek-ai/dsh-brand': 0.1.1-rc.2
       '@deepseek-ai/dsh-invariants': 0.1.1-rc.2
-      '@deepseek-ai/schemastery': ^3.18.1
+      '@deepseek-ai/schemastery': 3.18.1
 
   '@deepseek-ai/dsh-shell-env@0.1.1-rc.2':
     resolution: {integrity: sha512-dDKKqsxsbklUpxX5ornd/SKJ2yfr/SOHOWDgeJkYvx3SMSXq8EvhCK/VEvHswXQ25rRLFWM4/Mr3htk1hn/GPA==}
@@ -2318,7 +2325,7 @@ packages:
       '@deepseek-ai/dsh-invariants': 0.1.1-rc.2
       '@deepseek-ai/dsh-session': 0.1.1-rc.2
       '@deepseek-ai/dsh-system-prompt': 0.1.1-rc.2
-      '@deepseek-ai/schemastery': ^3.18.1
+      '@deepseek-ai/schemastery': 3.18.1
       react: ^18.2.0
     peerDependenciesMeta:
       '@deepseek-ai/dsh-client-runtime':
@@ -3811,7 +3818,7 @@ snapshots:
       '@deepseek-ai/cordis': 4.0.1(@deepseek-ai/cordis-plugin-include@1.0.6)(@deepseek-ai/cordis-plugin-loader@1.0.2)
       '@deepseek-ai/dsh-invariants': 0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)
 
-  '@deepseek-ai/dsh-llm-pi-ai@0.1.1-rc.2(d84e4a64caf8a8493785c52daa9086a6)':
+  '@deepseek-ai/dsh-llm-pi-ai@0.1.1-rc.2(7671ff7587fe2a7a991fa2b9b4c2b7f0)':
     dependencies:
       '@deepseek-ai/cordis': 4.0.1(@deepseek-ai/cordis-plugin-include@1.0.6)(@deepseek-ai/cordis-plugin-loader@1.0.2)
       '@deepseek-ai/dsh-attachment': 0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-brand@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-invariants@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)))(@deepseek-ai/dsh-invariants@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1))
@@ -3823,7 +3830,7 @@ snapshots:
       '@deepseek-ai/dsh-settings': 0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-brand@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-invariants@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)))(@deepseek-ai/dsh-invariants@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1))(@deepseek-ai/schemastery@3.18.1)
       '@deepseek-ai/dsh-timeout': 0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-invariants@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1))
       '@deepseek-ai/schemastery': 3.18.1
-      '@earendil-works/pi-ai': 0.82.1(ws@8.21.3)(zod@4.4.3)
+      '@earendil-works/pi-ai': 0.82.1(supports-color@7.2.0)(ws@8.21.3)(zod@4.4.3)
     transitivePeerDependencies:
       - '@modelcontextprotocol/sdk'
       - bufferutil
@@ -4423,16 +4430,16 @@ snapshots:
       '@deepseek-ai/cosmokit': 1.8.2
       '@standard-schema/spec': 1.1.0
 
-  '@earendil-works/pi-ai@0.82.1(ws@8.21.3)(zod@4.4.3)':
+  '@earendil-works/pi-ai@0.82.1(supports-color@7.2.0)(ws@8.21.3)(zod@4.4.3)':
     dependencies:
       '@anthropic-ai/sdk': 0.91.1(zod@4.4.3)
       '@aws-sdk/client-bedrock-runtime': 3.1048.0
-      '@google/genai': 1.52.0
+      '@google/genai': 1.52.0(supports-color@7.2.0)
       '@mistralai/mistralai': 2.2.6(@opentelemetry/api@1.9.0)
       '@opentelemetry/api': 1.9.0
       '@smithy/node-http-handler': 4.7.3
-      http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.6
+      http-proxy-agent: 7.0.2(supports-color@7.2.0)
+      https-proxy-agent: 7.0.6(supports-color@7.2.0)
       openai: 6.26.0(ws@8.21.3)(zod@4.4.3)
       partial-json: 0.1.7
       typebox: 1.1.38
@@ -4522,9 +4529,9 @@ snapshots:
   '@esbuild/win32-x64@0.28.2':
     optional: true
 
-  '@google/genai@1.52.0':
+  '@google/genai@1.52.0(supports-color@7.2.0)':
     dependencies:
-      google-auth-library: 10.9.1
+      google-auth-library: 10.9.1(supports-color@7.2.0)
       p-retry: 4.6.2
       protobufjs: 7.6.5
       ws: 8.21.3
@@ -4785,9 +4792,11 @@ snapshots:
 
   data-uri-to-buffer@4.0.1: {}
 
-  debug@4.4.3:
+  debug@4.4.3(supports-color@7.2.0):
     dependencies:
       ms: 2.1.3
+    optionalDependencies:
+      supports-color: 7.2.0
 
   default-browser-id@5.0.1: {}
 
@@ -4876,17 +4885,17 @@ snapshots:
   fsevents@2.3.3:
     optional: true
 
-  gaxios@7.3.1:
+  gaxios@7.3.1(supports-color@7.2.0):
     dependencies:
       extend: 3.0.2
-      https-proxy-agent: 7.0.6
+      https-proxy-agent: 7.0.6(supports-color@7.2.0)
       node-fetch: 3.3.2
     transitivePeerDependencies:
       - supports-color
 
-  gcp-metadata@8.1.2:
+  gcp-metadata@8.1.2(supports-color@7.2.0):
     dependencies:
-      gaxios: 7.3.1
+      gaxios: 7.3.1(supports-color@7.2.0)
       google-logging-utils: 1.1.3
       json-bigint: 1.0.0
     transitivePeerDependencies:
@@ -4896,12 +4905,12 @@ snapshots:
 
   get-east-asian-width@1.6.0: {}
 
-  google-auth-library@10.9.1:
+  google-auth-library@10.9.1(supports-color@7.2.0):
     dependencies:
       base64-js: 1.5.1
       ecdsa-sig-formatter: 1.0.11
-      gaxios: 7.3.1
-      gcp-metadata: 8.1.2
+      gaxios: 7.3.1(supports-color@7.2.0)
+      gcp-metadata: 8.1.2(supports-color@7.2.0)
       google-logging-utils: 1.1.3
       jws: 4.0.1
     transitivePeerDependencies:
@@ -4915,17 +4924,17 @@ snapshots:
 
   highlight.js@11.12.0: {}
 
-  http-proxy-agent@7.0.2:
+  http-proxy-agent@7.0.2(supports-color@7.2.0):
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@7.2.0)
     transitivePeerDependencies:
       - supports-color
 
-  https-proxy-agent@7.0.6:
+  https-proxy-agent@7.0.6(supports-color@7.2.0):
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@7.2.0)
     transitivePeerDependencies:
       - supports-color
 

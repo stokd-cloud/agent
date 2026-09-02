@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent.stokd.cloud/schemas/v1/host-capabilities.schema.json",
+  "title": "Cloud Agent host capability descriptor",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "hostId",
+    "platform",
+    "architecture",
+    "nodeVersion",
+    "containerEngine",
+    "modelProviders",
+    "repositoryBindings",
+    "capabilities",
+    "observedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "hostId": {
+      "type": "string",
+      "pattern": "^hst_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "platform": {
+      "type": "string",
+      "minLength": 1
+    },
+    "architecture": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nodeVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "containerEngine": {
+      "enum": [
+        "docker",
+        "podman",
+        "none"
+      ]
+    },
+    "modelProviders": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "repositoryBindings": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "observedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

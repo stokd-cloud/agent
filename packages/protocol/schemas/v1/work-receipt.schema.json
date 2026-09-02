@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent.stokd.cloud/schemas/v1/work-receipt.schema.json",
+  "title": "Cloud Agent work launch receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workId",
+    "workAttemptId",
+    "agentId",
+    "hostId",
+    "generation",
+    "authorityRevision",
+    "state",
+    "backend",
+    "artifactIds",
+    "launchedAt",
+    "receiptHash"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "workId": {
+      "type": "string",
+      "pattern": "^wrk_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "workAttemptId": {
+      "type": "string",
+      "pattern": "^wka_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "agentId": {
+      "type": "string",
+      "pattern": "^agt_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "hostId": {
+      "type": "string",
+      "pattern": "^hst_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "generation": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "authorityRevision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "state": {
+      "enum": [
+        "requested",
+        "launching",
+        "submitted",
+        "running",
+        "awaiting_input",
+        "succeeded",
+        "failed",
+        "cancel_requested",
+        "cancelled",
+        "unknown"
+      ]
+    },
+    "backend": {
+      "enum": [
+        "standalone",
+        "stokd"
+      ]
+    },
+    "externalId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "containerLabel": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifactIds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^art_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+      },
+      "uniqueItems": true
+    },
+    "launchedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "receiptHash": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "1.0",
+  "items": {
+    "1.1": {
+      "sealed": false,
+      "scenarios": [
+        {
+          "id": "schema-wire-parity",
+          "command": [
+            "node",
+            "tests/work-1.1/schema-wire-parity.mjs"
+          ],
+          "targets": [
+            "VAL-OPS-005"
+          ],
+          "registeredScenarios": [
+            "unknown-minor-event-policy"
+          ]
+        },
+        {
+          "id": "protocol-headless-roundtrip",
+          "command": [
+            "node",
+            "tests/work-1.1/headless-protocol.mjs"
+          ],
+          "targets": [
+            "VAL-OPS-005"
+          ],
+          "registeredScenarios": [
+            "raw-http-command",
+            "raw-sse-events",
+            "unsupported-major"
+          ]
+        },
+        {
+          "id": "dst-client-adapter",
+          "command": [
+            "node",
+            "tests/work-1.1/dst-client-roundtrip.mjs"
+          ],
+          "targets": [
+            "VAL-OPS-005"
+          ],
+          "registeredScenarios": [
+            "shared-in-process-service"
+          ]
+        },
+        {
+          "id": "unsupported-entrypoints",
+          "command": [
+            "node",
+            "tests/work-1.1/unsupported-stubs.mjs"
+          ],
+          "targets": [
+            "VAL-REPO-002"
+          ],
+          "registeredScenarios": [
+            "isolated-runtime-import"
+          ]
+        },
+        {
+          "id": "import-side-effect-isolation",
+          "command": [
+            "node",
+            "tests/work-1.1/import-isolation.mjs"
+          ],
+          "targets": [
+            "VAL-REPO-002"
+          ],
+          "registeredScenarios": [
+            "zero-import-network-trace"
+          ]
+        },
+        {
+          "id": "fork-provenance-and-ledger",
+          "command": [
+            "node",
+            "tests/work-1.1/provenance-and-ledger.mjs"
+          ],
+          "targets": [
+            "VAL-REPO-001"
+          ],
+          "registeredScenarios": [
+            "fork-ancestry-and-gitlinks",
+            "notices-and-lock-pin",
+            "existing-name-refusal"
+          ]
+        },
+        {
+          "id": "fresh-isolated-workspace",
+          "command": [
+            "node",
+            "tests/work-1.1/isolated-runtime.mjs"
+          ],
+          "targets": [
+            "VAL-REPO-002"
+          ],
+          "registeredScenarios": [
+            "frozen-standalone-install"
+          ]
+        }
+      ]
+    }
+  }
+}

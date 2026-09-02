@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "1.0",
+  "items": {
+    "1.1": {
+      "ownership": [
+        "repository-root",
+        "packages/protocol",
+        "packages/tui",
+        "provenance",
+        "verification-manifests"
+      ],
+      "scenarios": [
+        {
+          "id": "standalone-package-layout",
+          "workScenarioIds": [
+            "fresh-isolated-workspace"
+          ]
+        },
+        {
+          "id": "protocol-schema-inventory",
+          "workScenarioIds": [
+            "schema-wire-parity"
+          ]
+        },
+        {
+          "id": "runtime-import-boundary",
+          "workScenarioIds": [
+            "import-side-effect-isolation"
+          ]
+        },
+        {
+          "id": "protocol-version-policy",
+          "workScenarioIds": [
+            "protocol-headless-roundtrip",
+            "schema-wire-parity"
+          ]
+        },
+        {
+          "id": "fail-closed-entrypoints",
+          "workScenarioIds": [
+            "unsupported-entrypoints"
+          ]
+        },
+        {
+          "id": "shared-application-service",
+          "workScenarioIds": [
+            "dst-client-adapter",
+            "protocol-headless-roundtrip"
+          ]
+        },
+        {
+          "id": "frozen-oracles",
+          "workScenarioIds": [
+            "schema-wire-parity"
+          ]
+        },
+        {
+          "id": "contract-registry",
+          "workScenarioIds": [
+            "schema-wire-parity"
+          ]
+        },
+        {
+          "id": "donor-case-ledger",
+          "workScenarioIds": [
+            "fork-provenance-and-ledger"
+          ]
+        },
+        {
+          "id": "fork-provenance",
+          "workScenarioIds": [
+            "fork-provenance-and-ledger"
+          ]
+        }
+      ]
+    }
+  }
+}

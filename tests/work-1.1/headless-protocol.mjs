@@ -1,0 +1,8 @@
+import assert from 'node:assert/strict'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { spawnSync } from 'node:child_process'
+const root=resolve('.');const temp=mkdtempSync(join(tmpdir(),'agent-headless-protocol-'));const trace=join(temp,'modules.txt');writeFileSync(trace,'')
+try{const result=spawnSync(process.execPath,['--experimental-loader','./tests/work-1.1/module-trace-loader.mjs','./tests/work-1.1/protocol-roundtrip.mjs'],{cwd:root,encoding:'utf8',env:{...process.env,AGENT_MODULE_TRACE:trace}});assert.equal(result.status,0,result.stderr);const loaded=[...new Set(readFileSync(trace,'utf8').trim().split('\n').filter(Boolean).map(fileURLToPath))];assert.ok(loaded.length>0);assert.ok(loaded.every(path=>!path.includes('/packages/tui/')),'headless protocol process loaded TUI');assert.ok(loaded.every(path=>!path.includes('/mono/')),'headless protocol process loaded Mono');const product=loaded.filter(path=>path.startsWith(root)&&(path.includes('/packages/')||path.includes('/apps/')));assert.ok(product.some(path=>path.includes('/packages/protocol/lib/')));assert.ok(product.some(path=>path.includes('/packages/runtime/lib/')));assert.ok(product.some(path=>path.includes('/apps/api/lib/')));assert.ok(product.every(path=>!path.includes('/src/')));console.log(JSON.stringify({ok:true,headlessProcess:true,tuiModules:0,loadedProductModules:product.map(path=>path.slice(root.length+1)),protocol:JSON.parse(result.stdout.trim())}))}finally{rmSync(temp,{recursive:true,force:true})}

@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent.stokd.cloud/schemas/v1/ids.schema.json",
+  "title": "Cloud Agent branded identifiers",
+  "$defs": {
+    "ownerSubject": {
+      "title": "ownerSubject",
+      "type": "string",
+      "pattern": "^own_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "agentId": {
+      "title": "agentId",
+      "type": "string",
+      "pattern": "^agt_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "conversationId": {
+      "title": "conversationId",
+      "type": "string",
+      "pattern": "^cnv_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "wakeId": {
+      "title": "wakeId",
+      "type": "string",
+      "pattern": "^wak_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "attemptId": {
+      "title": "attemptId",
+      "type": "string",
+      "pattern": "^atm_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "commandId": {
+      "title": "commandId",
+      "type": "string",
+      "pattern": "^cmd_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "eventId": {
+      "title": "eventId",
+      "type": "string",
+      "pattern": "^evt_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "contextSnapshotId": {
+      "title": "contextSnapshotId",
+      "type": "string",
+      "pattern": "^ctx_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "hostId": {
+      "title": "hostId",
+      "type": "string",
+      "pattern": "^hst_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "workId": {
+      "title": "workId",
+      "type": "string",
+      "pattern": "^wrk_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "workAttemptId": {
+      "title": "workAttemptId",
+      "type": "string",
+      "pattern": "^wka_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "approvalId": {
+      "title": "approvalId",
+      "type": "string",
+      "pattern": "^apr_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "artifactId": {
+      "title": "artifactId",
+      "type": "string",
+      "pattern": "^art_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "artifactVersionId": {
+      "title": "artifactVersionId",
+      "type": "string",
+      "pattern": "^arv_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "uploadId": {
+      "title": "uploadId",
+      "type": "string",
+      "pattern": "^upl_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "importId": {
+      "title": "importId",
+      "type": "string",
+      "pattern": "^imp_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/ownerSubject"
+    },
+    {
+      "$ref": "#/$defs/agentId"
+    },
+    {
+      "$ref": "#/$defs/conversationId"
+    },
+    {
+      "$ref": "#/$defs/wakeId"
+    },
+    {
+      "$ref": "#/$defs/attemptId"
+    },
+    {
+      "$ref": "#/$defs/commandId"
+    },
+    {
+      "$ref": "#/$defs/eventId"
+    },
+    {
+      "$ref": "#/$defs/contextSnapshotId"
+    },
+    {
+      "$ref": "#/$defs/hostId"
+    },
+    {
+      "$ref": "#/$defs/workId"
+    },
+    {
+      "$ref": "#/$defs/workAttemptId"
+    },
+    {
+      "$ref": "#/$defs/approvalId"
+    },
+    {
+      "$ref": "#/$defs/artifactId"
+    },
+    {
+      "$ref": "#/$defs/artifactVersionId"
+    },
+    {
+      "$ref": "#/$defs/uploadId"
+    },
+    {
+      "$ref": "#/$defs/importId"
+    }
+  ]
+}

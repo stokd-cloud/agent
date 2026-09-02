@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent.stokd.cloud/schemas/v1/event.schema.json",
+  "title": "Cloud Agent durable event envelope",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "eventId",
+        "sequence",
+        "agentId",
+        "conversationId",
+        "wakeId",
+        "attemptId",
+        "eventType",
+        "stateChanging",
+        "occurredAt",
+        "payload"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "type": "string",
+          "pattern": "^1\\.(0|[1-9][0-9]*)$"
+        },
+        "eventId": {
+          "type": "string",
+          "pattern": "^evt_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "agentId": {
+          "type": "string",
+          "pattern": "^agt_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+        },
+        "conversationId": {
+          "type": "string",
+          "pattern": "^cnv_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+        },
+        "wakeId": {
+          "type": "string",
+          "pattern": "^wak_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+        },
+        "attemptId": {
+          "type": "string",
+          "pattern": "^atm_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+        },
+        "eventType": {
+          "enum": [
+            "message.admitted",
+            "wake.queued",
+            "wake.running",
+            "wake.awaiting_input",
+            "wake.completed",
+            "wake.failed",
+            "wake.cancelled",
+            "approval.requested",
+            "work.updated",
+            "artifact.updated"
+          ]
+        },
+        "stateChanging": {
+          "const": true
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payload": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "eventId",
+        "sequence",
+        "agentId",
+        "conversationId",
+        "wakeId",
+        "attemptId",
+        "eventType",
+        "stateChanging",
+        "occurredAt",
+        "payload"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "type": "string",
+          "pattern": "^1\\.(0|[1-9][0-9]*)$"
+        },
+        "eventId": {
+          "type": "string",
+          "pattern": "^evt_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "agentId": {
+          "type": "string",
+          "pattern": "^agt_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+        },
+        "conversationId": {
+          "type": "string",
+          "pattern": "^cnv_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+        },
+        "wakeId": {
+          "type": "string",
+          "pattern": "^wak_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+        },
+        "attemptId": {
+          "type": "string",
+          "pattern": "^atm_[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+        },
+        "eventType": {
+          "type": "string",
+          "minLength": 1,
+          "not": {
+            "enum": [
+              "message.admitted",
+              "wake.queued",
+              "wake.running",
+              "wake.awaiting_input",
+              "wake.completed",
+              "wake.failed",
+              "wake.cancelled",
+              "approval.requested",
+              "work.updated",
+              "artifact.updated"
+            ]
+          }
+        },
+        "stateChanging": {
+          "const": false
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payload": {
+          "type": "object"
+        }
+      }
+    }
+  ]
+}
