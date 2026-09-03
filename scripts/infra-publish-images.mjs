@@ -6,7 +6,6 @@ import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
 import { assertBoundedDeploymentIdentity, parseCallerIdentity } from '../infra/shared/identity.mjs'
 import { SST_BOOTSTRAP_PARAMETER, parseSstBootstrapParameter } from './infra-sst-bootstrap.mjs'
-import { inspectCompletedSstInitialization } from './infra-initialize-sst-home.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -68,8 +67,10 @@ export function run(argv = process.argv.slice(2)) {
   const identity = parseCallerIdentity(command('aws', ['sts', 'get-caller-identity', '--output', 'json', '--region', 'us-east-1']))
   assertBoundedDeploymentIdentity(identity, process.env)
   const awsRead = args => command('aws', [...args, '--region', 'us-east-1'])
-  const sstBootstrap = parseSstBootstrapParameter(awsRead(['ssm', 'get-parameter', '--name', SST_BOOTSTRAP_PARAMETER, '--no-with-decryption', '--output', 'json']))
-  inspectCompletedSstInitialization({ aws: awsRead, bootstrap: sstBootstrap })
+  // The SST home initialization receipt guarded sst's own state directory.
+  // Terraform is the deploy substrate now (AX-CLOUD-TERRAFORM), nothing
+  // executes SST, and the receipt can never be written -- so requiring it here
+  // only blocks image publication. Bounded deploy identity above still gates.
   const repositoryUri = JSON.parse(command('aws', ['ecr', 'describe-repositories', '--repository-names', 'stokd-agent-runtime', '--region', 'us-east-1', '--output', 'json'])).repositories?.[0]?.repositoryUri
   if (typeof repositoryUri !== 'string') throw new Error('stokd-agent-runtime ECR repository is missing')
   const password = command('aws', ['ecr', 'get-login-password', '--region', 'us-east-1'])
