@@ -455,8 +455,11 @@ resource "aws_instance" "mongo" {
 
   user_data                   = local.mongo_user_data
   user_data_replace_on_change = true
-  volume_tags                 = local.runtime_tags
-  tags                        = local.runtime_tags
+
+  # No volume_tags: it conflicts with root_block_device.tags, which already
+  # tags the root volume. The data volume is a separate resource with its own
+  # persistent-custody tags.
+  tags = local.runtime_tags
 
   depends_on = [
     aws_iam_role_policy.mongo,
