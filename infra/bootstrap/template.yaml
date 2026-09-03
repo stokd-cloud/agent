@@ -302,9 +302,11 @@ Resources:
         - Effect: Allow
           Action:
           - s3:CreateBucket
+          - s3:GetAccelerateConfiguration
           - s3:GetBucket*
           - s3:GetEncryptionConfiguration
           - s3:GetLifecycleConfiguration
+          - s3:GetReplicationConfiguration
           - s3:GetObject*
           - s3:List*
           - s3:PutBucket*
@@ -892,9 +894,11 @@ Resources:
           Effect: Allow
           Action:
           - s3:CreateBucket
+          - s3:GetAccelerateConfiguration
+          - s3:GetBucket*
           - s3:GetEncryptionConfiguration
           - s3:GetLifecycleConfiguration
-          - s3:GetBucket*
+          - s3:GetReplicationConfiguration
           - s3:ListBucket
           - s3:ListBucketVersions
           - s3:PutEncryptionConfiguration
