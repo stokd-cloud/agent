@@ -475,10 +475,14 @@ resource "aws_instance" "mongo" {
   }
 
   root_block_device {
-    encrypted             = true
-    kms_key_id            = aws_kms_key.data.arn
-    volume_type           = "gp3"
-    volume_size           = 16
+    encrypted   = true
+    kms_key_id  = aws_kms_key.data.arn
+    volume_type = "gp3"
+
+    # The pinned AMI's root snapshot is 30 GiB, so the root volume cannot be
+    # smaller. This is the OS disk only; MongoDB data lives on the separate
+    # retained volume.
+    volume_size           = 30
     delete_on_termination = true
     tags                  = local.runtime_tags
   }
