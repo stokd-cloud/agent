@@ -3,7 +3,7 @@ import test from 'node:test'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { TERRAFORM_ACTIONS, backendConfig, planArguments, runTerraform, variableArguments } from '../../scripts/infra-terraform.mjs'
+import { DATA_PHASE_TARGETS, TERRAFORM_ACTIONS, backendConfig, phaseTargets, planArguments, runTerraform, variableArguments } from '../../scripts/infra-terraform.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 const pinned = {
@@ -50,6 +50,20 @@ test('plan never auto-approves and apply always does', () => {
   assert.ok(!planArguments('source-val12', 'plan').includes('-auto-approve'))
   assert.ok(planArguments('source-val12', 'apply').includes('-auto-approve'))
   assert.ok(planArguments('source-val12', 'destroy').includes('-auto-approve'))
+})
+
+test('the data phase excludes the API service so Mongo comes up first', () => {
+  // The API service waits for steady state and can never reach it before
+  // MongoDB is running, so the data phase must not create it.
+  assert.deepEqual(phaseTargets('data'), DATA_PHASE_TARGETS)
+  assert.ok(DATA_PHASE_TARGETS.some(t => t.includes('infrastructure_manifest')))
+  assert.ok(!DATA_PHASE_TARGETS.some(t => t.includes('ecs_service')))
+  assert.deepEqual(phaseTargets('api'), [], 'the api phase applies everything')
+  assert.throws(() => phaseTargets('other'), /unknown component/)
+
+  const dataArgs = planArguments('source-val12', 'apply', 'data')
+  assert.ok(dataArgs.includes('-target=aws_ssm_parameter.infrastructure_manifest'))
+  assert.ok(!planArguments('source-val12', 'apply', 'api').some(a => a.startsWith('-target=')))
 })
 
 test('an unsupported action is refused before terraform runs', () => {

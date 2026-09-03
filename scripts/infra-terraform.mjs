@@ -7,9 +7,15 @@
 //
 // The SST layout had two apps (data, api) because the API app had to read the
 // data app's manifest out of SSM to discover its resources. Terraform resolves
-// those references directly, so both map onto one root module. Apply is
-// declarative and idempotent, so the pipeline's existing data-then-api phase
-// order still works: the second invocation is a no-op when nothing changed.
+// those references directly, so both live in one root module -- but the phase
+// order still matters: the API service waits for steady state, and it can never
+// reach it until MongoDB is actually running.
+//
+// So the `data` phase applies a targeted subset and the `api` phase applies
+// everything. Targeting the infrastructure manifest is enough to pull in the
+// whole data layer, because it references the VPC, custody, secrets, Mongo host
+// and cluster -- and nothing in the API service. Terraform includes a target's
+// dependencies automatically.
 import { spawnSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -45,9 +51,24 @@ export function backendConfig(stage, environment) {
   ]
 }
 
-export function planArguments(stage, action) {
+/**
+ * The data layer, reached through the one resource that depends on all of it.
+ * The API service is deliberately absent.
+ */
+export const DATA_PHASE_TARGETS = Object.freeze([
+  '-target=aws_ssm_parameter.infrastructure_manifest',
+  '-target=aws_volume_attachment.data',
+])
+
+export function phaseTargets(app) {
+  if (app === 'data') return [...DATA_PHASE_TARGETS]
+  if (app === 'api') return []
+  throw new Error(`terraform refused: unknown component '${app}'`)
+}
+
+export function planArguments(stage, action, app = 'api') {
   const varFile = `-var-file=envs/${stage}.tfvars`
-  const common = [varFile, '-input=false', `-var=stage=${stage}`]
+  const common = [varFile, '-input=false', `-var=stage=${stage}`, ...phaseTargets(app)]
   if (action === 'plan') return ['plan', ...common, '-lock-timeout=300s']
   if (action === 'apply') return ['apply', ...common, '-auto-approve', '-lock-timeout=300s']
   return ['destroy', ...common, '-auto-approve', '-lock-timeout=300s']
@@ -90,7 +111,7 @@ export function runTerraform(input, environment, spawn = spawnSync) {
   if (init.error) throw init.error
   if ((init.status ?? 1) !== 0) return init.status ?? 1
 
-  const child = spawn('terraform', [...planArguments(input.stage, action), ...variableArguments(environment)], {
+  const child = spawn('terraform', [...planArguments(input.stage, action, input.app), ...variableArguments(environment)], {
     cwd, env, stdio: 'inherit',
   })
   if (child.error) throw child.error
