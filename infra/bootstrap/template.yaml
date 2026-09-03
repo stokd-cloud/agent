@@ -201,9 +201,11 @@ Resources:
           - kms:Describe*
           - kms:Get*
           - kms:List*
+          - route53:CreateHostedZone
           - route53:Get*
           - route53:List*
           - s3:GetAccountPublicAccessBlock
+          - secretsmanager:GetRandomPassword
           - ssm:Describe*
           - ssm:Get*
           - ssm:List*
@@ -340,19 +342,6 @@ Resources:
               - secret/stokd-agent-api/_fallback.json
               - bootstrap-init/work-1.2/*
         - Effect: Allow
-          Action:
-          - s3:GetObject
-          - s3:GetObjectVersion
-          - s3:PutObject
-          Resource:
-          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/*/stokd-agent-data/source-val12*
-          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/*/stokd-agent-api/source-val12*
-          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/*/stokd-agent-data/restore-val12*
-          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/*/stokd-agent-api/restore-val12*
-          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/secret/stokd-agent-data/_fallback.json
-          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/secret/stokd-agent-api/_fallback.json
-          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/bootstrap-init/work-1.2/*
-        - Effect: Allow
           Action: s3:DeleteObject
           Resource:
           - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/lock/stokd-agent-data/source-val12.json
@@ -363,6 +352,7 @@ Resources:
           Action:
           - secretsmanager:CreateSecret
           - secretsmanager:DescribeSecret
+          - secretsmanager:GetRandomPassword
           - secretsmanager:GetResourcePolicy
           - secretsmanager:ListSecretVersionIds
           - secretsmanager:*TagResource
@@ -498,6 +488,40 @@ Resources:
               aws:RequestTag/Stage:
               - source-val12
               - restore-val12
+        - Sid: CreateInsideTaggedAgentVpc
+          Effect: Allow
+          Action:
+          - ec2:CreateSecurityGroup
+          - ec2:CreateSubnet
+          - ec2:CreateRouteTable
+          - ec2:CreateVpcEndpoint
+          - ec2:CreateNetworkInterface
+          Resource: arn:aws:ec2:us-east-1:167217327520:vpc/*
+          Condition:
+            StringEquals:
+              aws:ResourceTag/Project: stokd-agent
+        - Sid: TagOnlyAtCreation
+          Effect: Allow
+          Action: ec2:CreateTags
+          Resource: arn:aws:ec2:us-east-1:167217327520:*/*
+          Condition:
+            StringEquals:
+              ec2:CreateAction:
+              - CreateVpc
+              - CreateSubnet
+              - CreateSecurityGroup
+              - CreateRouteTable
+              - CreateInternetGateway
+              - CreateVpcEndpoint
+              - CreateNetworkInterface
+              - CreateVolume
+              - RunInstances
+        - Sid: CloudMapPrivateZone
+          Effect: Allow
+          Action:
+          - route53:CreateHostedZone
+          - route53:ChangeTagsForResource
+          Resource: '*'
         - Sid: RunOnlyPinnedAgentAmi
           Effect: Allow
           Action: ec2:RunInstances
@@ -870,6 +894,7 @@ Resources:
           - s3:CreateBucket
           - s3:GetEncryptionConfiguration
           - s3:GetLifecycleConfiguration
+          - s3:GetBucketAcl
           - s3:GetBucketLocation
           - s3:GetBucketOwnershipControls
           - s3:GetBucketPolicy
@@ -975,6 +1000,7 @@ Resources:
           - iam:DeleteRole
           - iam:DeleteRolePolicy
           - iam:PutRolePolicy
+          - iam:TagInstanceProfile
           - iam:TagRole
           - iam:UntagRole
           Resource: arn:aws:iam::167217327520:role/stokd-agent-workload-*
