@@ -97,6 +97,12 @@ jobs:
         with:
           node-version: 24.15.0
           cache: pnpm
+      # The runner's default buildx driver is `docker`, which cannot produce the
+      # SBOM/provenance attestations the image build requires. A
+      # docker-container builder can.
+      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+        with:
+          driver: docker-container
       - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
           terraform_version: 1.5.7
