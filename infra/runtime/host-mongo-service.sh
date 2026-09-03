@@ -84,6 +84,13 @@ docker run --detach --name stokd-agent-mongo \
   --label "io.stokd.agent.stage=$AGENT_STAGE" \
   --network stokd-agent-mongo \
   --publish 27017:27017 \
+  `# The replica member is the Cloud Map name, which resolves to the instance` \
+  `# ENI -- an address this container does not own, so mongod refuses to accept` \
+  `# its own identity on reconfig. Mapping that name to loopback INSIDE the` \
+  `# container makes it resolve to an address the node does own. External` \
+  `# clients still resolve it through Cloud Map to the ENI and reach the` \
+  `# published port, so the wire identity is unchanged.` \
+  --add-host "${AGENT_MONGO_HOST%%:*}:127.0.0.1" \
   --read-only \
   --security-opt no-new-privileges \
   --cap-drop ALL \
