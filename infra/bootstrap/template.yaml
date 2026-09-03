@@ -125,6 +125,18 @@ Resources:
             Resource:
               - arn:aws:ecs:us-east-1:167217327520:service/stokd-agent-api-source-val12/stokd-agent-api-source-val12
               - arn:aws:ecs:us-east-1:167217327520:service/stokd-agent-api-restore-val12/stokd-agent-api-restore-val12
+          # The host records the volume's one-time initialization proof by
+          # flipping a single tag. The role policy is what constrains the
+          # transition (pending-v1 -> initialized-v1, that key only); the
+          # boundary just must not cap the action away.
+          - Sid: RecordVolumeInitializationOnly
+            Effect: Allow
+            Action: ec2:CreateTags
+            Resource: arn:aws:ec2:us-east-1:167217327520:volume/*
+            Condition:
+              ForAllValues:StringEquals:
+                aws:TagKeys:
+                  - InitializationState
           - Sid: RuntimeObservability
             Effect: Allow
             Action:
