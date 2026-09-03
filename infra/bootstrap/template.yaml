@@ -894,13 +894,7 @@ Resources:
           - s3:CreateBucket
           - s3:GetEncryptionConfiguration
           - s3:GetLifecycleConfiguration
-          - s3:GetBucketAcl
-          - s3:GetBucketLocation
-          - s3:GetBucketOwnershipControls
-          - s3:GetBucketPolicy
-          - s3:GetBucketPublicAccessBlock
-          - s3:GetBucketTagging
-          - s3:GetBucketVersioning
+          - s3:GetBucket*
           - s3:ListBucket
           - s3:ListBucketVersions
           - s3:PutEncryptionConfiguration
