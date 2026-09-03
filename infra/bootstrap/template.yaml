@@ -518,6 +518,8 @@ Resources:
               - CreateNetworkInterface
               - CreateVolume
               - RunInstances
+              - AuthorizeSecurityGroupIngress
+              - AuthorizeSecurityGroupEgress
         - Sid: CloudMapPrivateZone
           Effect: Allow
           Action:
@@ -684,6 +686,18 @@ Resources:
               aws:ResourceTag/Stage:
               - source-val12
               - restore-val12
+        - Sid: ManageRulesOnAgentSecurityGroups
+          Effect: Allow
+          Action:
+          - ec2:AuthorizeSecurityGroupEgress
+          - ec2:AuthorizeSecurityGroupIngress
+          - ec2:RevokeSecurityGroupEgress
+          - ec2:RevokeSecurityGroupIngress
+          - ec2:ModifySecurityGroupRules
+          Resource: arn:aws:ec2:us-east-1:167217327520:security-group-rule/*
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
         - Sid: ConfigureExactAgentClusterCapacityProviders
           Effect: Allow
           Action: ecs:PutClusterCapacityProviders
