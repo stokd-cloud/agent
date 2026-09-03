@@ -153,7 +153,14 @@ if (!current.ok || current.config?._id !== process.env.MONGO_REPLICA_SET || curr
 }
 current.config.version += 1
 current.config.members[0].host = process.env.MONGO_REPLICA_HOST
-const changed = admin.runCommand({ replSetReconfig: current.config })
+// force is required, not a shortcut: the stable host is the Cloud Map name,
+// which resolves to the instance ENI. mongod validates a reconfig by checking
+// that some member maps to an address it is itself bound to, and this node is
+// in a bridge network that does not own the ENI address. Without force it
+// rejects its own new identity with "No host described in new configuration
+// ... maps to this node". The single-member set makes this safe: there is no
+// other node whose view could diverge.
+const changed = admin.runCommand({ replSetReconfig: current.config, force: true })
 if (!changed.ok) throw new Error(`unable to set stable replica identity: ${JSON.stringify(changed)}`)
 MONGOJS
 
