@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0",
+  "accountId": "167217327520",
+  "region": "us-east-1",
+  "stages": {
+    "source-val12": [
+      "kms:alias/stokd-agent-source-val12",
+      "s3:stokd-agent-artifacts-source-val12-167217327520",
+      "s3:stokd-agent-backups-source-val12-167217327520",
+      "ebs:stokd-agent-mongodb-source-val12"
+    ],
+    "restore-val12": [
+      "kms:alias/stokd-agent-restore-val12",
+      "s3:stokd-agent-artifacts-restore-val12-167217327520",
+      "s3:stokd-agent-backups-restore-val12-167217327520",
+      "ebs:stokd-agent-mongodb-restore-val12"
+    ]
+  }
+}

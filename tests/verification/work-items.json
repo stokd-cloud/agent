@@ -100,6 +100,134 @@
           ]
         }
       ]
+    },
+    "1.2": {
+      "sealed": false,
+      "scenarios": [
+        {
+          "id": "infra-policy-structure",
+          "command": [
+            "node",
+            "tests/work-1.2/infra-policy-structure.mjs"
+          ],
+          "targets": [
+            "VAL-OPS-001"
+          ],
+          "registeredScenarios": [
+            "standalone-private-infrastructure"
+          ]
+        },
+        {
+          "id": "infra-guard-negative",
+          "command": [
+            "node",
+            "tests/work-1.2/infra-guard-negative.mjs"
+          ],
+          "targets": [
+            "VAL-OPS-001"
+          ],
+          "registeredScenarios": [
+            "account-stage-and-destruction-guard"
+          ]
+        },
+        {
+          "id": "infra-mongo-cleanup",
+          "command": [
+            "node",
+            "tests/work-1.2/infra-mongo-cleanup.mjs"
+          ],
+          "targets": [
+            "VAL-OPS-001"
+          ],
+          "registeredScenarios": [
+            "owned-mongo-failure-cleanup"
+          ]
+        },
+        {
+          "id": "infra-cloud-lifecycle",
+          "command": [
+            "node",
+            "tests/work-1.2/infra-cloud-lifecycle.mjs"
+          ],
+          "targets": [
+            "VAL-OPS-001"
+          ],
+          "registeredScenarios": [
+            "host-phase-and-custody-guards"
+          ]
+        },
+        {
+          "id": "mongo-schema",
+          "command": [
+            "node",
+            "tests/work-1.2/mongo-schema.mjs"
+          ],
+          "targets": [
+            "VAL-OPS-002"
+          ],
+          "registeredScenarios": [
+            "replica-schema-migration-and-fencing"
+          ]
+        },
+        {
+          "id": "maintenance-cli",
+          "command": [
+            "node",
+            "tests/work-1.2/maintenance-cli.mjs"
+          ],
+          "targets": [
+            "VAL-OPS-002",
+            "VAL-OPS-003"
+          ],
+          "registeredScenarios": [
+            "maintenance-migrate-and-durable-readback",
+            "maintenance-backup-restore-retry-and-redaction"
+          ]
+        },
+        {
+          "id": "mongo-backup-restore",
+          "command": [
+            "node",
+            "tests/work-1.2/mongo-backup-restore.mjs"
+          ],
+          "targets": [
+            "VAL-OPS-003"
+          ],
+          "registeredScenarios": [
+            "oplog-backup-offline-restore-and-zero-redispatch"
+          ]
+        },
+        {
+          "id": "s3-multipart",
+          "command": [
+            "node",
+            "tests/work-1.2/s3-multipart.mjs"
+          ],
+          "targets": [
+            "VAL-OPS-003"
+          ],
+          "registeredScenarios": [
+            "multipart-version-custody"
+          ]
+        },
+        {
+          "id": "infra-cloud-validation",
+          "command": [
+            "node",
+            "tests/work-1.2/infra-cloud-validation.mjs"
+          ],
+          "targets": [
+            "VAL-OPS-001",
+            "VAL-OPS-002",
+            "VAL-OPS-003"
+          ],
+          "registeredScenarios": [
+            "isolated-cloud-deploy-redeploy-persistence",
+            "cloud-migration-redeploy-readback",
+            "cloud-versioned-backup-restore-readback"
+          ]
+        }
+      ]
     }
   }
 }

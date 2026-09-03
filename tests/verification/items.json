@@ -73,6 +73,42 @@
           ]
         }
       ]
+    },
+    "1.2": {
+      "ownership": [
+        "packages/storage",
+        "infra",
+        "storage-verification-manifests"
+      ],
+      "scenarios": [
+        {
+          "id": "independent-resource-policy",
+          "workScenarioIds": [
+            "infra-policy-structure",
+            "infra-guard-negative",
+            "infra-mongo-cleanup",
+            "infra-cloud-lifecycle",
+            "infra-cloud-validation"
+          ]
+        },
+        {
+          "id": "schema-version-and-index-catalog",
+          "workScenarioIds": [
+            "mongo-schema",
+            "maintenance-cli",
+            "infra-cloud-validation"
+          ]
+        },
+        {
+          "id": "recovery-custody-boundary",
+          "workScenarioIds": [
+            "mongo-backup-restore",
+            "maintenance-cli",
+            "s3-multipart",
+            "infra-cloud-validation"
+          ]
+        }
+      ]
     }
   }
 }

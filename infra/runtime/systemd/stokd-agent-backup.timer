@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily Stokd Agent operational backup
+
+[Timer]
+OnCalendar=*-*-* 03:17:00 UTC
+RandomizedDelaySec=900
+Persistent=true
+Unit=stokd-agent-backup.service
+
+[Install]
+WantedBy=timers.target
+

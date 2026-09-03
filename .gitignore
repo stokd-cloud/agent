@@ -13,3 +13,5 @@ package-lock.json
 **/.tmp/
 .local/
 HANDOVER.md
+**/.sst/**
+**/.pulumi/**

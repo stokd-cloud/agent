@@ -1,0 +1,1400 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Bounded GitHub OIDC deploy identity and private image custody for Stokd Agent validation
+Parameters:
+  ExistingGitHubOidcProviderArn:
+    Type: String
+    AllowedValues:
+      - arn:aws:iam::167217327520:oidc-provider/token.actions.githubusercontent.com
+    Description: Exact existing GitHub Actions OIDC provider in account 167217327520
+  ExistingSstBootstrapVersion:
+    Type: Number
+    AllowedValues: [5]
+    Description: Exact version read from the existing shared /sst/bootstrap record
+  ExistingSstBootstrapSha256:
+    Type: String
+    AllowedPattern: '^[a-f0-9]{64}$'
+    Description: SHA-256 of the exact existing shared /sst/bootstrap value
+  ExistingSstStateBucketName:
+    Type: String
+    AllowedPattern: '^sst-state-[a-z0-9]{12}$'
+    Description: Existing shared SST state bucket read from /sst/bootstrap; never created here
+  ExistingSstAssetBucketName:
+    Type: String
+    AllowedPattern: '^sst-asset-[a-z0-9]{12}$'
+    Description: Existing shared SST asset bucket read from /sst/bootstrap; never created here
+  ExistingSstAssetEcrRegistryId:
+    Type: String
+    AllowedValues: ['167217327520']
+    Description: Existing shared SST asset ECR registry read from /sst/bootstrap
+  ExistingSstAssetEcrUrl:
+    Type: String
+    AllowedValues:
+      - 167217327520.dkr.ecr.us-east-1.amazonaws.com/sst-asset
+    Description: Existing shared SST asset ECR URL read from /sst/bootstrap
+Resources:
+  AgentRuntimeRepository:
+    Type: AWS::ECR::Repository
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RepositoryName: stokd-agent-runtime
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      ImageTagMutability: IMMUTABLE
+      EncryptionConfiguration:
+        EncryptionType: AES256
+      LifecyclePolicy:
+        LifecyclePolicyText: >-
+          {"rules":[{"rulePriority":1,"description":"Retain the latest 60 immutable validation images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":60},"action":{"type":"expire"}}]}
+      RepositoryPolicyText:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyNonTls
+            Effect: Deny
+            Principal: '*'
+            Action: 'ecr:*'
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
+      Tags:
+        - Key: Project
+          Value: stokd-agent
+        - Key: Custody
+          Value: bootstrap
+
+  AgentWorkloadPermissionsBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: stokd-agent-workload-boundary
+      Description: Maximum permissions for Agent ECS and EC2 runtime identities
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: ReadRuntimeImages
+            Effect: Allow
+            Action:
+              - ecr:GetAuthorizationToken
+              - ecr:BatchCheckLayerAvailability
+              - ecr:BatchGetImage
+              - ecr:GetDownloadUrlForLayer
+            Resource: '*'
+          - Sid: AgentObjectCustody
+            Effect: Allow
+            Action:
+              - s3:GetBucketLocation
+              - s3:GetBucketVersioning
+              - s3:ListBucket
+              - s3:ListBucketVersions
+              - s3:GetObject
+              - s3:GetObjectVersion
+              - s3:PutObject
+              - s3:PutObjectTagging
+              - s3:AbortMultipartUpload
+            Resource:
+              - arn:aws:s3:::stokd-agent-artifacts-*-167217327520
+              - arn:aws:s3:::stokd-agent-artifacts-*-167217327520/*
+              - arn:aws:s3:::stokd-agent-backups-*-167217327520
+              - arn:aws:s3:::stokd-agent-backups-*-167217327520/*
+          - Sid: AgentEncryption
+            Effect: Allow
+            Action:
+              - kms:Decrypt
+              - kms:DescribeKey
+              - kms:Encrypt
+              - kms:GenerateDataKey
+            Resource: arn:aws:kms:us-east-1:167217327520:key/*
+            Condition:
+              StringEquals:
+                aws:ResourceTag/Project: stokd-agent
+          - Sid: AgentSecrets
+            Effect: Allow
+            Action:
+              - secretsmanager:DescribeSecret
+              - secretsmanager:GetSecretValue
+              - secretsmanager:ListSecretVersionIds
+            Resource: arn:aws:secretsmanager:us-east-1:167217327520:secret:stokd-agent-*
+          - Sid: RestoreTargetSecretVersionRotation
+            Effect: Allow
+            Action: secretsmanager:PutSecretValue
+            Resource: arn:aws:secretsmanager:us-east-1:167217327520:secret:stokd-agent-restore-val12-*
+          - Sid: ExactApiAdmission
+            Effect: Allow
+            Action:
+              - ecs:DescribeServices
+              - ecs:UpdateService
+            Resource:
+              - arn:aws:ecs:us-east-1:167217327520:service/stokd-agent-api-source-val12/stokd-agent-api-source-val12
+              - arn:aws:ecs:us-east-1:167217327520:service/stokd-agent-api-restore-val12/stokd-agent-api-restore-val12
+          - Sid: RuntimeObservability
+            Effect: Allow
+            Action:
+              - cloudwatch:PutMetricData
+              - ec2:DescribeInstances
+              - ec2:DescribeVolumes
+              - ec2messages:AcknowledgeMessage
+              - ec2messages:DeleteMessage
+              - ec2messages:FailMessage
+              - ec2messages:GetEndpoint
+              - ec2messages:GetMessages
+              - ec2messages:SendReply
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - ssm:UpdateInstanceInformation
+              - ssmmessages:CreateControlChannel
+              - ssmmessages:CreateDataChannel
+              - ssmmessages:OpenControlChannel
+              - ssmmessages:OpenDataChannel
+            Resource: '*'
+          - Sid: FinalizeOwnedFreshVolumeOnce
+            Effect: Allow
+            Action: ec2:CreateTags
+            Resource: arn:aws:ec2:us-east-1:167217327520:volume/*
+            Condition:
+              StringEquals:
+                ec2:ResourceTag/Project: stokd-agent
+                ec2:ResourceTag/InitializationState: pending-v1
+                aws:RequestTag/InitializationState: initialized-v1
+              StringLike:
+                ec2:ResourceTag/Stage:
+                  - source-val12
+                  - restore-val12
+              ForAllValues:StringEquals:
+                aws:TagKeys:
+                  - InitializationState
+          - Sid: NoRuntimeDestructionOrRedispatch
+            Effect: Deny
+            Action:
+              - ecs:RunTask
+              - events:PutEvents
+              - lambda:InvokeFunction
+              - s3:DeleteObject
+              - s3:DeleteObjectVersion
+              - secretsmanager:DeleteSecret
+              - sns:Publish
+              - sqs:SendMessage
+              - states:StartExecution
+            Resource: '*'
+
+  AgentDeployPermissionsBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: stokd-agent-validation-deploy-boundary
+      Description: Maximum permissions for the GitHub OIDC Agent validation deploy role
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Resource: '*'
+          Action:
+          - sts:GetCallerIdentity
+          - acm:Describe*
+          - acm:List*
+          - cloudformation:Describe*
+          - cloudformation:Get*
+          - cloudformation:List*
+          - ecr:Batch*
+          - ecr:Describe*
+          - ecr:Get*
+          - ecr:List*
+          - iam:Get*
+          - iam:List*
+          - kms:DescribeKey
+          - kms:Get*
+          - kms:List*
+          - route53:Get*
+          - route53:List*
+          - s3:GetAccountPublicAccessBlock
+          - ssm:Describe*
+          - ssm:Get*
+          - ssm:List*
+        - Effect: Allow
+          Resource: '*'
+          Action:
+          - application-autoscaling:*
+          - ec2:*
+          - ecs:*
+          - elasticloadbalancing:*
+          - logs:*
+          - servicediscovery:*
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
+        - Effect: Allow
+          Action:
+          - iam:*InstanceProfile
+          - iam:*Role
+          - iam:DeleteRolePolicy
+          - iam:PutRolePermissionsBoundary
+          - iam:PutRolePolicy
+          Resource: arn:aws:iam::167217327520:*/stokd-agent-workload-*
+        - Effect: Allow
+          Action: iam:CreateServiceLinkedRole
+          Resource: arn:aws:iam::167217327520:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService
+          Condition:
+            StringEquals:
+              iam:AWSServiceName: ecs.application-autoscaling.amazonaws.com
+        - Effect: Allow
+          Action: kms:CreateKey
+          Resource: '*'
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
+              aws:RequestTag/Project: stokd-agent
+            StringLike:
+              aws:RequestTag/Stage:
+              - source-val12
+              - restore-val12
+        - Effect: Allow
+          Action:
+          - kms:EnableKeyRotation
+          - kms:PutKeyPolicy
+          - kms:*TagResource
+          - kms:UpdateAlias
+          Resource: arn:aws:kms:us-east-1:167217327520:key/*
+          Condition:
+            StringEquals:
+              aws:ResourceTag/Project: stokd-agent
+        - Effect: Allow
+          Action: kms:CreateAlias
+          Resource:
+          - arn:aws:kms:us-east-1:167217327520:key/*
+          - arn:aws:kms:us-east-1:167217327520:alias/stokd-agent-*
+        - Effect: Allow
+          Action:
+          - kms:Decrypt
+          - kms:Encrypt
+          - kms:GenerateDataKey*
+          - kms:ReEncrypt*
+          Resource: arn:aws:kms:us-east-1:167217327520:key/*
+          Condition:
+            StringEquals:
+              aws:ResourceTag/Project: stokd-agent
+            StringLike:
+              kms:ViaService:
+              - ec2.us-east-1.amazonaws.com
+              - secretsmanager.us-east-1.amazonaws.com
+        - Effect: Allow
+          Action:
+          - kms:Decrypt
+          - kms:Encrypt
+          - kms:GenerateDataKey*
+          - kms:ReEncrypt*
+          Resource: arn:aws:kms:us-east-1:167217327520:key/*
+          Condition:
+            StringEquals:
+              aws:ResourceTag/Project: stokd-agent
+              kms:ViaService: s3.us-east-1.amazonaws.com
+            StringLike:
+              kms:EncryptionContext:aws:s3:arn:
+              - arn:aws:s3:::stokd-agent-artifacts-source-val12-167217327520/validation/work-1.2/source-val12/*
+              - arn:aws:s3:::stokd-agent-artifacts-restore-val12-167217327520/validation/work-1.2/restore-val12/*
+        - Effect: Allow
+          Action: kms:CreateGrant
+          Resource: arn:aws:kms:us-east-1:167217327520:key/*
+          Condition:
+            Bool:
+              kms:GrantIsForAWSResource: 'true'
+            StringEquals:
+              aws:ResourceTag/Project: stokd-agent
+        - Effect: Allow
+          Action:
+          - s3:CreateBucket
+          - s3:GetBucket*
+          - s3:GetEncryptionConfiguration
+          - s3:GetLifecycleConfiguration
+          - s3:GetObject*
+          - s3:List*
+          - s3:PutBucket*
+          - s3:PutEncryptionConfiguration
+          - s3:PutLifecycleConfiguration
+          - s3:PutObject*
+          Resource:
+          - arn:aws:s3:::stokd-agent-artifacts-*-167217327520
+          - arn:aws:s3:::stokd-agent-artifacts-*-167217327520/*
+          - arn:aws:s3:::stokd-agent-backups-*-167217327520
+          - arn:aws:s3:::stokd-agent-backups-*-167217327520/*
+        - Effect: Allow
+          Action:
+          - s3:GetBucketPolicy
+          - s3:GetBucketPublicAccessBlock
+          - s3:GetBucketLocation
+          - s3:GetBucketOwnershipControls
+          - s3:GetBucketVersioning
+          - s3:GetEncryptionConfiguration
+          - s3:GetLifecycleConfiguration
+          Resource: !Sub arn:aws:s3:::${ExistingSstStateBucketName}
+        - Effect: Allow
+          Action:
+          - s3:ListBucket
+          - s3:ListBucketVersions
+          Resource: !Sub arn:aws:s3:::${ExistingSstStateBucketName}
+          Condition:
+            StringLike:
+              s3:prefix:
+              - app/stokd-agent-data
+              - app/stokd-agent-api
+              - '*/stokd-agent-data/source-val12*'
+              - '*/stokd-agent-api/source-val12*'
+              - '*/stokd-agent-data/restore-val12*'
+              - '*/stokd-agent-api/restore-val12*'
+              - secret/stokd-agent-data/_fallback.json
+              - secret/stokd-agent-api/_fallback.json
+              - bootstrap-init/work-1.2/*
+        - Effect: Allow
+          Action:
+          - s3:GetObject
+          - s3:GetObjectVersion
+          - s3:PutObject
+          Resource:
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/*/stokd-agent-data/source-val12*
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/*/stokd-agent-api/source-val12*
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/*/stokd-agent-data/restore-val12*
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/*/stokd-agent-api/restore-val12*
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/secret/stokd-agent-data/_fallback.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/secret/stokd-agent-api/_fallback.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/bootstrap-init/work-1.2/*
+        - Effect: Allow
+          Action: s3:DeleteObject
+          Resource:
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/lock/stokd-agent-data/source-val12.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/lock/stokd-agent-api/source-val12.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/lock/stokd-agent-data/restore-val12.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/lock/stokd-agent-api/restore-val12.json
+        - Effect: Allow
+          Action:
+          - secretsmanager:CreateSecret
+          - secretsmanager:DescribeSecret
+          - secretsmanager:GetResourcePolicy
+          - secretsmanager:ListSecretVersionIds
+          - secretsmanager:*TagResource
+          - secretsmanager:UpdateSecret
+          Resource: arn:aws:secretsmanager:us-east-1:167217327520:secret:stokd-agent-*
+        - Effect: Allow
+          Action:
+          - ssm:*Tags*
+          - ssm:DeleteParameter
+          - ssm:PutParameter
+          - ssm:SendCommand
+          Resource:
+          - arn:aws:ssm:us-east-1:167217327520:parameter/stokd-agent/*
+          - arn:aws:ssm:us-east-1:167217327520:document/stokd-agent-*-v1
+          - arn:aws:ec2:us-east-1:167217327520:instance/*
+        - Effect: Allow
+          Action:
+          - route53:ChangeResourceRecordSets
+          - ecr:CompleteLayerUpload
+          - ecr:InitiateLayerUpload
+          - ecr:PutImage
+          - ecr:UploadLayerPart
+          - cloudformation:CreateChangeSet
+          - cloudformation:CreateStack
+          - cloudformation:DeleteChangeSet
+          - cloudformation:ExecuteChangeSet
+          - cloudformation:UpdateStack
+          Resource:
+          - arn:aws:route53:::hostedzone/Z0974146XEXJDMNXU573
+          - arn:aws:ecr:us-east-1:167217327520:repository/stokd-agent-runtime
+          - arn:aws:cloudformation:us-east-1:167217327520:stack/stokd-agent-*/*
+
+  AgentDeployFoundationPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: stokd-agent-validation-deploy-foundation
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: IdentityAndReadback
+          Effect: Allow
+          Action:
+          - sts:GetCallerIdentity
+          - application-autoscaling:DescribeScalableTargets
+          - application-autoscaling:DescribeScalingPolicies
+          - application-autoscaling:ListTagsForResource
+          - acm:DescribeCertificate
+          - acm:ListCertificates
+          - acm:ListTagsForCertificate
+          - cloudformation:DescribeStackEvents
+          - cloudformation:DescribeStackResources
+          - cloudformation:DescribeStacks
+          - cloudformation:GetTemplate
+          - cloudformation:ListStackResources
+          - ec2:Describe*
+          - ecr:BatchCheckLayerAvailability
+          - ecr:BatchGetImage
+          - ecr:Describe*
+          - ecr:GetAuthorizationToken
+          - ecr:GetDownloadUrlForLayer
+          - ecr:GetLifecyclePolicy
+          - ecr:GetRepositoryPolicy
+          - ecr:ListTagsForResource
+          - ecr:ListImages
+          - ecs:Describe*
+          - ecs:List*
+          - elasticloadbalancing:Describe*
+          - events:DescribeRule
+          - events:ListTargetsByRule
+          - iam:GetInstanceProfile
+          - iam:GetOpenIDConnectProvider
+          - iam:GetPolicy
+          - iam:GetPolicyVersion
+          - iam:GetRole
+          - iam:GetRolePolicy
+          - iam:ListAttachedRolePolicies
+          - iam:ListInstanceProfilesForRole
+          - iam:ListOpenIDConnectProviders
+          - iam:ListRolePolicies
+          - kms:DescribeKey
+          - kms:GetKeyPolicy
+          - kms:GetKeyRotationStatus
+          - kms:ListAliases
+          - kms:ListResourceTags
+          - logs:DescribeLogGroups
+          - logs:ListTagsForResource
+          - route53:GetChange
+          - route53:GetHostedZone
+          - route53:ListResourceRecordSets
+          - s3:GetAccountPublicAccessBlock
+          - servicediscovery:GetInstance
+          - servicediscovery:GetNamespace
+          - servicediscovery:GetOperation
+          - servicediscovery:GetService
+          - servicediscovery:GetServiceAttributes
+          - servicediscovery:ListInstances
+          - servicediscovery:ListNamespaces
+          - servicediscovery:ListOperations
+          - servicediscovery:ListServices
+          - servicediscovery:ListTagsForResource
+          - ssm:DescribeParameters
+          - ssm:DescribeDocument
+          - ssm:GetDocument
+          - ssm:ListTagsForResource
+          Resource: '*'
+        - Sid: CreateTaggedRegionalResources
+          Effect: Allow
+          Action:
+          - ec2:CreateInternetGateway
+          - ec2:CreateNetworkInterface
+          - ec2:CreateRouteTable
+          - ec2:CreateSecurityGroup
+          - ec2:CreateSubnet
+          - ec2:CreateVolume
+          - ec2:CreateVpc
+          - ec2:CreateVpcEndpoint
+          - ecs:CreateCluster
+          - ecs:CreateService
+          - ecs:RegisterTaskDefinition
+          - elasticloadbalancing:CreateLoadBalancer
+          - elasticloadbalancing:CreateTargetGroup
+          - kms:CreateKey
+          - logs:CreateLogGroup
+          - servicediscovery:CreatePrivateDnsNamespace
+          - servicediscovery:CreateService
+          - servicediscovery:TagResource
+          Resource: '*'
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
+              aws:RequestTag/Project: stokd-agent
+            StringLike:
+              aws:RequestTag/Stage:
+              - source-val12
+              - restore-val12
+        - Sid: RunOnlyPinnedAgentAmi
+          Effect: Allow
+          Action: ec2:RunInstances
+          Resource: arn:aws:ec2:us-east-1::image/ami-0fe74bfcad4fd6bd2
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
+        - Sid: RunOnlyInsideTaggedAgentNetwork
+          Effect: Allow
+          Action: ec2:RunInstances
+          Resource:
+          - arn:aws:ec2:us-east-1:167217327520:security-group/*
+          - arn:aws:ec2:us-east-1:167217327520:subnet/*
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
+              ec2:ResourceTag/Project: stokd-agent
+            StringLike:
+              ec2:ResourceTag/Stage:
+              - source-val12
+              - restore-val12
+        - Sid: RunOnlyExistingTaggedAgentEni
+          Effect: Allow
+          Action: ec2:RunInstances
+          Resource: arn:aws:ec2:us-east-1:167217327520:network-interface/*
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
+              ec2:ResourceTag/Project: stokd-agent
+            StringLike:
+              ec2:ResourceTag/Stage:
+              - source-val12
+              - restore-val12
+        - Sid: RunOnlyBoundedAgentInstanceProfile
+          Effect: Allow
+          Action: ec2:RunInstances
+          Resource: arn:aws:iam::167217327520:instance-profile/stokd-agent-workload-*
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
+        - Sid: RunOnlyTaggedAgentCompute
+          Effect: Allow
+          Action: ec2:RunInstances
+          Resource:
+          - arn:aws:ec2:us-east-1:167217327520:instance/*
+          - arn:aws:ec2:us-east-1:167217327520:internet-gateway/*
+          - arn:aws:ec2:us-east-1:167217327520:volume/*
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
+              aws:RequestTag/Project: stokd-agent
+            StringLike:
+              aws:RequestTag/Stage:
+              - source-val12
+              - restore-val12
+        - Sid: TagAgentResourcesDuringBoundedCreate
+          Effect: Allow
+          Action: ec2:CreateTags
+          Resource:
+          - arn:aws:ec2:us-east-1:167217327520:instance/*
+          - arn:aws:ec2:us-east-1:167217327520:network-interface/*
+          - arn:aws:ec2:us-east-1:167217327520:route-table/*
+          - arn:aws:ec2:us-east-1:167217327520:security-group/*
+          - arn:aws:ec2:us-east-1:167217327520:subnet/*
+          - arn:aws:ec2:us-east-1:167217327520:volume/*
+          - arn:aws:ec2:us-east-1:167217327520:vpc/*
+          - arn:aws:ec2:us-east-1:167217327520:vpc-endpoint/*
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
+              aws:RequestTag/Project: stokd-agent
+            StringLike:
+              aws:RequestTag/Stage:
+              - source-val12
+              - restore-val12
+              ec2:CreateAction:
+              - CreateRouteTable
+              - CreateInternetGateway
+              - CreateNetworkInterface
+              - CreateSecurityGroup
+              - CreateSubnet
+              - CreateVolume
+              - CreateVpc
+              - CreateVpcEndpoint
+              - RunInstances
+
+  AgentDeployRuntimePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: stokd-agent-validation-deploy-runtime
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: ConfigureUntaggedNetworkEdges
+          Effect: Allow
+          Action:
+          - ec2:AssociateRouteTable
+          - ec2:AttachInternetGateway
+          - ec2:CreateRoute
+          - ec2:DeleteRoute
+          - ec2:DisassociateRouteTable
+          - elasticloadbalancing:CreateListener
+          - elasticloadbalancing:CreateRule
+          - elasticloadbalancing:DeleteListener
+          - elasticloadbalancing:DeleteRule
+          - elasticloadbalancing:ModifyListener
+          - elasticloadbalancing:ModifyTargetGroup
+          - elasticloadbalancing:ModifyTargetGroupAttributes
+          - elasticloadbalancing:RegisterTargets
+          Resource: '*'
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
+        - Sid: ManageTaggedStatelessResources
+          Effect: Allow
+          Action:
+          - ec2:AuthorizeSecurityGroupEgress
+          - ec2:AuthorizeSecurityGroupIngress
+          - ec2:DeleteInternetGateway
+          - ec2:DeleteNetworkInterface
+          - ec2:DeleteRouteTable
+          - ec2:DeleteSecurityGroup
+          - ec2:DeleteSubnet
+          - ec2:DeleteVpc
+          - ec2:DeleteVpcEndpoints
+          - ec2:DetachInternetGateway
+          - ec2:ModifyInstanceAttribute
+          - ec2:ModifyVpcAttribute
+          - ec2:ModifyVpcEndpoint
+          - ec2:RevokeSecurityGroupEgress
+          - ec2:RevokeSecurityGroupIngress
+          - ec2:StartInstances
+          - ec2:StopInstances
+          - ec2:TerminateInstances
+          - ecs:DeleteCluster
+          - ecs:DeleteService
+          - ecs:TagResource
+          - ecs:UntagResource
+          - ecs:UpdateService
+          - elasticloadbalancing:AddTags
+          - elasticloadbalancing:DeleteLoadBalancer
+          - elasticloadbalancing:DeleteTargetGroup
+          - elasticloadbalancing:ModifyLoadBalancerAttributes
+          - elasticloadbalancing:RemoveTags
+          - logs:DeleteLogGroup
+          - logs:PutRetentionPolicy
+          - logs:TagResource
+          - logs:UntagResource
+          - servicediscovery:DeleteNamespace
+          - servicediscovery:DeleteService
+          - servicediscovery:UpdateService
+          Resource: '*'
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
+              aws:ResourceTag/Project: stokd-agent
+            StringLike:
+              aws:ResourceTag/Stage:
+              - source-val12
+              - restore-val12
+        - Sid: ConfigureExactAgentClusterCapacityProviders
+          Effect: Allow
+          Action: ecs:PutClusterCapacityProviders
+          Resource:
+          - arn:aws:ecs:us-east-1:167217327520:cluster/stokd-agent-api-source-val12
+          - arn:aws:ecs:us-east-1:167217327520:cluster/stokd-agent-api-restore-val12
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
+        - Sid: DeregisterExactAgentTaskDefinitions
+          Effect: Allow
+          Action: ecs:DeregisterTaskDefinition
+          Resource:
+          - arn:aws:ecs:us-east-1:167217327520:task-definition/stokd-agent-api-source-val12:*
+          - arn:aws:ecs:us-east-1:167217327520:task-definition/stokd-agent-api-restore-val12:*
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
+        - Sid: ManageTaggedAgentDiscoveryInstances
+          Effect: Allow
+          Action:
+          - servicediscovery:DeregisterInstance
+          - servicediscovery:GetInstance
+          - servicediscovery:ListInstances
+          - servicediscovery:RegisterInstance
+          Resource: arn:aws:servicediscovery:us-east-1:167217327520:service/*
+          Condition:
+            StringEquals:
+              aws:ResourceTag/Project: stokd-agent
+              servicediscovery:ServiceCreatedByAccount: '167217327520'
+            StringLike:
+              aws:ResourceTag/Stage:
+              - source-val12
+              - restore-val12
+        - Sid: RegisterTaggedAgentApiScaling
+          Effect: Allow
+          Action:
+          - application-autoscaling:RegisterScalableTarget
+          - application-autoscaling:TagResource
+          Resource: arn:aws:application-autoscaling:us-east-1:167217327520:scalable-target/*
+          Condition:
+            StringEquals:
+              application-autoscaling:service-namespace: ecs
+              application-autoscaling:scalable-dimension: ecs:service:DesiredCount
+              aws:RequestTag/Project: stokd-agent
+            StringLike:
+              aws:RequestTag/Stage:
+              - source-val12
+              - restore-val12
+        - Sid: ManageTaggedAgentApiScaling
+          Effect: Allow
+          Action:
+          - application-autoscaling:DeleteScalingPolicy
+          - application-autoscaling:DeregisterScalableTarget
+          - application-autoscaling:PutScalingPolicy
+          - application-autoscaling:UntagResource
+          Resource: arn:aws:application-autoscaling:us-east-1:167217327520:scalable-target/*
+          Condition:
+            StringEquals:
+              application-autoscaling:service-namespace: ecs
+              application-autoscaling:scalable-dimension: ecs:service:DesiredCount
+              aws:ResourceTag/Project: stokd-agent
+            StringLike:
+              aws:ResourceTag/Stage:
+              - source-val12
+              - restore-val12
+        - Sid: CreateExactApplicationAutoscalingServiceRole
+          Effect: Allow
+          Action: iam:CreateServiceLinkedRole
+          Resource: arn:aws:iam::167217327520:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService
+          Condition:
+            StringEquals:
+              iam:AWSServiceName: ecs.application-autoscaling.amazonaws.com
+        - Sid: RetagOnlyExistingAgentResources
+          Effect: Allow
+          Action:
+          - ec2:CreateTags
+          - ec2:DeleteTags
+          Resource: arn:aws:ec2:us-east-1:167217327520:*
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
+              ec2:ResourceTag/Project: stokd-agent
+            StringLike:
+              ec2:ResourceTag/Stage:
+              - source-val12
+              - restore-val12
+        - Sid: CannotResetVolumeInitializationProof
+          Effect: Deny
+          Action:
+          - ec2:CreateTags
+          - ec2:DeleteTags
+          Resource: arn:aws:ec2:us-east-1:167217327520:volume/*
+          Condition:
+            'Null':
+              ec2:CreateAction: 'true'
+            ForAnyValue:StringEquals:
+              aws:TagKeys:
+              - InitializationState
+        - Sid: ManageRetainedVolumesWithoutDeletion
+          Effect: Allow
+          Action:
+          - ec2:AttachVolume
+          - ec2:CreateTags
+          - ec2:DetachVolume
+          - ec2:ModifyVolume
+          Resource: '*'
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
+              ec2:ResourceTag/Project: stokd-agent
+
+  AgentDeployCustodyPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: stokd-agent-validation-deploy-custody
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: ManageAgentKmsWithoutDeletion
+          Effect: Allow
+          Action:
+          - kms:EnableKeyRotation
+          - kms:PutKeyPolicy
+          - kms:TagResource
+          - kms:UntagResource
+          - kms:UpdateAlias
+          Resource: arn:aws:kms:us-east-1:167217327520:key/*
+          Condition:
+            StringEquals:
+              aws:ResourceTag/Project: stokd-agent
+            StringLike:
+              aws:ResourceTag/Stage:
+              - source-val12
+              - restore-val12
+        - Sid: CreateAgentKmsAliasName
+          Effect: Allow
+          Action: kms:CreateAlias
+          Resource: arn:aws:kms:us-east-1:167217327520:alias/stokd-agent-*
+        - Sid: CreateAgentKmsAliasOnTaggedKey
+          Effect: Allow
+          Action: kms:CreateAlias
+          Resource: arn:aws:kms:us-east-1:167217327520:key/*
+          Condition:
+            StringEquals:
+              aws:ResourceTag/Project: stokd-agent
+            StringLike:
+              aws:ResourceTag/Stage:
+              - source-val12
+              - restore-val12
+        - Sid: UseAgentKmsThroughExactAwsServices
+          Effect: Allow
+          Action:
+          - kms:Decrypt
+          - kms:DescribeKey
+          - kms:Encrypt
+          - kms:GenerateDataKey
+          - kms:GenerateDataKeyWithoutPlaintext
+          - kms:ReEncryptFrom
+          - kms:ReEncryptTo
+          Resource: arn:aws:kms:us-east-1:167217327520:key/*
+          Condition:
+            StringEquals:
+              aws:ResourceTag/Project: stokd-agent
+            StringLike:
+              aws:ResourceTag/Stage:
+              - source-val12
+              - restore-val12
+              kms:ViaService:
+              - ec2.us-east-1.amazonaws.com
+              - secretsmanager.us-east-1.amazonaws.com
+        - Sid: Work12ValidationEvidenceKmsOnly
+          Effect: Allow
+          Action:
+          - kms:Decrypt
+          - kms:DescribeKey
+          - kms:Encrypt
+          - kms:GenerateDataKey
+          - kms:GenerateDataKeyWithoutPlaintext
+          - kms:ReEncryptFrom
+          - kms:ReEncryptTo
+          Resource: arn:aws:kms:us-east-1:167217327520:key/*
+          Condition:
+            StringEquals:
+              aws:ResourceTag/Project: stokd-agent
+              kms:ViaService: s3.us-east-1.amazonaws.com
+            StringLike:
+              aws:ResourceTag/Stage:
+              - source-val12
+              - restore-val12
+              kms:EncryptionContext:aws:s3:arn:
+              - arn:aws:s3:::stokd-agent-artifacts-source-val12-167217327520/validation/work-1.2/source-val12/*
+              - arn:aws:s3:::stokd-agent-artifacts-restore-val12-167217327520/validation/work-1.2/restore-val12/*
+        - Sid: CreateOnlyAwsResourceKmsGrants
+          Effect: Allow
+          Action: kms:CreateGrant
+          Resource: arn:aws:kms:us-east-1:167217327520:key/*
+          Condition:
+            Bool:
+              kms:GrantIsForAWSResource: 'true'
+            StringEquals:
+              aws:ResourceTag/Project: stokd-agent
+            StringLike:
+              aws:ResourceTag/Stage:
+              - source-val12
+              - restore-val12
+        - Sid: AgentBucketsWithoutDestruction
+          Effect: Allow
+          Action:
+          - s3:CreateBucket
+          - s3:GetEncryptionConfiguration
+          - s3:GetLifecycleConfiguration
+          - s3:GetBucketLocation
+          - s3:GetBucketOwnershipControls
+          - s3:GetBucketPolicy
+          - s3:GetBucketPublicAccessBlock
+          - s3:GetBucketTagging
+          - s3:GetBucketVersioning
+          - s3:ListBucket
+          - s3:ListBucketVersions
+          - s3:PutEncryptionConfiguration
+          - s3:PutLifecycleConfiguration
+          - s3:PutBucketOwnershipControls
+          - s3:PutBucketPolicy
+          - s3:PutBucketPublicAccessBlock
+          - s3:PutBucketTagging
+          - s3:PutBucketVersioning
+          Resource:
+          - arn:aws:s3:::stokd-agent-artifacts-source-val12-167217327520
+          - arn:aws:s3:::stokd-agent-artifacts-restore-val12-167217327520
+          - arn:aws:s3:::stokd-agent-backups-source-val12-167217327520
+          - arn:aws:s3:::stokd-agent-backups-restore-val12-167217327520
+        - Sid: Work12ValidationEvidenceObjectsOnly
+          Effect: Allow
+          Action:
+          - s3:GetObject
+          - s3:GetObjectTagging
+          - s3:GetObjectVersion
+          - s3:PutObject
+          - s3:PutObjectTagging
+          Resource:
+          - arn:aws:s3:::stokd-agent-artifacts-source-val12-167217327520/validation/work-1.2/source-val12/*
+          - arn:aws:s3:::stokd-agent-artifacts-restore-val12-167217327520/validation/work-1.2/restore-val12/*
+        - Sid: AgentGeneratedSecretsWithoutDeletion
+          Effect: Allow
+          Action:
+          - secretsmanager:DescribeSecret
+          - secretsmanager:GetResourcePolicy
+          - secretsmanager:ListSecretVersionIds
+          - secretsmanager:TagResource
+          - secretsmanager:UntagResource
+          - secretsmanager:UpdateSecret
+          Resource: arn:aws:secretsmanager:us-east-1:167217327520:secret:stokd-agent-*
+        - Sid: CreateOnlyTaggedAgentSecrets
+          Effect: Allow
+          Action: secretsmanager:CreateSecret
+          Resource: arn:aws:secretsmanager:us-east-1:167217327520:secret:stokd-agent-*
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
+              aws:RequestTag/Project: stokd-agent
+            StringLike:
+              aws:RequestTag/Stage:
+              - source-val12
+              - restore-val12
+
+  AgentDeployControlPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: stokd-agent-validation-deploy-control
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: CreateOnlyBoundedWorkloadRoles
+          Effect: Allow
+          Action:
+          - iam:CreateRole
+          - iam:PutRolePermissionsBoundary
+          Resource: arn:aws:iam::167217327520:role/stokd-agent-workload-*
+          Condition:
+            ArnEquals:
+              iam:PermissionsBoundary: arn:aws:iam::167217327520:policy/stokd-agent-workload-boundary
+        - Sid: ManageOnlyBoundedWorkloadRoles
+          Effect: Allow
+          Action:
+          - iam:DeleteRole
+          - iam:DeleteRolePolicy
+          - iam:PutRolePolicy
+          - iam:TagRole
+          - iam:UntagRole
+          Resource: arn:aws:iam::167217327520:role/stokd-agent-workload-*
+        - Sid: WorkloadInstanceProfilesOnly
+          Effect: Allow
+          Action:
+          - iam:AddRoleToInstanceProfile
+          - iam:CreateInstanceProfile
+          - iam:DeleteInstanceProfile
+          - iam:RemoveRoleFromInstanceProfile
+          Resource: arn:aws:iam::167217327520:instance-profile/stokd-agent-workload-*
+        - Sid: PassOnlyBoundedWorkloadRoles
+          Effect: Allow
+          Action:
+          - iam:PassRole
+          Resource: arn:aws:iam::167217327520:role/stokd-agent-workload-*
+          Condition:
+            StringEquals:
+              iam:PassedToService:
+              - ec2.amazonaws.com
+              - ecs-tasks.amazonaws.com
+              - events.amazonaws.com
+        - Sid: AgentManifestParameters
+          Effect: Allow
+          Action:
+          - ssm:AddTagsToResource
+          - ssm:DeleteParameter
+          - ssm:GetParameter
+          - ssm:GetParameters
+          - ssm:ListTagsForResource
+          - ssm:PutParameter
+          - ssm:RemoveTagsFromResource
+          Resource: arn:aws:ssm:us-east-1:167217327520:parameter/stokd-agent/*
+        - Sid: SendOnlyFixedAgentHostDocuments
+          Effect: Allow
+          Action: ssm:SendCommand
+          Resource:
+          - arn:aws:ssm:us-east-1:167217327520:document/stokd-agent-migrate-host-v1
+          - arn:aws:ssm:us-east-1:167217327520:document/stokd-agent-validation-seed-v1
+          - arn:aws:ssm:us-east-1:167217327520:document/stokd-agent-validation-backup-v1
+          - arn:aws:ssm:us-east-1:167217327520:document/stokd-agent-restore-host-v1
+        - Sid: SendFixedHostCommandsToTaggedStagesOnly
+          Effect: Allow
+          Action: ssm:SendCommand
+          Resource: arn:aws:ec2:us-east-1:167217327520:instance/*
+          Condition:
+            StringEquals:
+              ssm:resourceTag/Project: stokd-agent
+            StringLike:
+              ssm:resourceTag/Stage:
+              - source-val12
+              - restore-val12
+        - Sid: ReadFixedHostCommandResults
+          Effect: Allow
+          Action:
+          - ssm:GetCommandInvocation
+          - ssm:ListCommandInvocations
+          Resource: '*'
+        - Sid: ExactDnsZoneOnly
+          Effect: Allow
+          Action: route53:ChangeResourceRecordSets
+          Resource: arn:aws:route53:::hostedzone/Z0974146XEXJDMNXU573
+        - Sid: RuntimeImageRepository
+          Effect: Allow
+          Action:
+          - ecr:CompleteLayerUpload
+          - ecr:InitiateLayerUpload
+          - ecr:PutImage
+          - ecr:UploadLayerPart
+          Resource: arn:aws:ecr:us-east-1:167217327520:repository/stokd-agent-runtime
+        - Sid: AgentNestedStacks
+          Effect: Allow
+          Action:
+          - cloudformation:CreateChangeSet
+          - cloudformation:CreateStack
+          - cloudformation:DeleteChangeSet
+          - cloudformation:DescribeChangeSet
+          - cloudformation:ExecuteChangeSet
+          - cloudformation:UpdateStack
+          Resource: arn:aws:cloudformation:us-east-1:167217327520:stack/stokd-agent-*/*
+        - Sid: PersistentDeletionIsImpossible
+          Effect: Deny
+          Action:
+          - ec2:DeleteVolume
+          - ecs:ExecuteCommand
+          - ecs:RunTask
+          - ecs:StartTask
+          - events:*
+          - kms:DisableKey
+          - kms:ScheduleKeyDeletion
+          - s3:DeleteBucket
+          - s3:DeleteObject
+          - s3:DeleteObjectVersion
+          - secretsmanager:DeleteSecret
+          Resource:
+          - arn:aws:ec2:us-east-1:167217327520:volume/*
+          - arn:aws:ecs:us-east-1:167217327520:*
+          - arn:aws:events:us-east-1:167217327520:*
+          - arn:aws:kms:us-east-1:167217327520:key/*
+          - arn:aws:s3:::stokd-agent-*
+          - arn:aws:s3:::stokd-agent-*/*
+          - arn:aws:secretsmanager:us-east-1:167217327520:secret:stokd-agent-*
+        - Sid: CannotMutateBootstrapCustody
+          Effect: Deny
+          Action:
+          - cloudformation:CreateChangeSet
+          - cloudformation:CreateStack
+          - cloudformation:ExecuteChangeSet
+          - cloudformation:UpdateStack
+          Resource: arn:aws:cloudformation:us-east-1:167217327520:stack/stokd-agent-validation-bootstrap/*
+
+  AgentDeploySstHomePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: stokd-agent-validation-deploy-sst-home
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: ExactSstBootstrapRecord
+          Effect: Allow
+          Action: ssm:GetParameter
+          Resource: arn:aws:ssm:us-east-1:167217327520:parameter/sst/bootstrap
+        - Sid: ExactSstPassphrases
+          Effect: Allow
+          Action:
+          - ssm:GetParameter
+          - ssm:ListTagsForResource
+          Resource:
+          - arn:aws:ssm:us-east-1:167217327520:parameter/sst/passphrase/stokd-agent-data/source-val12
+          - arn:aws:ssm:us-east-1:167217327520:parameter/sst/passphrase/stokd-agent-api/source-val12
+          - arn:aws:ssm:us-east-1:167217327520:parameter/sst/passphrase/stokd-agent-data/restore-val12
+          - arn:aws:ssm:us-east-1:167217327520:parameter/sst/passphrase/stokd-agent-api/restore-val12
+          - arn:aws:ssm:us-east-1:167217327520:parameter/sst/passphrase/stokd-agent-data/_fallback
+          - arn:aws:ssm:us-east-1:167217327520:parameter/sst/passphrase/stokd-agent-api/_fallback
+        - Sid: ExistingSstStateBucketMetadata
+          Effect: Allow
+          Action:
+          - s3:GetBucketPolicy
+          - s3:GetBucketPublicAccessBlock
+          - s3:GetBucketLocation
+          - s3:GetBucketOwnershipControls
+          - s3:GetBucketVersioning
+          - s3:GetEncryptionConfiguration
+          - s3:GetLifecycleConfiguration
+          Resource: !Sub arn:aws:s3:::${ExistingSstStateBucketName}
+        - Sid: ExactSstStatePrefixes
+          Effect: Allow
+          Action:
+          - s3:ListBucket
+          - s3:ListBucketVersions
+          Resource: !Sub arn:aws:s3:::${ExistingSstStateBucketName}
+          Condition:
+            StringLike:
+              s3:prefix:
+              - app/stokd-agent-data
+              - app/stokd-agent-api
+              - app/stokd-agent-data/*
+              - app/stokd-agent-api/*
+              - lock/stokd-agent-data/*
+              - lock/stokd-agent-api/*
+              - update/stokd-agent-data/*
+              - update/stokd-agent-api/*
+              - snapshot/stokd-agent-data/*
+              - snapshot/stokd-agent-api/*
+              - eventlog/stokd-agent-data/*
+              - eventlog/stokd-agent-api/*
+              - secret/stokd-agent-data/*
+              - secret/stokd-agent-api/*
+              - bootstrap-init/work-1.2/*
+        - Sid: ExactMutableSstStateObjects
+          Effect: Allow
+          Action:
+          - s3:GetObject
+          - s3:GetObjectVersion
+          - s3:PutObject
+          Resource:
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/app/stokd-agent-data/source-val12.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/app/stokd-agent-api/source-val12.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/app/stokd-agent-data/restore-val12.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/app/stokd-agent-api/restore-val12.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/update/stokd-agent-data/source-val12/*
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/update/stokd-agent-api/source-val12/*
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/update/stokd-agent-data/restore-val12/*
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/update/stokd-agent-api/restore-val12/*
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/snapshot/stokd-agent-data/source-val12/*
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/snapshot/stokd-agent-api/source-val12/*
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/snapshot/stokd-agent-data/restore-val12/*
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/snapshot/stokd-agent-api/restore-val12/*
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/eventlog/stokd-agent-data/source-val12/*
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/eventlog/stokd-agent-api/source-val12/*
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/eventlog/stokd-agent-data/restore-val12/*
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/eventlog/stokd-agent-api/restore-val12/*
+        - Sid: ExactSstLockObjects
+          Effect: Allow
+          Action:
+          - s3:GetObject
+          - s3:GetObjectVersion
+          - s3:PutObject
+          - s3:DeleteObject
+          Resource:
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/lock/stokd-agent-data/source-val12.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/lock/stokd-agent-api/source-val12.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/lock/stokd-agent-data/restore-val12.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/lock/stokd-agent-api/restore-val12.json
+        - Sid: ReadOnlySstSecretAndInitObjects
+          Effect: Allow
+          Action:
+          - s3:GetObject
+          - s3:GetObjectVersion
+          Resource:
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/secret/stokd-agent-data/source-val12.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/secret/stokd-agent-api/source-val12.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/secret/stokd-agent-data/restore-val12.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/secret/stokd-agent-api/restore-val12.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/secret/stokd-agent-data/_fallback.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/secret/stokd-agent-api/_fallback.json
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}/bootstrap-init/work-1.2/*
+  AgentValidationDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: stokd-agent-validation-deploy
+      MaxSessionDuration: 3600
+      PermissionsBoundary: !Ref AgentDeployPermissionsBoundary
+      ManagedPolicyArns:
+        - !Ref AgentDeployFoundationPolicy
+        - !Ref AgentDeployRuntimePolicy
+        - !Ref AgentDeployCustodyPolicy
+        - !Ref AgentDeployControlPolicy
+        - !Ref AgentDeploySstHomePolicy
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: GitHubEnvironmentOnly
+            Effect: Allow
+            Principal:
+              Federated: !Ref ExistingGitHubOidcProviderArn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+                token.actions.githubusercontent.com:sub: repo:stokd-cloud/agent:environment:agent-validation
+      Tags:
+        - Key: Project
+          Value: stokd-agent
+        - Key: Custody
+          Value: bootstrap
+
+
+  AgentMigrateHostCommand:
+    Type: AWS::SSM::Document
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: stokd-agent-migrate-host-v1
+      DocumentType: Command
+      DocumentFormat: YAML
+      TargetType: /AWS::EC2::Instance
+      UpdateMethod: NewVersion
+      Tags:
+        - Key: Project
+          Value: stokd-agent
+        - Key: Custody
+          Value: bootstrap
+      Content:
+        schemaVersion: '2.2'
+        description: Invoke only the installed, ownership-guarded Agent migration controller
+        parameters:
+          OperationId:
+            type: String
+            allowedPattern: '^[a-z0-9][a-z0-9-]{2,80}$'
+          TargetStage:
+            type: String
+            allowedValues:
+              - source-val12
+              - restore-val12
+        mainSteps:
+          - action: aws:runShellScript
+            name: InvokeGuardedMigrationHost
+            inputs:
+              timeoutSeconds: '1800'
+              runCommand:
+                - >-
+                  /opt/stokd-agent/bin/migrate-host
+                  --operation-id '{{ OperationId }}'
+                  --target-stage '{{ TargetStage }}'
+
+  AgentValidationSeedCommand:
+    Type: AWS::SSM::Document
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: stokd-agent-validation-seed-v1
+      DocumentType: Command
+      DocumentFormat: YAML
+      TargetType: /AWS::EC2::Instance
+      UpdateMethod: NewVersion
+      Tags:
+        - Key: Project
+          Value: stokd-agent
+        - Key: Custody
+          Value: bootstrap
+      Content:
+        schemaVersion: '2.2'
+        description: Seed the fixed source-stage durability fixture without dispatching work
+        mainSteps:
+          - action: aws:runShellScript
+            name: InvokeFixedValidationSeed
+            inputs:
+              timeoutSeconds: '900'
+              runCommand:
+                - /opt/stokd-agent/bin/validation-seed-host
+
+  AgentValidationBackupCommand:
+    Type: AWS::SSM::Document
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: stokd-agent-validation-backup-v1
+      DocumentType: Command
+      DocumentFormat: YAML
+      TargetType: /AWS::EC2::Instance
+      UpdateMethod: NewVersion
+      Tags:
+        - Key: Project
+          Value: stokd-agent
+        - Key: Custody
+          Value: bootstrap
+      Content:
+        schemaVersion: '2.2'
+        description: Create the fixed source-stage quiesced backup and custody receipt
+        mainSteps:
+          - action: aws:runShellScript
+            name: InvokeFixedValidationBackup
+            inputs:
+              timeoutSeconds: '7200'
+              runCommand:
+                - /opt/stokd-agent/bin/backup-host
+
+  AgentRestoreHostCommand:
+    Type: AWS::SSM::Document
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: stokd-agent-restore-host-v1
+      DocumentType: Command
+      DocumentFormat: YAML
+      TargetType: /AWS::EC2::Instance
+      UpdateMethod: NewVersion
+      Tags:
+        - Key: Project
+          Value: stokd-agent
+        - Key: Custody
+          Value: bootstrap
+      Content:
+        schemaVersion: '2.2'
+        description: Invoke only the installed, ownership-guarded Agent restore host controller
+        parameters:
+          OperationId:
+            type: String
+            allowedPattern: '^[a-z0-9][a-z0-9-]{2,80}$'
+          ManifestKey:
+            type: String
+            allowedPattern: '^[A-Za-z0-9][A-Za-z0-9._/-]{0,512}$'
+          ManifestVersionId:
+            type: String
+            allowedPattern: '^[A-Za-z0-9._=+/-]{1,1024}$'
+          ManifestSha256:
+            type: String
+            allowedPattern: '^[a-f0-9]{64}$'
+          ArchiveKey:
+            type: String
+            allowedPattern: '^[A-Za-z0-9][A-Za-z0-9._/-]{0,512}$'
+          ArchiveVersionId:
+            type: String
+            allowedPattern: '^[A-Za-z0-9._=+/-]{1,1024}$'
+          ArchiveSha256:
+            type: String
+            allowedPattern: '^[a-f0-9]{64}$'
+        mainSteps:
+          - action: aws:runShellScript
+            name: InvokeGuardedRestoreHost
+            inputs:
+              timeoutSeconds: '7200'
+              runCommand:
+                - >-
+                  /opt/stokd-agent/bin/restore-host
+                  --operation-id '{{ OperationId }}'
+                  --source-bucket 'stokd-agent-backups-source-val12-167217327520'
+                  --manifest-key '{{ ManifestKey }}'
+                  --manifest-version-id '{{ ManifestVersionId }}'
+                  --manifest-sha256 '{{ ManifestSha256 }}'
+                  --archive-key '{{ ArchiveKey }}'
+                  --archive-version-id '{{ ArchiveVersionId }}'
+                  --archive-sha256 '{{ ArchiveSha256 }}'
+                  --target-stage 'restore-val12'
+
+  AgentValidationCertificate:
+    Type: AWS::CertificateManager::Certificate
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      DomainName: agent-source-val12.stokd.cloud
+      SubjectAlternativeNames:
+        - agent-restore-val12.stokd.cloud
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: agent-source-val12.stokd.cloud
+          HostedZoneId: Z0974146XEXJDMNXU573
+        - DomainName: agent-restore-val12.stokd.cloud
+          HostedZoneId: Z0974146XEXJDMNXU573
+      Tags:
+        - Key: Project
+          Value: stokd-agent
+        - Key: Custody
+          Value: bootstrap
+
+  AgentValidationCertificateParameter:
+    Type: AWS::SSM::Parameter
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: /stokd-agent/shared/validation-certificate/v1
+      Type: String
+      Value: !Ref AgentValidationCertificate
+      Description: Exact retained SAN certificate for the two Agent validation hostnames
+      Tags:
+        Project: stokd-agent
+        Custody: bootstrap
+Outputs:
+  DeployRoleArn:
+    Value: !GetAtt AgentValidationDeployRole.Arn
+  DeployPermissionsBoundaryArn:
+    Value: !Ref AgentDeployPermissionsBoundary
+  WorkloadPermissionsBoundaryArn:
+    Value: !Ref AgentWorkloadPermissionsBoundary
+  RuntimeRepositoryUri:
+    Value: !GetAtt AgentRuntimeRepository.RepositoryUri
+  GitHubOidcProviderArn:
+    Value: !Ref ExistingGitHubOidcProviderArn
+  GitHubOidcSubject:
+    Value: repo:stokd-cloud/agent:environment:agent-validation
+  MigrateHostCommandDocument:
+    Value: !Ref AgentMigrateHostCommand
+  ValidationSeedCommandDocument:
+    Value: !Ref AgentValidationSeedCommand
+  ValidationBackupCommandDocument:
+    Value: !Ref AgentValidationBackupCommand
+  RestoreHostCommandDocument:
+    Value: !Ref AgentRestoreHostCommand
+  ValidationCertificateArn:
+    Value: !Ref AgentValidationCertificate

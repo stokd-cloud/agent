@@ -1,0 +1,13 @@
+[Unit]
+Description=Stokd Agent versioned operational backup
+After=stokd-agent-mongo.service
+Requires=stokd-agent-mongo.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/stokd-agent/bin/backup-host
+TimeoutStartSec=7200
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+

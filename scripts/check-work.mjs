@@ -26,8 +26,8 @@ import { verifyPinnedToolchain } from './lib/toolchain.mjs'
 const root = realpathSync(resolve(dirname(fileURLToPath(import.meta.url)), '..'))
 const WORK_MANIFEST = join(root, 'tests/verification/work-items.json')
 const BUILD_FINGERPRINT = join(root, 'tests/verification/build-fingerprint.json')
-const EXPECTED_WORK_MANIFEST_SHA256 = 'aae8ce5bf73dca6f3c5e849c4b88744c60834f7716446911c2a0515e9627d602'
-const EXPECTED_BUILD_FINGERPRINT_SHA256 = '4da60bbd6c108b32de64463d52eaefde44546b4ede085e64adcbac8461d4a1fd'
+const EXPECTED_WORK_MANIFEST_SHA256 = '17f9f765aa84faf2629760edab6cbcb62fc87a5dcf5977739120534a5b07a318'
+const EXPECTED_BUILD_FINGERPRINT_SHA256 = '8b537485866732ff9c887a131b68e0080212d2d3b20932b0589a0d0a17890b05'
 const EXPECTED_PNPM_VERSION = '11.25.0'
 
 const sha = path => createHash('sha256').update(readFileSync(path)).digest('hex')

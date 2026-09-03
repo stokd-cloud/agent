@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "work-1.2-structural-diff",
+  "action": "diff",
+  "phase": "source-data"
+}

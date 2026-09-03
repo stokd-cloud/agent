@@ -1,0 +1,188 @@
+name: agent-validation-infrastructure
+on:
+  push:
+    branches: [project/d7f02e6-cloud-agents-mvp]
+    paths:
+      - infra/**
+      - scripts/infra-*.mjs
+      - tests/work-1.2/infra-*.mjs
+      - .github/workflows/agent-validation.yml
+      - .dockerignore
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - tsconfig.base.json
+      - packages/protocol/**
+      - packages/storage/**
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Bounded no-workload-mutation preview or reviewed eight-phase deployment
+        required: true
+        type: choice
+        options: [diff, deploy]
+permissions:
+  contents: read
+concurrency:
+  group: stokd-agent-validation-infrastructure
+  cancel-in-progress: false
+jobs:
+  request:
+    runs-on: ubuntu-latest
+    outputs:
+      action: ${{ steps.select.outputs.action }}
+      stage: ${{ steps.select.outputs.stage }}
+      component: ${{ steps.select.outputs.component }}
+      phase: ${{ steps.select.outputs.phase }}
+      scenario: ${{ steps.select.outputs.scenario }}
+      request_id: ${{ steps.select.outputs.request_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: request
+        if: github.event_name == 'push'
+        run: node scripts/infra-validation-request.mjs
+      - id: dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: node scripts/infra-validation-request.mjs --phase source-data --action '${{ inputs.action }}' --request-id 'manual-${{ github.run_id }}'
+      - id: select
+        run: |
+          if [ '${{ github.event_name }}' = 'push' ]; then
+            echo 'action=${{ steps.request.outputs.action }}' >> "$GITHUB_OUTPUT"
+            echo 'stage=${{ steps.request.outputs.stage }}' >> "$GITHUB_OUTPUT"
+            echo 'component=${{ steps.request.outputs.component }}' >> "$GITHUB_OUTPUT"
+            echo 'phase=${{ steps.request.outputs.phase }}' >> "$GITHUB_OUTPUT"
+            echo 'scenario=${{ steps.request.outputs.scenario }}' >> "$GITHUB_OUTPUT"
+            echo 'request_id=${{ steps.request.outputs.request_id }}' >> "$GITHUB_OUTPUT"
+          else
+            echo 'action=${{ steps.dispatch.outputs.action }}' >> "$GITHUB_OUTPUT"
+            echo 'stage=${{ steps.dispatch.outputs.stage }}' >> "$GITHUB_OUTPUT"
+            echo 'component=${{ steps.dispatch.outputs.component }}' >> "$GITHUB_OUTPUT"
+            echo 'phase=${{ steps.dispatch.outputs.phase }}' >> "$GITHUB_OUTPUT"
+            echo 'scenario=${{ steps.dispatch.outputs.scenario }}' >> "$GITHUB_OUTPUT"
+            echo 'request_id=${{ steps.dispatch.outputs.request_id }}' >> "$GITHUB_OUTPUT"
+          fi
+
+  validate-infrastructure:
+    needs: request
+    if: github.ref == 'refs/heads/project/d7f02e6-cloud-agents-mvp'
+    runs-on: ubuntu-latest
+    environment: agent-validation
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AGENT_AWS_ACCOUNT_ID: '167217327520'
+      AWS_REGION: us-east-1
+      AWS_DEFAULT_REGION: us-east-1
+      TARGET_ACTION: ${{ needs.request.outputs.action }}
+      TARGET_STAGE: ${{ needs.request.outputs.stage }}
+      TARGET_COMPONENT: ${{ needs.request.outputs.component }}
+      TARGET_PHASE: ${{ needs.request.outputs.phase }}
+      TARGET_SCENARIO: ${{ needs.request.outputs.scenario }}
+      VALIDATION_REQUEST_ID: ${{ needs.request.outputs.request_id }}
+      VALIDATION_RUN_ID: github-${{ github.run_id }}
+      AGENT_GITHUB_ENVIRONMENT: agent-validation
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.15.0
+          cache: pnpm
+      - uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
+        with:
+          role-to-assume: arn:aws:iam::167217327520:role/stokd-agent-validation-deploy
+          aws-region: us-east-1
+          role-session-name: agent-validation-${{ github.run_id }}
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Validate infrastructure guards and policy
+        run: node --test tests/work-1.2/infra-guard-negative.mjs tests/work-1.2/infra-policy-structure.mjs
+      - name: Preview exact stages without workload mutation; defer APIs missing current data manifests
+        if: env.TARGET_ACTION == 'diff'
+        run: |
+          set -euo pipefail
+          for stage in source-val12 restore-val12; do
+            phase_env="$(mktemp)"
+            GITHUB_ENV="$phase_env" node scripts/infra-preview-images.mjs "$stage"
+            set -a
+            source "$phase_env"
+            set +a
+            node scripts/infra-action.mjs data diff --stage "$stage"
+            api_readiness="$(node scripts/infra-api-preview-readiness.mjs "$stage")"
+            if node -e 'const value=JSON.parse(process.argv[1]); process.exit(value.ready === true ? 0 : 1)' "$api_readiness"; then
+              node scripts/infra-action.mjs api diff --stage "$stage"
+            else
+              echo "API diff for $stage is explicitly deferred until its exact data manifest exists: $api_readiness"
+            fi
+          done
+      - name: Run the exact ordered Work 1.2 deployment and evidence chain
+        if: env.TARGET_ACTION == 'deploy'
+        run: |
+          set -euo pipefail
+          set -o pipefail
+          phases=(
+            'source-data:source-val12:data:migrate'
+            'source-api-proof:source-val12:api:source-proof'
+            'restore-data:restore-val12:data:migrate'
+            'restore-api-proof:restore-val12:api:restore-proof'
+            'source-data-redeploy:source-val12:data:migrate-and-redeploy-proof'
+            'source-api-redeploy:source-val12:api:redeploy-proof'
+            'restore-data-redeploy:restore-val12:data:migrate-and-redeploy-proof'
+            'restore-api-redeploy:restore-val12:api:redeploy-proof'
+          )
+          json_true() { node -e 'const value=JSON.parse(process.argv[1]); process.exit(value[process.argv[2]] === true ? 0 : 1)' "$1" "$2"; }
+          json_field() { node -e 'const value=JSON.parse(process.argv[1]); const result=value[process.argv[2]]; if (typeof result !== "string") process.exit(2); process.stdout.write(result)' "$1" "$2"; }
+          for definition in "${phases[@]}"; do
+            IFS=: read -r phase stage component scenario <<< "$definition"
+            preflight="$(node scripts/infra-phase-preflight.mjs --phase "$phase" --validation-run-id "$VALIDATION_RUN_ID" --source-digest "$GITHUB_SHA")"
+            if json_true "$preflight" replay; then
+              echo "Phase $phase already has an exact immutable receipt; replay is read-only."
+              continue
+            fi
+            if json_true "$preflight" resume; then
+              export AGENT_PLAN_DIGEST="$(json_field "$preflight" planDigest)"
+              if json_true "$preflight" restoreResume; then
+                echo "Phase $phase has its exact active restore lock; resuming verification without deployment mutation."
+              else
+                echo "Phase $phase has a bound plan but no receipt; republishing deterministic images and retrying deploy."
+                phase_env="$(mktemp)"
+                GITHUB_ENV="$phase_env" node scripts/infra-publish-images.mjs "$stage"
+                set -a
+                source "$phase_env"
+                set +a
+                node scripts/infra-action.mjs "$component" deploy --stage "$stage"
+              fi
+            else
+              phase_env="$(mktemp)"
+              GITHUB_ENV="$phase_env" node scripts/infra-publish-images.mjs "$stage"
+              set -a
+              source "$phase_env"
+              set +a
+              plan_path="/tmp/stokd-agent-${phase}-plan.txt"
+              node scripts/infra-action.mjs "$component" diff --stage "$stage" 2>&1 | tee "$plan_path"
+              export AGENT_PLAN_DIGEST="$(sha256sum "$plan_path" | awk '{print $1}')"
+              deploy_preflight="$(node scripts/infra-phase-preflight.mjs --phase "$phase" --validation-run-id "$VALIDATION_RUN_ID" --source-digest "$GITHUB_SHA" --plan-digest "$AGENT_PLAN_DIGEST")"
+              if json_true "$deploy_preflight" replay || json_true "$deploy_preflight" resume; then
+                echo "Phase $phase changed state between publish and deploy." >&2
+                exit 7
+              fi
+              if [ "$(json_field "$deploy_preflight" planDigest)" != "$AGENT_PLAN_DIGEST" ]; then
+                echo "Phase $phase durable plan binding changed before deploy." >&2
+                exit 8
+              fi
+              node scripts/infra-action.mjs "$component" deploy --stage "$stage"
+            fi
+            node scripts/infra-validation-scenario.mjs "$scenario" \
+              --stage "$stage" --component "$component" \
+              --request-id "$VALIDATION_RUN_ID-$phase" --phase "$phase" --validation-run-id "$VALIDATION_RUN_ID"
+            unset AGENT_API_IMAGE AGENT_MONGO_IMAGE AGENT_MAINTENANCE_IMAGE AGENT_SOURCE_DIGEST AGENT_PLAN_DIGEST
+          done
+      - name: Verify accumulated work-1.2 cloud lifecycle evidence
+        if: env.TARGET_ACTION == 'deploy'
+        env:
+          AGENT_RUN_CLOUD_VALIDATION: '1'
+        run: node --test tests/work-1.2/infra-cloud-validation.mjs

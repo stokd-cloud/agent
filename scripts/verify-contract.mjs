@@ -6,14 +6,14 @@ import { fileURLToPath } from 'node:url'
 import { parseArgs, requireValue } from './lib/args.mjs'
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..')
 function stable(value) { if(Array.isArray(value)) return `[${value.map(stable).join(',')}]`; if(value&&typeof value==='object') return `{${Object.keys(value).sort().map(k=>`${JSON.stringify(k)}:${stable(value[k])}`).join(',')}}`; return JSON.stringify(value) }
-const EXPECTED='e222ab2b36ca45484ec4ffef25cb25f15574e2272ad50d259e9b057b2b2db660'
+const EXPECTED='81d82ac2d5224f1c485d45c684b90ea23326cc75bc6d373ef72e35283ff10d08'
 try {
   if(process.env.AGENT_ALLOW_MOCKS || process.env.AGENT_MOCK_MODE) throw new Error('mock substitution is forbidden for contract verification')
   if(process.env.AGENT_CONTRACT_SETUP==='missing') throw new Error('required contract setup is missing')
   const args=parseArgs(process.argv.slice(2))
   if(process.env.AGENT_CONTRACT_REGISTRY)throw new Error('AGENT_CONTRACT_REGISTRY override is forbidden')
   const path=join(root,'tests/contracts/targets.json')
-  const byteSha=createHash('sha256').update(readFileSync(path)).digest('hex');if(byteSha!=='848784433ca38c83e57a595206d878d89000ec9469f75e542d473643a15c2722')throw new Error(`canonical contract registry byte mismatch: ${byteSha}`)
+  const byteSha=createHash('sha256').update(readFileSync(path)).digest('hex');if(byteSha!=='3131efea2a2f9020ffbcdb32bfe9e5e8df3c4d4f17d14c5dcc92f007525b49ff')throw new Error(`canonical contract registry byte mismatch: ${byteSha}`)
   const registry=JSON.parse(readFileSync(path,'utf8'))
   const actual=createHash('sha256').update(stable(registry)).digest('hex')
   if(actual!==EXPECTED) throw new Error(`contract registry mismatch: ${actual}`)

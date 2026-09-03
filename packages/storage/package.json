@@ -8,6 +8,9 @@
   },
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
+  "bin": {
+    "stokd-agent-storage-maintenance": "./lib/maintenance-cli.js"
+  },
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
@@ -21,6 +24,9 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@stokd-cloud/agent-protocol": "workspace:*"
+    "@aws-sdk/client-ecs": "3.883.0",
+    "@aws-sdk/client-s3": "3.883.0",
+    "@stokd-cloud/agent-protocol": "workspace:*",
+    "mongodb": "6.20.0"
   }
 }

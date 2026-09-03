@@ -1,7 +1,15 @@
 
-import { AgentProtocolError, unsupportedError } from '@stokd-cloud/agent-protocol'
-
-export interface AgentStorage { close(): Promise<void> }
-export async function openAgentStorage(): Promise<AgentStorage> {
-  throw new AgentProtocolError(unsupportedError('agent storage is not implemented'))
-}
+export * from './backup.js'
+export * from './catalog.js'
+export * from './client.js'
+export * from './config.js'
+export * from './errors.js'
+export * from './idempotency.js'
+export * from './lease.js'
+export * from './migration.js'
+export * from './object-custody.js'
+export * from './readiness.js'
+export * from './recovery.js'
+export * from './restore.js'
+export * from './transactions.js'
+export * from './validation-fixture.js'

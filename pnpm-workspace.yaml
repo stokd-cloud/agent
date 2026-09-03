@@ -48,6 +48,7 @@ overrides:
 
 allowBuilds:
   '@google/genai': false
+  aws-sdk: false
   esbuild: false
   koffi: false
   protobufjs: false
