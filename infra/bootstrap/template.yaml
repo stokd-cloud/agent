@@ -201,6 +201,8 @@ Resources:
           - kms:Describe*
           - kms:Get*
           - kms:List*
+          - route53:ChangeResourceRecordSets
+          - route53:CreateHealthCheck
           - route53:CreateHostedZone
           - route53:Get*
           - route53:List*
