@@ -32,6 +32,11 @@ script_dir="${runtime_dir}/initialization-js"
 mkdir -p "$data_dir" "$script_dir"
 chmod 0700 "$runtime_dir" "$script_dir"
 chown -R mongodb:mongodb "$data_dir"
+# mongod runs as mongodb via gosu and writes its pid and --logpath files
+# directly into the runtime directory. The host creates that directory
+# root-owned, so without this the forked child dies before it can log anything
+# and the only symptom is "child process failed, exited with 1".
+chown mongodb:mongodb "$runtime_dir" "$script_dir"
 if [[ ! -s "$key_file" ]]; then
   umask 077
   openssl rand -base64 756 > "$key_file"
