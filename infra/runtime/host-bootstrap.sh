@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 [[ "$(id -u)" == 0 ]] || exit 7
-for command in docker docker-credential-ecr-login curl systemctl flock mkfs.xfs blkid mountpoint findmnt ss; do
+for command in docker curl systemctl flock mkfs.xfs blkid mountpoint findmnt ss; do
   command -v "$command" >/dev/null || { echo "pinned ECS AMI is missing ${command}; refusing boot-time installation" >&2; exit 7; }
 done
+# Registry authentication needs EITHER the ECR credential helper or the AWS CLI;
+# agent_prepare_private_registry prefers the helper and falls back to an
+# explicit login. Nothing is ever installed at boot.
+command -v docker-credential-ecr-login >/dev/null || command -v aws >/dev/null || {
+  echo 'pinned ECS AMI has neither docker-credential-ecr-login nor aws; refusing boot-time installation' >&2
+  exit 7
+}
 [[ -f /etc/stokd-agent/host.env && "$(stat -c '%a:%u' /etc/stokd-agent/host.env)" == '400:0' ]] || exit 7
 # shellcheck disable=SC1091
 source /etc/stokd-agent/host.env
