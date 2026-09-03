@@ -288,6 +288,7 @@ Resources:
               kms:EncryptionContext:aws:s3:arn:
               - arn:aws:s3:::stokd-agent-artifacts-source-val12-167217327520/validation/work-1.2/source-val12/*
               - arn:aws:s3:::stokd-agent-artifacts-restore-val12-167217327520/validation/work-1.2/restore-val12/*
+              - arn:aws:s3:::stokd-agent-tfstate-167217327520/work-1.2/*
         - Effect: Allow
           Action: kms:CreateGrant
           Resource: arn:aws:kms:us-east-1:167217327520:key/*
@@ -309,10 +310,8 @@ Resources:
           - s3:PutLifecycleConfiguration
           - s3:PutObject*
           Resource:
-          - arn:aws:s3:::stokd-agent-artifacts-*-167217327520
-          - arn:aws:s3:::stokd-agent-artifacts-*-167217327520/*
-          - arn:aws:s3:::stokd-agent-backups-*-167217327520
-          - arn:aws:s3:::stokd-agent-backups-*-167217327520/*
+          - arn:aws:s3:::stokd-agent-*-167217327520
+          - arn:aws:s3:::stokd-agent-*-167217327520/*
         - Effect: Allow
           Action:
           - s3:GetBucketPolicy
