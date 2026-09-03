@@ -212,7 +212,14 @@ test('routine deployment cannot read managed secrets or delete retained custody 
   for (const action of ['ec2:DeleteVolume', 'kms:DisableKey', 'kms:ScheduleKeyDeletion', 's3:DeleteBucket', 's3:DeleteObjectVersion', 'secretsmanager:DeleteSecret']) {
     assert.match(denial, new RegExp(action.replace(':', '\\:')))
   }
-  assert.doesNotMatch(bootstrap, /Action:\s*['"]?s3:\*|\n\s+- s3:\*/)
+  // A blanket `s3:*` GRANT is the hazard. `s3:*` inside a Deny is strictly
+  // protective — enumerating actions there would be weaker, because a future
+  // S3 action would escape the deny. So require every `s3:*` to sit in a
+  // Deny-effect statement rather than forbidding the string outright.
+  for (const block of bootstrap.split(/(?=^\s*-?\s*Sid:)/m)) {
+    if (!/Action:\s*['"]?s3:\*|\n\s+- s3:\*/.test(block)) continue
+    assert.match(block, /Effect:\s*Deny/, `s3:* must only ever appear in a Deny statement, found: ${block.slice(0, 120)}`)
+  }
 })
 
 test('validation evidence KMS use is S3-scoped and service roles cannot invoke cloud models', () => {

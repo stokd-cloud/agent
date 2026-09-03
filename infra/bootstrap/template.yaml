@@ -902,6 +902,35 @@ Resources:
           Resource:
           - arn:aws:s3:::stokd-agent-artifacts-source-val12-167217327520/validation/work-1.2/source-val12/*
           - arn:aws:s3:::stokd-agent-artifacts-restore-val12-167217327520/validation/work-1.2/restore-val12/*
+        - Sid: TerraformStateObjects
+          Effect: Allow
+          Action:
+          - s3:GetObject
+          - s3:GetObjectVersion
+          - s3:PutObject
+          - s3:DeleteObject
+          Resource: arn:aws:s3:::stokd-agent-tfstate-167217327520/work-1.2/*
+        - Sid: TerraformStateBucketListing
+          Effect: Allow
+          Action:
+          - s3:GetBucketLocation
+          - s3:GetBucketVersioning
+          - s3:ListBucket
+          - s3:ListBucketVersions
+          Resource: arn:aws:s3:::stokd-agent-tfstate-167217327520
+        - Sid: TerraformStateEncryption
+          Effect: Allow
+          Action:
+          - kms:Decrypt
+          - kms:DescribeKey
+          - kms:Encrypt
+          - kms:GenerateDataKey
+          Resource: '*'
+          Condition:
+            StringEquals:
+              kms:ViaService: s3.us-east-1.amazonaws.com
+            StringLike:
+              kms:EncryptionContext:aws:s3:arn: arn:aws:s3:::stokd-agent-tfstate-167217327520/*
         - Sid: AgentGeneratedSecretsWithoutDeletion
           Effect: Allow
           Action:
@@ -1375,7 +1404,120 @@ Resources:
       Tags:
         Project: stokd-agent
         Custody: bootstrap
+  # Terraform state. Retained, versioned and KMS-encrypted: losing this bucket
+  # orphans every resource Terraform manages. Its own key is separate from the
+  # per-stage data keys so state custody and data custody fail independently.
+  AgentTerraformStateKey:
+    Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: Retained Agent Terraform state custody
+      EnableKeyRotation: true
+      PendingWindowInDays: 30
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: BoundedDeployAdministration
+            Effect: Allow
+            Principal: '*'
+            Resource: '*'
+            Action:
+              - kms:DescribeKey
+              - kms:GetKeyPolicy
+              - kms:GetKeyRotationStatus
+              - kms:ListResourceTags
+            Condition:
+              StringEquals:
+                aws:PrincipalArn: !GetAtt AgentValidationDeployRole.Arn
+          - Sid: BoundedDeployStateUse
+            Effect: Allow
+            Principal: '*'
+            Resource: '*'
+            Action:
+              - kms:Decrypt
+              - kms:DescribeKey
+              - kms:Encrypt
+              - kms:GenerateDataKey
+            Condition:
+              StringEquals:
+                aws:PrincipalArn: !GetAtt AgentValidationDeployRole.Arn
+                kms:ViaService: s3.us-east-1.amazonaws.com
+      Tags:
+        - Key: Project
+          Value: stokd-agent
+        - Key: Custody
+          Value: bootstrap
+
+  AgentTerraformStateKeyAlias:
+    Type: AWS::KMS::Alias
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      AliasName: alias/stokd-agent-tfstate
+      TargetKeyId: !Ref AgentTerraformStateKey
+
+  AgentTerraformStateBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub stokd-agent-tfstate-${AWS::AccountId}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !GetAtt AgentTerraformStateKey.Arn
+            BucketKeyEnabled: true
+      Tags:
+        - Key: Project
+          Value: stokd-agent
+        - Key: Custody
+          Value: bootstrap
+
+  AgentTerraformStateBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Bucket: !Ref AgentTerraformStateBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyNonTls
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !GetAtt AgentTerraformStateBucket.Arn
+              - !Sub '${AgentTerraformStateBucket.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
+          - Sid: DenyUnencryptedWrites
+            Effect: Deny
+            Principal: '*'
+            Action: s3:PutObject
+            Resource: !Sub '${AgentTerraformStateBucket.Arn}/*'
+            Condition:
+              StringNotEquals:
+                s3:x-amz-server-side-encryption: aws:kms
+
 Outputs:
+  TerraformStateBucketName:
+    Value: !Ref AgentTerraformStateBucket
+  TerraformStateKmsKeyId:
+    Value: !Ref AgentTerraformStateKeyAlias
   DeployRoleArn:
     Value: !GetAtt AgentValidationDeployRole.Arn
   DeployPermissionsBoundaryArn:
