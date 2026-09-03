@@ -1216,7 +1216,13 @@ Resources:
             Condition:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
-                token.actions.githubusercontent.com:sub: repo:stokd-cloud/agent:environment:agent-validation
+                # GitHub now issues immutable subject claims for this repo
+                # (sub_claim_prefix repo:stokd-cloud@264210261/agent@1354224769).
+                # Both exact forms are accepted so the trust survives the
+                # rollout in either direction. No wildcards.
+                token.actions.githubusercontent.com:sub:
+                  - repo:stokd-cloud/agent:environment:agent-validation
+                  - repo:stokd-cloud@264210261/agent@1354224769:environment:agent-validation
       Tags:
         - Key: Project
           Value: stokd-agent

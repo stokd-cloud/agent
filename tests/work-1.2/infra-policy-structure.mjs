@@ -53,7 +53,10 @@ function resolvePolicyDocument(policyDocument) {
 test('bootstrap trusts only the existing account OIDC provider and reviewed GitHub environment', () => {
   assert.match(bootstrap, /AllowedValues:\n\s+- arn:aws:iam::167217327520:oidc-provider\/token\.actions\.githubusercontent\.com/)
   assert.match(bootstrap, /token\.actions\.githubusercontent\.com:aud: sts\.amazonaws\.com/)
-  assert.match(bootstrap, /token\.actions\.githubusercontent\.com:sub: repo:stokd-cloud\/agent:environment:agent-validation/)
+  // GitHub issues an immutable subject claim for this repository, so the trust
+  // policy pins both exact forms. Neither may be a wildcard.
+  assert.match(bootstrap, /token\.actions\.githubusercontent\.com:sub:\n\s+- repo:stokd-cloud\/agent:environment:agent-validation\n\s+- repo:stokd-cloud@264210261\/agent@1354224769:environment:agent-validation/)
+  assert.doesNotMatch(bootstrap, /githubusercontent\.com:sub:[^\n]*\*/, 'the OIDC subject must never be a wildcard')
   assert.doesNotMatch(bootstrap, /AWS::IAM::(?:User|AccessKey)|arn:aws:iam::167217327520:root/)
 })
 

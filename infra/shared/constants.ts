@@ -5,6 +5,8 @@ export const AGENT_HOSTED_ZONE_NAME = 'stokd.cloud' as const
 export const AGENT_DEPLOY_ROLE_NAME = 'stokd-agent-validation-deploy' as const
 export const AGENT_DEPLOY_ROLE_ARN = `arn:aws:iam::${AGENT_AWS_ACCOUNT_ID}:role/${AGENT_DEPLOY_ROLE_NAME}` as const
 export const AGENT_GITHUB_OIDC_SUBJECT = 'repo:stokd-cloud/agent:environment:agent-validation' as const
+export const AGENT_GITHUB_OIDC_SUBJECT_IMMUTABLE = 'repo:stokd-cloud@264210261/agent@1354224769:environment:agent-validation' as const
+export const AGENT_GITHUB_OIDC_SUBJECTS = [AGENT_GITHUB_OIDC_SUBJECT, AGENT_GITHUB_OIDC_SUBJECT_IMMUTABLE] as const
 export const AGENT_GITHUB_VALIDATION_BRANCH = 'project/d7f02e6-cloud-agents-mvp' as const
 export const AGENT_INFRA_MANIFEST_VERSION = 1 as const
 

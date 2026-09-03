@@ -122,7 +122,7 @@ test('workload and deploy trust must remain one exact assumable principal', () =
     Principal: { Federated: 'arn:aws:iam::167217327520:oidc-provider/token.actions.githubusercontent.com' },
     Condition: { StringEquals: {
       'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com',
-      'token.actions.githubusercontent.com:sub': 'repo:stokd-cloud/agent:environment:agent-validation',
+      'token.actions.githubusercontent.com:sub': ['repo:stokd-cloud/agent:environment:agent-validation', 'repo:stokd-cloud@264210261/agent@1354224769:environment:agent-validation'],
     } },
   })
   assert.doesNotThrow(() => assertExactDeployTrust(deployTrust))
