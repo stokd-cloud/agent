@@ -69,20 +69,23 @@ resource "aws_cloudformation_stack" "credentials" {
 
 # The restore stage reads the source stage's retained credentials to open the
 # backup it is restoring. Read-only, and only in that direction.
-data "aws_secretsmanager_secret" "source" {
-  for_each = local.is_restore ? toset(local.secret_kinds) : toset([])
-
-  name = "stokd-agent-${local.source_stage}-${each.key}"
-}
-
+#
+# These are referenced by ARN pattern rather than looked up, deliberately.
+# Secrets Manager appends a random six-character suffix, so the exact ARN is not
+# constructible -- but a data lookup would make the restore stage unplannable
+# until the source stage is applied, coupling two stages that are meant to be
+# independent. The `-*` suffix matches only that one secret's own versions.
 locals {
-  source_secret_arns = local.is_restore ? [for kind in local.secret_kinds : data.aws_secretsmanager_secret.source[kind].arn] : []
+  source_secret_arns = [
+    for kind in local.secret_kinds :
+    "arn:aws:secretsmanager:${local.region}:${local.account_id}:secret:stokd-agent-${local.source_stage}-${kind}-*"
+  ]
 
   runtime_secret_arn   = aws_cloudformation_stack.credentials.outputs["RuntimeSecretArn"]
   migration_secret_arn = aws_cloudformation_stack.credentials.outputs["MigrationSecretArn"]
   backup_secret_arn    = aws_cloudformation_stack.credentials.outputs["BackupSecretArn"]
 
-  source_runtime_secret_arn   = local.is_restore ? data.aws_secretsmanager_secret.source["runtime"].arn : local.runtime_secret_arn
-  source_migration_secret_arn = local.is_restore ? data.aws_secretsmanager_secret.source["migration"].arn : local.migration_secret_arn
-  source_backup_secret_arn    = local.is_restore ? data.aws_secretsmanager_secret.source["backup"].arn : local.backup_secret_arn
+  source_runtime_secret_arn   = local.is_restore ? "arn:aws:secretsmanager:${local.region}:${local.account_id}:secret:stokd-agent-${local.source_stage}-runtime-*" : local.runtime_secret_arn
+  source_migration_secret_arn = local.is_restore ? "arn:aws:secretsmanager:${local.region}:${local.account_id}:secret:stokd-agent-${local.source_stage}-migration-*" : local.migration_secret_arn
+  source_backup_secret_arn    = local.is_restore ? "arn:aws:secretsmanager:${local.region}:${local.account_id}:secret:stokd-agent-${local.source_stage}-backup-*" : local.backup_secret_arn
 }

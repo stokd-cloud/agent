@@ -78,7 +78,28 @@ data "aws_iam_policy_document" "mongo" {
     sid       = "ExactKeyUse"
     effect    = "Allow"
     actions   = ["kms:Decrypt", "kms:DescribeKey", "kms:Encrypt", "kms:GenerateDataKey"]
-    resources = local.usable_kms_key_arns
+    resources = [aws_kms_key.data.arn]
+  }
+
+  # A restore must decrypt material written under the source stage's key. That
+  # key's ARN is not knowable at plan time without coupling the two stages, so
+  # it is reached by project tag instead -- the same shape the deploy boundary
+  # uses. Read-only actions only; the restore stage never writes with it.
+  dynamic "statement" {
+    for_each = local.is_restore ? [1] : []
+
+    content {
+      sid       = "SourceStageKeyReadOnly"
+      effect    = "Allow"
+      actions   = ["kms:Decrypt", "kms:DescribeKey"]
+      resources = ["arn:aws:kms:${local.region}:${local.account_id}:key/*"]
+
+      condition {
+        test     = "StringEquals"
+        variable = "aws:ResourceTag/Project"
+        values   = ["stokd-agent"]
+      }
+    }
   }
 
   statement {
@@ -218,12 +239,6 @@ data "aws_iam_policy_document" "mongo" {
   }
 }
 
-locals {
-  usable_kms_key_arns = local.is_restore ? distinct([
-    aws_kms_key.data.arn,
-    data.aws_secretsmanager_secret.source["runtime"].kms_key_id,
-  ]) : [aws_kms_key.data.arn]
-}
 
 resource "aws_iam_role_policy" "mongo" {
   name   = "stokd-agent-mongo-${var.stage}"
