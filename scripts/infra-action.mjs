@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
+import { runTerraform } from './infra-terraform.mjs'
 import { assertBoundedDeploymentIdentity, parseCallerIdentity } from '../infra/shared/identity.mjs'
 import { readRestoreLock } from './infra-restore-lock.mjs'
 import {
@@ -149,20 +150,18 @@ export function run(argv = process.argv.slice(2), environment = process.env) {
   assertInfraMutationUnlocked(input, awsRead)
   const app = `stokd-agent-${input.app}`
   ensureSstUnlockSentinel({ aws: awsRead, bootstrap, app, stage: input.stage, bindingSha256: initialization.bindingSha256 })
-  const config = resolve(root, 'infra', input.app, 'sst.config.ts')
-  const cli = resolve(root, 'node_modules', '.bin', 'sst')
-  let child
+  // Terraform is the durable IaC substrate (AX-CLOUD-TERRAFORM). The SST
+  // configs under infra/api and infra/data remain in the tree as historical
+  // scaffold and are never executed. Both former apps map onto the single root
+  // module; apply is idempotent, so the pipeline's data-then-api phase order is
+  // preserved without either phase being skipped.
+  let status
   try {
-    child = spawnSync(cli, [input.action, '--config', config, '--stage', input.stage], {
-      cwd: root,
-      env: { ...environment, AGENT_AWS_ACCOUNT_ID: '167217327520', AWS_REGION: 'us-east-1', AWS_DEFAULT_REGION: 'us-east-1' },
-      stdio: 'inherit',
-    })
-    if (child.error) throw child.error
+    status = runTerraform({ ...input, root }, environment)
   } finally {
     ensureSstUnlockSentinel({ aws: awsRead, bootstrap, app, stage: input.stage, bindingSha256: initialization.bindingSha256 })
   }
-  return child.status ?? 1
+  return status ?? 1
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
