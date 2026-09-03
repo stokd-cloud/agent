@@ -497,7 +497,10 @@ Resources:
           - ec2:CreateRouteTable
           - ec2:CreateVpcEndpoint
           - ec2:CreateNetworkInterface
-          Resource: arn:aws:ec2:us-east-1:167217327520:vpc/*
+          Resource:
+          - arn:aws:ec2:us-east-1:167217327520:vpc/*
+          - arn:aws:ec2:us-east-1:167217327520:subnet/*
+          - arn:aws:ec2:us-east-1:167217327520:security-group/*
           Condition:
             StringEquals:
               aws:ResourceTag/Project: stokd-agent
@@ -1015,7 +1018,6 @@ Resources:
           - iam:DeleteRole
           - iam:DeleteRolePolicy
           - iam:PutRolePolicy
-          - iam:TagInstanceProfile
           - iam:TagRole
           - iam:UntagRole
           Resource: arn:aws:iam::167217327520:role/stokd-agent-workload-*
@@ -1026,6 +1028,7 @@ Resources:
           - iam:CreateInstanceProfile
           - iam:DeleteInstanceProfile
           - iam:RemoveRoleFromInstanceProfile
+          - iam:TagInstanceProfile
           Resource: arn:aws:iam::167217327520:instance-profile/stokd-agent-workload-*
         - Sid: PassOnlyBoundedWorkloadRoles
           Effect: Allow
