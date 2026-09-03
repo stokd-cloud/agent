@@ -51,10 +51,10 @@ const expectedHostDocuments = {
     parameters: {
       OperationId: { type: 'String', allowedPattern: '^[a-z0-9][a-z0-9-]{2,80}$' },
       ManifestKey: { type: 'String', allowedPattern: '^[A-Za-z0-9][A-Za-z0-9._/-]{0,512}$' },
-      ManifestVersionId: { type: 'String', allowedPattern: '^[A-Za-z0-9._=+/-]{1,1024}$' },
+      ManifestVersionId: { type: 'String', allowedPattern: '^[A-Za-z0-9._=+/-]{1,1000}$' },
       ManifestSha256: { type: 'String', allowedPattern: '^[a-f0-9]{64}$' },
       ArchiveKey: { type: 'String', allowedPattern: '^[A-Za-z0-9][A-Za-z0-9._/-]{0,512}$' },
-      ArchiveVersionId: { type: 'String', allowedPattern: '^[A-Za-z0-9._=+/-]{1,1024}$' },
+      ArchiveVersionId: { type: 'String', allowedPattern: '^[A-Za-z0-9._=+/-]{1,1000}$' },
       ArchiveSha256: { type: 'String', allowedPattern: '^[a-f0-9]{64}$' },
     },
     mainSteps: [{ action: 'aws:runShellScript', name: 'InvokeGuardedRestoreHost', inputs: {

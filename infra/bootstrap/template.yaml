@@ -198,7 +198,7 @@ Resources:
           - ecr:List*
           - iam:Get*
           - iam:List*
-          - kms:DescribeKey
+          - kms:Describe*
           - kms:Get*
           - kms:List*
           - route53:Get*
@@ -210,7 +210,6 @@ Resources:
         - Effect: Allow
           Resource: '*'
           Action:
-          - application-autoscaling:*
           - ec2:*
           - ecs:*
           - elasticloadbalancing:*
@@ -224,9 +223,10 @@ Resources:
           - iam:*InstanceProfile
           - iam:*Role
           - iam:DeleteRolePolicy
-          - iam:PutRolePermissionsBoundary
-          - iam:PutRolePolicy
-          Resource: arn:aws:iam::167217327520:*/stokd-agent-workload-*
+          - iam:PutRole*
+          Resource:
+          - arn:aws:iam::167217327520:role/stokd-agent-workload-*
+          - arn:aws:iam::167217327520:instance-profile/stokd-agent-workload-*
         - Effect: Allow
           Action: iam:CreateServiceLinkedRole
           Resource: arn:aws:iam::167217327520:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService
@@ -1341,7 +1341,7 @@ Resources:
             allowedPattern: '^[A-Za-z0-9][A-Za-z0-9._/-]{0,512}$'
           ManifestVersionId:
             type: String
-            allowedPattern: '^[A-Za-z0-9._=+/-]{1,1024}$'
+            allowedPattern: '^[A-Za-z0-9._=+/-]{1,1000}$'
           ManifestSha256:
             type: String
             allowedPattern: '^[a-f0-9]{64}$'
@@ -1350,7 +1350,7 @@ Resources:
             allowedPattern: '^[A-Za-z0-9][A-Za-z0-9._/-]{0,512}$'
           ArchiveVersionId:
             type: String
-            allowedPattern: '^[A-Za-z0-9._=+/-]{1,1024}$'
+            allowedPattern: '^[A-Za-z0-9._=+/-]{1,1000}$'
           ArchiveSha256:
             type: String
             allowedPattern: '^[a-f0-9]{64}$'
@@ -1418,15 +1418,28 @@ Resources:
       KeyPolicy:
         Version: '2012-10-17'
         Statement:
+          # KMS refuses any policy that could lock out future policy updates,
+          # so the account must retain administrative access. Access control is
+          # then delegated to IAM, where the deploy boundary applies.
+          - Sid: EnableIAMUserPermissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: kms:*
+            Resource: '*'
           - Sid: BoundedDeployAdministration
             Effect: Allow
             Principal: '*'
             Resource: '*'
             Action:
               - kms:DescribeKey
+              - kms:EnableKeyRotation
               - kms:GetKeyPolicy
               - kms:GetKeyRotationStatus
               - kms:ListResourceTags
+              - kms:PutKeyPolicy
+              - kms:TagResource
+              - kms:UntagResource
             Condition:
               StringEquals:
                 aws:PrincipalArn: !GetAtt AgentValidationDeployRole.Arn

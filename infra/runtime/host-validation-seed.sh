@@ -43,7 +43,7 @@ else
       --body /run/stokd-agent/raw/validation-payload.secret \
       --server-side-encryption aws:kms --ssekms-key-id "$AGENT_KMS_KEY_ARN" \
       --metadata "sha256=$expected_sha" --query VersionId --output text)"
-    [[ "$version_id" =~ ^[A-Za-z0-9._=+/-]{1,1024}$ ]] || return 7
+    [[ "$version_id" =~ ^[A-Za-z0-9._=+/-]{1,1000}$ ]] || return 7
     head_field() { agent_aws s3api head-object --region us-east-1 --bucket "$AGENT_ARTIFACT_BUCKET" --key "$artifact_key" --version-id "$version_id" --query "$1" --output text; }
     observed_version="$(head_field VersionId)"
     observed_etag="$(head_field ETag | tr -d '"')"

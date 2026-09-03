@@ -6,6 +6,21 @@
 # persistent-data deletion" behavior VAL-OPS-001 asserts.
 
 data "aws_iam_policy_document" "data_key" {
+  # KMS refuses any key policy that could lock out future policy updates, so
+  # the account must retain administrative access. Access control is delegated
+  # to IAM from there, where the workload and deploy boundaries apply.
+  statement {
+    sid       = "EnableIAMUserPermissions"
+    effect    = "Allow"
+    actions   = ["kms:*"]
+    resources = ["*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${local.account_id}:root"]
+    }
+  }
+
   statement {
     sid       = "BoundedDeployAdministration"
     effect    = "Allow"

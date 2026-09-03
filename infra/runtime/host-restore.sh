@@ -27,7 +27,7 @@ archive_sha="${supplied[--archive-sha256]}"
 [[ "$source_bucket" == stokd-agent-backups-source-val12-167217327520 ]] || exit 7
 [[ "${supplied[--target-stage]}" == restore-val12 ]] || exit 7
 for key in "$manifest_key" "$archive_key"; do [[ "$key" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]{0,512}$ && "$key" != *..* ]] || exit 2; done
-for version in "$manifest_version" "$archive_version"; do [[ "$version" =~ ^[A-Za-z0-9._=+/-]{1,1024}$ ]] || exit 2; done
+for version in "$manifest_version" "$archive_version"; do [[ "$version" =~ ^[A-Za-z0-9._=+/-]{1,1000}$ ]] || exit 2; done
 [[ "$manifest_sha" =~ ^[a-f0-9]{64}$ && "$archive_sha" =~ ^[a-f0-9]{64}$ ]] || exit 2
 
 agent_load_config
