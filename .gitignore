@@ -15,3 +15,10 @@ package-lock.json
 HANDOVER.md
 **/.sst/**
 **/.pulumi/**
+
+# Terraform provider plugins and local state. The .terraform.lock.hcl IS
+# committed — it pins provider versions — but the downloaded binaries are not.
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
