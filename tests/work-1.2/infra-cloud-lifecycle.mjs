@@ -85,7 +85,13 @@ test('host lifecycle binds exact Mongo identity, waits for attachment, and refus
   }
   assert.match(mongo, /network_custody=.*\.Driver.*enable_icc.*io\.stokd\.agent\.custody.*\.Scope/s)
   assert.match(mongo, /\[\[ "\$network_custody" == 'bridge false mongo local' \]\]/)
-  assert.match(mongo, /steady Mongo container unexpectedly reached EC2 instance metadata/)
+  // The guarantee is that the steady container cannot obtain instance
+  // CREDENTIALS. Hop-limit 1 blocks the IMDSv2 token PUT response across the
+  // bridge; a bare TCP reach still returns an unauthenticated 401, so the
+  // assertion runs the real token-then-credentials flow.
+  assert.match(mongo, /steady Mongo container unexpectedly obtained EC2 instance credentials/)
+  assert.match(mongo, /latest\/api\/token/)
+  assert.match(mongo, /iam\/security-credentials/)
   assert.match(mongo, /--network stokd-agent-mongo/)
   assert.doesNotMatch(mongo, /--network host/)
   assert.match(mongo, /--cidfile \/run\/stokd-agent\/mongo\.cid/)

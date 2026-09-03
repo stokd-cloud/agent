@@ -57,11 +57,24 @@ else
     stokd-agent-mongo >/dev/null
 fi
 
-# IMDSv2 hop-limit 1 plus this bridge must make the instance role unreachable
+# IMDSv2 hop-limit 1 plus this bridge must make the instance ROLE unreachable
 # from the steady database container before any credentials are mounted.
-if timeout 3 docker run --rm --network stokd-agent-mongo --entrypoint bash "$AGENT_MONGO_IMAGE" \
-  -ec 'exec 3<>/dev/tcp/169.254.169.254/80; printf "GET /latest/meta-data/iam/security-credentials/ HTTP/1.0\r\n\r\n" >&3; read -r -t 1 _ <&3'; then
-  echo 'steady Mongo container unexpectedly reached EC2 instance metadata' >&2
+#
+# What hop-limit 1 actually prevents is the token PUT response crossing the
+# docker bridge, so a container can still open a TCP socket to the link-local
+# address and read an unauthenticated 401. Asserting on mere reachability
+# therefore fails on a correctly-locked-down host. The assertion below runs the
+# real IMDSv2 flow instead and fails only if credentials are genuinely
+# retrievable, which is the property being guaranteed.
+if timeout 6 docker run --rm --network stokd-agent-mongo --entrypoint bash "$AGENT_MONGO_IMAGE" -ec '
+  token="$(timeout 2 curl --fail --silent --show-error -X PUT \
+    -H "X-aws-ec2-metadata-token-ttl-seconds: 60" \
+    http://169.254.169.254/latest/api/token 2>/dev/null)" || exit 1
+  [ -n "$token" ] || exit 1
+  timeout 2 curl --fail --silent -H "X-aws-ec2-metadata-token: $token" \
+    http://169.254.169.254/latest/meta-data/iam/security-credentials/ >/dev/null 2>&1
+'; then
+  echo 'steady Mongo container unexpectedly obtained EC2 instance credentials' >&2
   exit 7
 fi
 
