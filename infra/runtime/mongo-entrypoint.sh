@@ -126,9 +126,21 @@ else print('invalid')
 MONGOJS
 cat > "$script_dir/init-or-promote-replica.js" <<'MONGOJS'
 const admin = connect('mongodb://127.0.0.1:27017/admin?directConnection=true')
-const status = admin.runCommand({ replSetGetStatus: 1 })
-if (!status.ok) {
-  if (status.codeName !== 'NotYetInitialized') throw new Error(`unable to inspect replica set: ${JSON.stringify(status)}`)
+// mongosh throws MongoServerError on a failed command; the legacy mongo shell
+// returned an { ok: 0, codeName } document. Handle both so an uninitialized
+// replica set is detected rather than aborting initialization.
+let initialized = true
+try {
+  const status = admin.runCommand({ replSetGetStatus: 1 })
+  if (!status.ok) {
+    if (status.codeName !== 'NotYetInitialized') throw new Error(`unable to inspect replica set: ${JSON.stringify(status)}`)
+    initialized = false
+  }
+} catch (error) {
+  if (error.codeName !== 'NotYetInitialized') throw error
+  initialized = false
+}
+if (!initialized) {
   const initiated = admin.runCommand({ replSetInitiate: { _id: process.env.MONGO_REPLICA_SET, members: [{ _id: 0, host: '127.0.0.1:27017' }] } })
   if (!initiated.ok) throw new Error(`unable to initiate replica set: ${JSON.stringify(initiated)}`)
 }
