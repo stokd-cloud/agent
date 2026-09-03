@@ -401,28 +401,48 @@ locals {
     "AGENT_API_SERVICE_ARN=${local.api_service_arn}",
   ])
 
-  host_file_writes = join("\n", [
-    for name, source in local.host_files :
-    format(
-      "printf '%%s' '%s' | base64 -d > '%s'\nchmod %s '%s'",
-      base64encode(file("${path.module}/../runtime/${source}")),
-      endswith(name, ".service") || endswith(name, ".timer") ? "/etc/systemd/system/${name}" : "/opt/stokd-agent/bin/${name}",
-      endswith(name, ".service") || endswith(name, ".timer") ? "0444" : "0555",
-      endswith(name, ".service") || endswith(name, ".timer") ? "/etc/systemd/system/${name}" : "/opt/stokd-agent/bin/${name}",
-    )
-  ])
+  # The host scripts total well past EC2's 16 KB user_data limit, so they are
+  # staged in the artifacts bucket under this item's evidence prefix (the only
+  # object prefix the deploy role may write) and pulled down at boot through the
+  # S3 gateway endpoint. Keying by source digest means a host always boots the
+  # exact scripts from the commit it was deployed from.
+  host_object_prefix = "validation/work-1.2/${var.stage}/host/${var.source_digest}"
 
   mongo_user_data = <<-EOT
     #!/bin/bash
     set -euo pipefail
     install -d -m 0700 /etc/stokd-agent /opt/stokd-agent/bin
-    ${local.host_file_writes}
+    bucket='${aws_s3_bucket.custody["artifacts"].bucket}'
+    prefix='${local.host_object_prefix}'
+    for name in ${join(" ", [for name in keys(local.host_files) : "'${name}'"])}; do
+      case "$name" in
+        *.service|*.timer) target="/etc/systemd/system/$name"; mode=0444 ;;
+        *)                 target="/opt/stokd-agent/bin/$name";  mode=0555 ;;
+      esac
+      aws s3 cp "s3://$bucket/$prefix/$name" "$target" --region ${local.region} --quiet
+      chmod "$mode" "$target"
+    done
     cat > /etc/stokd-agent/host.env <<'AGENT_ENV'
     ${local.host_environment}
     AGENT_ENV
     chmod 0400 /etc/stokd-agent/host.env
     /opt/stokd-agent/bin/host-bootstrap
   EOT
+}
+
+resource "aws_s3_object" "host_files" {
+  for_each = local.host_files
+
+  bucket                 = aws_s3_bucket.custody["artifacts"].id
+  key                    = "${local.host_object_prefix}/${each.key}"
+  content                = file("${path.module}/../runtime/${each.value}")
+  server_side_encryption = "aws:kms"
+  kms_key_id             = aws_kms_key.data.arn
+
+  depends_on = [
+    aws_s3_bucket_policy.custody,
+    aws_s3_bucket_server_side_encryption_configuration.custody,
+  ]
 }
 
 resource "aws_instance" "mongo" {
@@ -462,6 +482,7 @@ resource "aws_instance" "mongo" {
   tags = local.runtime_tags
 
   depends_on = [
+    aws_s3_object.host_files,
     aws_iam_role_policy.mongo,
     aws_iam_role_policy.mongo_volume_initialization,
     aws_service_discovery_instance.mongo,
