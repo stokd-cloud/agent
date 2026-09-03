@@ -28,12 +28,28 @@ agent_imds() {
 
 agent_prepare_private_registry() {
   command -v docker >/dev/null || { echo 'Docker is missing from the pinned ECS AMI' >&2; return 7; }
-  command -v docker-credential-ecr-login >/dev/null || {
-    echo 'the pinned ECS AMI is missing the ECR credential helper' >&2
+  install -d -m 0700 /run/stokd-agent/docker
+
+  # Prefer the credential helper when the AMI ships one: it refreshes tokens on
+  # its own and no credential is ever written down. The pinned AMI does not
+  # have it, and the VPC is endpoint-only so nothing can be installed at boot,
+  # so fall back to an explicit ECR login through the interface endpoint. The
+  # token is short-lived and the config is root-only.
+  if command -v docker-credential-ecr-login >/dev/null; then
+    printf '%s\n' '{"credsStore":"ecr-login"}' > /run/stokd-agent/docker/config.json
+    chmod 0400 /run/stokd-agent/docker/config.json
+    return 0
+  fi
+
+  command -v aws >/dev/null || {
+    echo 'the pinned AMI has neither the ECR credential helper nor the AWS CLI' >&2
     return 7
   }
-  install -d -m 0700 /run/stokd-agent/docker
-  printf '%s\n' '{"credsStore":"ecr-login"}' > /run/stokd-agent/docker/config.json
+  local registry password
+  registry="${AGENT_AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION:-us-east-1}.amazonaws.com"
+  password="$(aws ecr get-login-password --region "${AWS_REGION:-us-east-1}")" || return 7
+  printf '%s' "$password" | DOCKER_CONFIG=/run/stokd-agent/docker \
+    docker login --username AWS --password-stdin "$registry" >/dev/null || return 7
   chmod 0400 /run/stokd-agent/docker/config.json
 }
 
