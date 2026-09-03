@@ -30,13 +30,17 @@ runtime_dir="${AGENT_MONGO_RUNTIME_DIR:-/tmp/agent-mongo-runtime}"
 [[ "$runtime_dir" == /* ]] || { echo 'AGENT_MONGO_RUNTIME_DIR must be absolute' >&2; exit 7; }
 script_dir="${runtime_dir}/initialization-js"
 mkdir -p "$data_dir" "$script_dir"
-chmod 0700 "$runtime_dir" "$script_dir"
 chown -R mongodb:mongodb "$data_dir"
 # mongod runs as mongodb via gosu and writes its pid and --logpath files
-# directly into the runtime directory. The host creates that directory
-# root-owned, so without this the forked child dies before it can log anything
-# and the only symptom is "child process failed, exited with 1".
-chown mongodb:mongodb "$runtime_dir" "$script_dir"
+# directly into the runtime directory, so it needs write access there --
+# without it the forked child dies before it can log anything and the only
+# symptom is "child process failed, exited with 1".
+#
+# Granted by GROUP, not by ownership: the runtime directory is shared with the
+# host's maintenance tooling, which runs as other identities and still has to
+# traverse it. Handing the directory to mongodb outright locks those out.
+chown root:mongodb "$runtime_dir" "$script_dir"
+chmod 0770 "$runtime_dir" "$script_dir"
 if [[ ! -s "$key_file" ]]; then
   umask 077
   openssl rand -base64 756 > "$key_file"
