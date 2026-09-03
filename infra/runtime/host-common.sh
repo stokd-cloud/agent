@@ -229,7 +229,17 @@ agent_mount_volume() {
     initialization_state="$(agent_aws ec2 describe-volumes --region us-east-1 --volume-ids "$AGENT_VOLUME_ID" --query "Volumes[0].Tags[?Key=='InitializationState']|[0].Value" --output text)"
     [[ "$initialization_state" == initialized-v1 ]] || { echo 'fresh volume initialization proof did not finalize' >&2; return 7; }
   fi
-  if ! mountpoint -q /var/lib/stokd-agent; then mount -o nodev,nosuid,noatime "$device" /var/lib/stokd-agent; fi
+  # The mongo unit and a migration invocation can bootstrap concurrently, so the
+  # mountpoint check can lose a race with another mount of the same device.
+  # Losing that race is harmless -- the identity assertion immediately below is
+  # what actually guarantees the correct device is mounted here -- so tolerate
+  # "already mounted" and let any other failure surface.
+  if ! mountpoint -q /var/lib/stokd-agent; then
+    local mount_error
+    if ! mount_error="$(mount -o nodev,nosuid,noatime "$device" /var/lib/stokd-agent 2>&1)"; then
+      [[ "$mount_error" == *'already mounted'* ]] || { printf '%s\n' "$mount_error" >&2; return 7; }
+    fi
+  fi
   local expected_device mounted_source mounted_device
   expected_device="$(readlink -f "$device")"
   mounted_source="$(findmnt -n -o SOURCE --target /var/lib/stokd-agent)"
