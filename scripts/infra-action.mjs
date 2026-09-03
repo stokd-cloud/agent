@@ -15,7 +15,6 @@ import {
   parseSstBootstrapParameter,
   sstInitTerminalKey,
 } from './infra-sst-bootstrap.mjs'
-import { ensureSstUnlockSentinel, inspectCompletedSstInitialization } from './infra-initialize-sst-home.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const persistentManifestPath = resolve(root, 'infra/persistent-resources.json')
@@ -145,23 +144,18 @@ export function run(argv = process.argv.slice(2), environment = process.env) {
   const identity = readAwsIdentity(environment)
   validateInfraAction(input, identity, environment)
   const awsRead = args => aws(environment, args)
-  const bootstrap = assertSstInitializationInactive(awsRead)
-  const initialization = inspectCompletedSstInitialization({ aws: awsRead, bootstrap })
+  // The bounded deploy identity, the mutation lock and the resource-bound
+  // destruction acknowledgement all still gate this. What is gone is the SST
+  // home initialization handshake: it guarded `sst`'s own state directory, and
+  // nothing executes SST any more. Terraform's own state lock plus the
+  // mutation lock below cover concurrency.
   assertInfraMutationUnlocked(input, awsRead)
-  const app = `stokd-agent-${input.app}`
-  ensureSstUnlockSentinel({ aws: awsRead, bootstrap, app, stage: input.stage, bindingSha256: initialization.bindingSha256 })
   // Terraform is the durable IaC substrate (AX-CLOUD-TERRAFORM). The SST
   // configs under infra/api and infra/data remain in the tree as historical
   // scaffold and are never executed. Both former apps map onto the single root
   // module; apply is idempotent, so the pipeline's data-then-api phase order is
   // preserved without either phase being skipped.
-  let status
-  try {
-    status = runTerraform({ ...input, root }, environment)
-  } finally {
-    ensureSstUnlockSentinel({ aws: awsRead, bootstrap, app, stage: input.stage, bindingSha256: initialization.bindingSha256 })
-  }
-  return status ?? 1
+  return runTerraform({ ...input, root }, environment) ?? 1
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
