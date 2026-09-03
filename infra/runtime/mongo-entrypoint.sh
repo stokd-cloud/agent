@@ -77,13 +77,13 @@ function ensureRole(role, privileges, roles) {
   const current = admin.runCommand({ rolesInfo: { role, db: 'admin' } })
   const command = current.roles?.length ? { updateRole: role, privileges, roles } : { createRole: role, privileges, roles }
   const result = admin.runCommand(command)
-  if (!result.ok) throw new Error(`unable to ensure role ${role}: ${tojson(result)}`)
+  if (!result.ok) throw new Error(`unable to ensure role ${role}: ${JSON.stringify(result)}`)
 }
 function ensureUser(database, user, password, roles) {
   const current = database.runCommand({ usersInfo: { user, db: database.getName() } })
   const command = current.users?.length ? { updateUser: user, pwd: password, roles } : { createUser: user, pwd: password, roles }
   const result = database.runCommand(command)
-  if (!result.ok) throw new Error(`unable to ensure user ${user}: ${tojson(result)}`)
+  if (!result.ok) throw new Error(`unable to ensure user ${user}: ${JSON.stringify(result)}`)
 }
 
 const migrationRole = `agentMigration_${databaseName}`
@@ -99,7 +99,7 @@ ensureUser(admin, 'agent_backup', credential.backupPassword, [
 ])
 
 const fcv = admin.runCommand({ setFeatureCompatibilityVersion: '7.0', confirm: true })
-if (!fcv.ok) throw new Error(`unable to set FCV 7.0: ${tojson(fcv)}`)
+if (!fcv.ok) throw new Error(`unable to set FCV 7.0: ${JSON.stringify(fcv)}`)
 const observedFcv = admin.runCommand({ getParameter: 1, featureCompatibilityVersion: 1 }).featureCompatibilityVersion?.version
 if (observedFcv !== '7.0') throw new Error(`unexpected FCV ${observedFcv}`)
 const build = admin.runCommand({ buildInfo: 1 })
@@ -107,8 +107,8 @@ if (build.version !== '7.0.29') throw new Error(`unexpected MongoDB version ${bu
 
 const adminAgentUsers = (admin.runCommand({ usersInfo: 1 }).users ?? []).filter(user => user.user.startsWith('agent_')).map(user => user.user).sort()
 const runtimeAgentUsers = (runtime.runCommand({ usersInfo: 1 }).users ?? []).filter(user => user.user.startsWith('agent_')).map(user => user.user).sort()
-if (tojson(adminAgentUsers) !== tojson(['agent_backup', 'agent_migration']) || tojson(runtimeAgentUsers) !== tojson(['agent_runtime'])) {
-  throw new Error(`unexpected Agent steady-state principals: ${tojson({ adminAgentUsers, runtimeAgentUsers })}`)
+if (JSON.stringify(adminAgentUsers) !== JSON.stringify(['agent_backup', 'agent_migration']) || JSON.stringify(runtimeAgentUsers) !== JSON.stringify(['agent_runtime'])) {
+  throw new Error(`unexpected Agent steady-state principals: ${JSON.stringify({ adminAgentUsers, runtimeAgentUsers })}`)
 }
 MONGOJS
 cat > "$script_dir/replica-state.js" <<'MONGOJS'
@@ -124,21 +124,21 @@ cat > "$script_dir/init-or-promote-replica.js" <<'MONGOJS'
 const admin = connect('mongodb://127.0.0.1:27017/admin?directConnection=true')
 const status = admin.runCommand({ replSetGetStatus: 1 })
 if (!status.ok) {
-  if (status.codeName !== 'NotYetInitialized') throw new Error(`unable to inspect replica set: ${tojson(status)}`)
+  if (status.codeName !== 'NotYetInitialized') throw new Error(`unable to inspect replica set: ${JSON.stringify(status)}`)
   const initiated = admin.runCommand({ replSetInitiate: { _id: process.env.MONGO_REPLICA_SET, members: [{ _id: 0, host: '127.0.0.1:27017' }] } })
-  if (!initiated.ok) throw new Error(`unable to initiate replica set: ${tojson(initiated)}`)
+  if (!initiated.ok) throw new Error(`unable to initiate replica set: ${JSON.stringify(initiated)}`)
 }
 MONGOJS
 cat > "$script_dir/promote-stable-host.js" <<'MONGOJS'
 const admin = connect('mongodb://127.0.0.1:27017/admin?directConnection=true')
 const current = admin.runCommand({ replSetGetConfig: 1 })
 if (!current.ok || current.config?._id !== process.env.MONGO_REPLICA_SET || current.config?.members?.length !== 1 || current.config.members[0]?.host !== '127.0.0.1:27017') {
-  throw new Error(`unexpected loopback replica configuration: ${tojson(current)}`)
+  throw new Error(`unexpected loopback replica configuration: ${JSON.stringify(current)}`)
 }
 current.config.version += 1
 current.config.members[0].host = process.env.MONGO_REPLICA_HOST
 const changed = admin.runCommand({ replSetReconfig: current.config })
-if (!changed.ok) throw new Error(`unable to set stable replica identity: ${tojson(changed)}`)
+if (!changed.ok) throw new Error(`unable to set stable replica identity: ${JSON.stringify(changed)}`)
 MONGOJS
 
 mongo_script() {
