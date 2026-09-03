@@ -219,7 +219,8 @@ agent_mount_volume() {
       echo 'refusing to format initialized retained media with unreadable filesystem metadata' >&2
       return 7
     }
-    mkfs.xfs -L stokd-agent-data "$device"
+    # XFS caps labels at 12 characters.
+    mkfs.xfs -L stokd-agent "$device"
     filesystem="$(blkid -o value -s TYPE "$device" 2>/dev/null || true)"
   fi
   [[ "$filesystem" == xfs ]] || { echo "unexpected retained volume filesystem ${filesystem}" >&2; return 7; }
