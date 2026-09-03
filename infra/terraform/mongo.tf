@@ -406,10 +406,20 @@ locals {
   # object prefix the deploy role may write) and pulled down at boot through the
   # S3 gateway endpoint. Keying by source digest means a host always boots the
   # exact scripts from the commit it was deployed from.
-  host_object_prefix = "validation/work-1.2/${var.stage}/host/${var.source_digest}"
+  host_object_prefix = "validation/work-1.2/${var.stage}/host"
+
+  # The host scripts keep a stable key so an upload writes a NEW OBJECT VERSION
+  # rather than superseding a digest-keyed path. Nothing is ever deleted, which
+  # is what the retained-custody deny on s3:DeleteObjectVersion requires.
+  # Provenance still comes from S3 versioning plus this digest, which is folded
+  # into user_data so a script change replaces the host.
+  host_scripts_digest = sha256(join("", [
+    for name in sort(keys(local.host_files)) : filesha256("${path.module}/../runtime/${local.host_files[name]}")
+  ]))
 
   mongo_user_data = <<-EOT
     #!/bin/bash
+    # host-scripts: ${local.host_scripts_digest}
     set -euo pipefail
     install -d -m 0700 /etc/stokd-agent /opt/stokd-agent/bin
     bucket='${aws_s3_bucket.custody["artifacts"].bucket}'

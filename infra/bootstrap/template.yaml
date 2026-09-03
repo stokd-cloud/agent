@@ -993,14 +993,6 @@ Resources:
           - secretsmanager:UntagResource
           - secretsmanager:UpdateSecret
           Resource: arn:aws:secretsmanager:us-east-1:167217327520:secret:stokd-agent-*
-        - Sid: SupersededHostScriptsOnly
-          Effect: Allow
-          Action:
-          - s3:DeleteObject
-          - s3:DeleteObjectVersion
-          Resource:
-          - arn:aws:s3:::stokd-agent-artifacts-source-val12-167217327520/validation/work-1.2/source-val12/host/*
-          - arn:aws:s3:::stokd-agent-artifacts-restore-val12-167217327520/validation/work-1.2/restore-val12/host/*
         - Sid: GenerateSecretMaterial
           Effect: Allow
           Action: secretsmanager:GetRandomPassword
