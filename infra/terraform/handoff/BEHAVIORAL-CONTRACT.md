@@ -113,29 +113,34 @@ Order matters; several steps are only safe because an earlier one completed.
 - Every restore records resource IDs, restore point, object manifest and custody.
 - Production restore and destructive teardown are never used as a test.
 
-## 5. Difference from the SST scaffold — needs a decision
+## 5. Credential generation
 
-The scaffold generated the three service credentials through a nested
-CloudFormation stack purely to borrow `GenerateSecretString`, so the plaintext
-never entered SST state. **The Terraform AWS provider has no equivalent
-generator.** `random_password` is used instead, and the generated value lands in
-Terraform state.
+The three service credentials are generated **inside AWS**, not by the deployer.
 
-Consequences, stated plainly:
+Secrets Manager's server-side generator is reachable only through
+CloudFormation's `GenerateSecretString`; the AWS Terraform provider exposes no
+equivalent on `aws_secretsmanager_secret`. Terraform therefore manages the same
+CloudFormation template the SST layout already used, via
+`aws_cloudformation_stack`. Only the three ARNs come back as stack outputs.
 
-- Encrypted remote state is **mandatory**, not advisory. `backend.tf` declares an
-  S3 backend with no defaults so `terraform init` cannot silently fall back to a
-  local state file.
-- The state bucket must itself be KMS-encrypted, versioned and access-restricted.
-  It does not exist yet and is listed as a prerequisite in the inventory.
-- Read access to Terraform state becomes equivalent to read access to the service
-  credentials. That was not true of the SST layout.
+Consequences:
 
-If that trade is unacceptable, the alternative is to have Terraform create the
-secrets with `ignore_changes = [secret_string]` and let host bootstrap perform a
-one-time `put-secret-value --generate-random-password`, keeping generation out of
-state entirely. That is a larger change to the host scripts and is **not**
-implemented here.
+- No credential plaintext enters Terraform state. The property the SST layout
+  was built around is preserved exactly, and no host script changed.
+- Each secret carries `DeletionPolicy: Retain` and `UpdateReplacePolicy: Retain`,
+  so tearing the stack down leaves the credential in place. Deleting one would
+  orphan the data it encrypts.
+- The stack itself carries `prevent_destroy`, and the structure check fails if a
+  Terraform-side generator (`random_password`) or a Terraform-written
+  `aws_secretsmanager_secret_version` is ever introduced.
+
+Encrypted remote state remains required, but as ordinary hygiene — state
+describes the whole topology — not because it holds secrets.
+
+On Terraform >= 1.11 this could become a native `aws_secretsmanager_secret_version`
+with a write-only `secret_string_wo` fed by an `ephemeral` generator. Homebrew
+pins `terraform` at 1.5.7, the last MPL release, so that path is unavailable on
+this toolchain.
 
 ## 6. What this handoff does not claim
 

@@ -32,8 +32,8 @@ const persistentResources = [
   ['custody.tf', 'aws_kms_key', 'data'],
   ['custody.tf', 'aws_kms_alias', 'data'],
   ['custody.tf', 'aws_s3_bucket', 'custody'],
-  ['secrets.tf', 'aws_secretsmanager_secret', 'service'],
   ['mongo.tf', 'aws_ebs_volume', 'data'],
+  ['secrets.tf', 'aws_cloudformation_stack', 'credentials'],
   ['manifest.tf', 'aws_ssm_parameter', 'infrastructure_manifest'],
 ]
 for (const [file, type, name] of persistentResources) {
@@ -119,6 +119,30 @@ const walk = directory => {
 walk(join(root, 'infra'))
 for (const found of foundSstConfigs) {
   assert.ok(allowedSstConfigs.has(found), `new SST-owned runtime ${found} is forbidden by AX-CLOUD-TERRAFORM`)
+}
+
+// ── Credentials are generated inside AWS, never by the deployer ───────────────
+// Secrets Manager's GenerateSecretString is reachable only through
+// CloudFormation, so the credential stack is a deliberate escape hatch. What
+// matters is that no Terraform-side generator puts plaintext into state.
+assert.doesNotMatch(
+  allTf,
+  /resource\s+"random_password"/,
+  'service credentials must be generated inside AWS, not by a Terraform generator that lands plaintext in state',
+)
+assert.doesNotMatch(
+  allTf,
+  /resource\s+"aws_secretsmanager_secret_version"/,
+  'writing a secret version from Terraform would place the plaintext in state',
+)
+assert.match(
+  tf['secrets.tf'],
+  /resource\s+"aws_cloudformation_stack"\s+"credentials"/,
+  'the credential stack must be managed by Terraform',
+)
+assert.match(tf['secrets.tf'], /GenerateSecretString/, 'credentials must use server-side GenerateSecretString')
+for (const policy of ['DeletionPolicy', 'UpdateReplacePolicy']) {
+  assert.match(tf['secrets.tf'], new RegExp(`${policy}\\s*=\\s*"Retain"`), `credential secrets must set ${policy}: Retain`)
 }
 
 // ── Handoff artifacts required by AC-1.2.b ────────────────────────────────────

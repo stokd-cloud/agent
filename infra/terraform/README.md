@@ -34,12 +34,14 @@ are referenced here but not managed here.
 comes up in `restored_observation` mode: it reads the source stage's retained
 backups read-only, and nothing restored into it can redispatch work.
 
-## Encrypted state is required
+## Credentials and state
 
-Terraform state contains the generated service credentials. `backend.tf`
-declares an S3 backend with no inline defaults, so `terraform init` cannot fall
-back to local state. This is a deliberate difference from the SST scaffold and
-is explained in [`handoff/BEHAVIORAL-CONTRACT.md` §5](handoff/BEHAVIORAL-CONTRACT.md).
+Service credentials are generated inside AWS by the CloudFormation stack in
+`secrets.tf` — the only route to Secrets Manager's `GenerateSecretString` — so
+no plaintext reaches Terraform state. `backend.tf` still declares an S3 backend
+with no inline defaults, because state describes the whole topology and should
+not live on a laptop. See
+[`handoff/BEHAVIORAL-CONTRACT.md` §5](handoff/BEHAVIORAL-CONTRACT.md).
 
 ## Usage
 
