@@ -82,6 +82,10 @@ jobs:
       VALIDATION_REQUEST_ID: ${{ needs.request.outputs.request_id }}
       VALIDATION_RUN_ID: github-${{ github.run_id }}
       AGENT_GITHUB_ENVIRONMENT: agent-validation
+      # Terraform state backend, created by the bootstrap stack. Encrypted
+      # remote state is mandatory; the executor refuses to run without it.
+      AGENT_TFSTATE_BUCKET: stokd-agent-tfstate-167217327520
+      AGENT_TFSTATE_KMS_KEY_ID: alias/stokd-agent-tfstate
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
