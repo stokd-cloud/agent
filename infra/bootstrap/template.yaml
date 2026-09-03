@@ -354,7 +354,6 @@ Resources:
           Action:
           - secretsmanager:CreateSecret
           - secretsmanager:DescribeSecret
-          - secretsmanager:GetRandomPassword
           - secretsmanager:GetResourcePolicy
           - secretsmanager:ListSecretVersionIds
           - secretsmanager:*TagResource
@@ -977,6 +976,10 @@ Resources:
           - secretsmanager:UntagResource
           - secretsmanager:UpdateSecret
           Resource: arn:aws:secretsmanager:us-east-1:167217327520:secret:stokd-agent-*
+        - Sid: GenerateSecretMaterial
+          Effect: Allow
+          Action: secretsmanager:GetRandomPassword
+          Resource: '*'
         - Sid: CreateOnlyTaggedAgentSecrets
           Effect: Allow
           Action: secretsmanager:CreateSecret
