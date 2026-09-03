@@ -107,7 +107,13 @@ data "aws_iam_policy_document" "data_key" {
     condition {
       test     = "StringLike"
       variable = "kms:EncryptionContext:aws:s3:arn"
-      values   = ["arn:aws:s3:::${local.artifact_bucket_name}/validation/work-1.2/${var.stage}/*"]
+      # S3 Bucket Keys present the bucket arn as the encryption context rather
+      # than the object arn, so both forms are accepted. Object writes remain
+      # scoped to the evidence prefix by the deploy role's S3 statement.
+      values = [
+        "arn:aws:s3:::${local.artifact_bucket_name}",
+        "arn:aws:s3:::${local.artifact_bucket_name}/validation/work-1.2/${var.stage}/*",
+      ]
     }
   }
 

@@ -288,6 +288,8 @@ Resources:
               kms:ViaService: s3.us-east-1.amazonaws.com
             StringLike:
               kms:EncryptionContext:aws:s3:arn:
+              - arn:aws:s3:::stokd-agent-artifacts-source-val12-167217327520
+              - arn:aws:s3:::stokd-agent-artifacts-restore-val12-167217327520
               - arn:aws:s3:::stokd-agent-artifacts-source-val12-167217327520/validation/work-1.2/source-val12/*
               - arn:aws:s3:::stokd-agent-artifacts-restore-val12-167217327520/validation/work-1.2/restore-val12/*
               - arn:aws:s3:::stokd-agent-tfstate-167217327520/work-1.2/*
@@ -501,6 +503,8 @@ Resources:
           - arn:aws:ec2:us-east-1:167217327520:vpc/*
           - arn:aws:ec2:us-east-1:167217327520:subnet/*
           - arn:aws:ec2:us-east-1:167217327520:security-group/*
+          - arn:aws:ec2:us-east-1:167217327520:route-table/*
+          - arn:aws:ec2:us-east-1:167217327520:vpc-endpoint/*
           Condition:
             StringEquals:
               aws:ResourceTag/Project: stokd-agent
@@ -712,12 +716,11 @@ Resources:
         - Sid: DeregisterExactAgentTaskDefinitions
           Effect: Allow
           Action: ecs:DeregisterTaskDefinition
-          Resource:
-          - arn:aws:ecs:us-east-1:167217327520:task-definition/stokd-agent-api-source-val12:*
-          - arn:aws:ecs:us-east-1:167217327520:task-definition/stokd-agent-api-restore-val12:*
+          Resource: '*'
           Condition:
             StringEquals:
               aws:RequestedRegion: us-east-1
+
         - Sid: ManageTaggedAgentDiscoveryInstances
           Effect: Allow
           Action:
@@ -891,6 +894,8 @@ Resources:
               - source-val12
               - restore-val12
               kms:EncryptionContext:aws:s3:arn:
+              - arn:aws:s3:::stokd-agent-artifacts-source-val12-167217327520
+              - arn:aws:s3:::stokd-agent-artifacts-restore-val12-167217327520
               - arn:aws:s3:::stokd-agent-artifacts-source-val12-167217327520/validation/work-1.2/source-val12/*
               - arn:aws:s3:::stokd-agent-artifacts-restore-val12-167217327520/validation/work-1.2/restore-val12/*
         - Sid: CreateOnlyAwsResourceKmsGrants
