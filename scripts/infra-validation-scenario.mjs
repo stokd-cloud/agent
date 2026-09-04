@@ -255,7 +255,31 @@ function physicalManifest(stage, manifest, planDigest, backupManifestVersionId, 
 function proveDestructiveRefusal(stage, manifest) {
   const directory = mkdtempSync(join(tmpdir(), 'stokd-agent-destroy-refusal-'))
   const path = join(directory, 'physical-resources.json')
-  writeFileSync(path, JSON.stringify(manifest), { mode: 0o600 })
+  // A physical-resource manifest, not the infrastructure manifest: without the
+  // shape this guard requires, an earlier validation fires and the
+  // acknowledgement check -- the thing this proof exists to exercise -- is
+  // never reached.
+  writeFileSync(path, JSON.stringify({
+    schemaVersion: '1.0',
+    accountId: manifest.accountId,
+    region: manifest.region,
+    stage,
+    sourceDigest: manifest.sourceDigest,
+    planDigest: 'a'.repeat(64),
+    physicalResources: [
+      { type: 'aws_kms_key', id: manifest.custody.kmsKeyArn },
+      { type: 'aws_s3_bucket', id: manifest.custody.artifactBucket },
+      { type: 'aws_s3_bucket', id: manifest.custody.backupBucket },
+      { type: 'aws_ebs_volume', id: manifest.mongo.volumeId },
+      { type: 'aws_instance', id: manifest.mongo.instanceId },
+    ],
+    custodyManifest: {
+      artifactBucket: manifest.custody.artifactBucket,
+      backupBucket: manifest.custody.backupBucket,
+      databaseVolumeId: manifest.mongo.volumeId,
+      kmsKeyArn: manifest.custody.kmsKeyArn,
+    },
+  }), { mode: 0o600 })
   const result = spawnSync(process.execPath, [resolve(root, 'scripts/infra-action.mjs'), 'data', 'remove', '--stage', stage, '--destructive-ack', 'invalid-reviewed-acknowledgement'], {
     cwd: root,
     env: { ...process.env, AGENT_PHYSICAL_RESOURCE_MANIFEST: path, AGENT_DESTRUCTIVE_ACK: 'invalid-reviewed-acknowledgement' },
