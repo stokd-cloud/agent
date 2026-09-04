@@ -48,6 +48,25 @@ for (const [file, type, name] of persistentResources) {
   )
 }
 
+// ── The host may not boot before it can reach anything ───────────────────────
+// user_data pulls every host script from S3 at boot. Nothing in the
+// configuration references a security-group rule, so without an explicit
+// dependency Terraform is free to create the instance first -- it boots with no
+// egress, the download fails, and the host has no scripts to run.
+{
+  const block = tf['mongo.tf'].match(/resource "aws_instance" "mongo" \{[\s\S]*?\n\}/m)
+  assert.ok(block, 'aws_instance.mongo not found in mongo.tf')
+  for (const rule of [
+    'aws_vpc_security_group_ingress_rule.endpoints_from_mongo',
+    'aws_vpc_security_group_egress_rule.mongo_to_endpoints',
+    'aws_vpc_security_group_egress_rule.dns_udp',
+    'aws_vpc_security_group_egress_rule.dns_tcp',
+    'aws_vpc_security_group_egress_rule.s3_endpoint',
+  ]) {
+    assert.ok(block[0].includes(rule), `aws_instance.mongo must depend on ${rule}`)
+  }
+}
+
 // ── No model-invoke authority on any workload identity ────────────────────────
 // The permissions boundary already withholds it by omission; the explicit deny
 // makes an IAM simulation report explicitDeny rather than implicitDeny.

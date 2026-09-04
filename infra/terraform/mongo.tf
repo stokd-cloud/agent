@@ -495,6 +495,11 @@ resource "aws_instance" "mongo" {
   # persistent-custody tags.
   tags = local.runtime_tags
 
+  # The endpoints alone are not enough: without the rules that let this host
+  # REACH them, user_data's S3 download fails and the host comes up with no
+  # /opt/stokd-agent/bin at all. Nothing in the configuration references these
+  # rules, so only an explicit dependency orders them before the boot that
+  # needs them.
   depends_on = [
     aws_s3_object.host_files,
     aws_iam_role_policy.mongo,
@@ -502,6 +507,11 @@ resource "aws_instance" "mongo" {
     aws_service_discovery_instance.mongo,
     aws_vpc_endpoint.s3,
     aws_vpc_endpoint.interface,
+    aws_vpc_security_group_ingress_rule.endpoints_from_mongo,
+    aws_vpc_security_group_egress_rule.mongo_to_endpoints,
+    aws_vpc_security_group_egress_rule.dns_udp,
+    aws_vpc_security_group_egress_rule.dns_tcp,
+    aws_vpc_security_group_egress_rule.s3_endpoint,
   ]
 }
 
