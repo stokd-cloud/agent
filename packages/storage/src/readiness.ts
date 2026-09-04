@@ -36,7 +36,7 @@ export async function readServerTime(db: Db): Promise<Date> {
 
 export async function inspectMongoReadiness(
   db: Db,
-  config: Pick<NormalizedAgentStorageConfig, 'expectedReplicaSet' | 'expectedServerVersion' | 'expectedFeatureCompatibilityVersion'>,
+  config: Pick<NormalizedAgentStorageConfig, 'expectedReplicaSet' | 'expectedServerVersion' | 'expectedFeatureCompatibilityVersion'> & { readonly managed?: boolean },
   options: { readonly verifyFeatureCompatibilityVersion: boolean },
 ): Promise<MongoReadiness> {
   const [hello, buildInfo] = await Promise.all([
@@ -44,11 +44,21 @@ export async function inspectMongoReadiness(
     db.admin().command({ buildInfo: 1 }) as Promise<BuildInfoReply>,
   ])
   const serverVersion = buildInfo.version ?? ''
-  if (serverVersion !== config.expectedServerVersion) {
+  const managed = config.managed === true
+  if (managed) {
+    // A managed provider upgrades the cluster on its own schedule, so an exact
+    // pin fails on a day we did not choose. Assert the floor the schema needs
+    // and record what actually answered.
+    const [major = 0, minor = 0] = serverVersion.split('.').map(Number)
+    const [floorMajor = 0, floorMinor = 0] = config.expectedServerVersion.split('.').map(Number)
+    if (!(major > floorMajor || (major === floorMajor && minor >= floorMinor))) {
+      throw new AgentStorageError('unsupported_mongodb_version', `MongoDB ${serverVersion || '<unknown>'} is below the required ${config.expectedServerVersion}`, { serverVersion })
+    }
+  } else if (serverVersion !== config.expectedServerVersion) {
     throw new AgentStorageError('unsupported_mongodb_version', `MongoDB ${serverVersion || '<unknown>'} does not match pinned ${config.expectedServerVersion}`, { serverVersion })
   }
   let featureCompatibilityVersion: string | null = null
-  if (options.verifyFeatureCompatibilityVersion) {
+  if (options.verifyFeatureCompatibilityVersion && !managed) {
     const fcv = await db.admin().command({ getParameter: 1, featureCompatibilityVersion: 1 }) as FcvReply
     const rawFcv = fcv.featureCompatibilityVersion
     featureCompatibilityVersion = typeof rawFcv === 'string' ? rawFcv : rawFcv?.version ?? ''
@@ -56,7 +66,12 @@ export async function inspectMongoReadiness(
       throw new AgentStorageError('unsupported_mongodb_version', `MongoDB FCV ${featureCompatibilityVersion || '<unknown>'} does not match ${config.expectedFeatureCompatibilityVersion}`, { featureCompatibilityVersion })
     }
   }
-  if (hello.setName !== config.expectedReplicaSet) storageNotReady(`MongoDB replica set ${hello.setName ?? '<none>'} does not match ${config.expectedReplicaSet}`)
+  // The managed provider names its own replica set; a writable primary is what
+  // actually matters and is still required below.
+  // A replica set is required either way -- transactions depend on it. Only the
+  // NAME is the managed provider's to choose.
+  if (typeof hello.setName !== 'string' || hello.setName === '') storageNotReady('MongoDB connection is not a replica set')
+  if (!managed && hello.setName !== config.expectedReplicaSet) storageNotReady(`MongoDB replica set ${hello.setName} does not match ${config.expectedReplicaSet}`)
   const writablePrimary = hello.isWritablePrimary === true || hello.ismaster === true
   if (!writablePrimary) storageNotReady('MongoDB connection is not a writable replica-set primary')
   const logicalSessionTimeoutMinutes = hello.logicalSessionTimeoutMinutes

@@ -527,13 +527,22 @@ async function restoreFinalizeCommand(config: JsonObject, secrets: JsonObject, s
 }
 
 async function readinessCommand(config: JsonObject, secrets: JsonObject): Promise<JsonObject> {
-  exactKeys(config, ['schemaVersion', 'command', 'environment', 'databaseName', 'replicaSet', 'mongoHost'], 'readiness config')
-  exactKeys(secrets, ['runtimePassword'], 'readiness credentials')
+  // Two shapes. A self-hosted node is addressed by host + replica set and the
+  // runtime password composes the URI. A managed provider hands over one URI
+  // that already carries its own credentials and topology -- take it verbatim.
+  const managed = typeof config.mongoUri === 'string' && config.mongoUri !== ''
+  if (managed) exactKeys(config, ['schemaVersion', 'command', 'environment', 'databaseName', 'mongoUri'], 'managed readiness config')
+  else {
+    exactKeys(config, ['schemaVersion', 'command', 'environment', 'databaseName', 'replicaSet', 'mongoHost'], 'readiness config')
+    exactKeys(secrets, ['runtimePassword'], 'readiness credentials')
+  }
   const environment = string(config.environment, 'environment')
   const databaseName = string(config.databaseName, 'databaseName')
-  const replicaSet = string(config.replicaSet, 'replicaSet')
-  const uri = mongoCredentialUri(mongoBase(string(config.mongoHost, 'mongoHost'), replicaSet), 'agent_runtime', string(secrets.runtimePassword, 'credentials.runtimePassword'), databaseName, databaseName)
-  const storage = await openAgentStorage({ uri, environment, databaseName, expectedReplicaSet: replicaSet, principal: 'runtime' })
+  const replicaSet = managed ? '' : string(config.replicaSet, 'replicaSet')
+  const uri = managed
+    ? string(config.mongoUri, 'mongoUri')
+    : mongoCredentialUri(mongoBase(string(config.mongoHost, 'mongoHost'), replicaSet), 'agent_runtime', string(secrets.runtimePassword, 'credentials.runtimePassword'), databaseName, databaseName)
+  const storage = await openAgentStorage({ uri, environment, databaseName, expectedReplicaSet: replicaSet, principal: 'runtime', managed })
   try {
     return outputEnvelope('readiness', {
       environment,
@@ -550,13 +559,19 @@ async function readinessCommand(config: JsonObject, secrets: JsonObject): Promis
 }
 
 async function migrateCommand(config: JsonObject, secrets: JsonObject): Promise<JsonObject> {
-  exactKeys(config, ['schemaVersion', 'command', 'environment', 'databaseName', 'replicaSet', 'mongoHost'], 'migrate config')
-  exactKeys(secrets, ['migrationPassword'], 'migrate credentials')
+  const managed = typeof config.mongoUri === 'string' && config.mongoUri !== ''
+  if (managed) exactKeys(config, ['schemaVersion', 'command', 'environment', 'databaseName', 'mongoUri'], 'managed migrate config')
+  else {
+    exactKeys(config, ['schemaVersion', 'command', 'environment', 'databaseName', 'replicaSet', 'mongoHost'], 'migrate config')
+    exactKeys(secrets, ['migrationPassword'], 'migrate credentials')
+  }
   const environment = string(config.environment, 'environment')
   const databaseName = string(config.databaseName, 'databaseName')
-  const replicaSet = string(config.replicaSet, 'replicaSet')
-  const uri = mongoCredentialUri(mongoBase(string(config.mongoHost, 'mongoHost'), replicaSet), 'agent_migration', string(secrets.migrationPassword, 'credentials.migrationPassword'), databaseName, 'admin')
-  const storage = await openAgentStorage({ uri, environment, databaseName, expectedReplicaSet: replicaSet, principal: 'migration' }, { migrate: true })
+  const replicaSet = managed ? '' : string(config.replicaSet, 'replicaSet')
+  const uri = managed
+    ? string(config.mongoUri, 'mongoUri')
+    : mongoCredentialUri(mongoBase(string(config.mongoHost, 'mongoHost'), replicaSet), 'agent_migration', string(secrets.migrationPassword, 'credentials.migrationPassword'), databaseName, 'admin')
+  const storage = await openAgentStorage({ uri, environment, databaseName, expectedReplicaSet: replicaSet, principal: 'migration', managed }, { migrate: true })
   try {
     return outputEnvelope('migrate', {
       environment,

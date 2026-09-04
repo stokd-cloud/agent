@@ -14,6 +14,14 @@ export interface AgentStorageConfig {
   readonly applicationName?: string
   readonly connectTimeoutMS?: number
   readonly principal?: 'runtime' | 'migration'
+  /**
+   * A managed provider (Atlas) owns the cluster: it picks the replica-set name,
+   * upgrades the server under you, and authenticates against admin. Pinning any
+   * of those asserts control we do not have. Identity, transactions and a
+   * writable primary are still required -- only the claims that belong to the
+   * operator of a self-hosted node are relaxed.
+   */
+  readonly managed?: boolean
 }
 
 export interface NormalizedAgentStorageConfig {
@@ -26,6 +34,7 @@ export interface NormalizedAgentStorageConfig {
   readonly applicationName: string
   readonly connectTimeoutMS: number
   readonly principal: 'runtime' | 'migration'
+  readonly managed: boolean
 }
 
 export function assertEnvironmentName(value: string): string {
@@ -69,13 +78,14 @@ export function normalizeStorageConfig(config: AgentStorageConfig): NormalizedAg
   }
   const authSource = parsed.searchParams.get('authSource')
   const principal = config.principal ?? 'runtime'
-  if (principal === 'runtime' && authSource !== databaseName) {
+  const managed = config.managed === true
+  if (!managed && principal === 'runtime' && authSource !== databaseName) {
     throw new AgentStorageError('invalid_storage_config', 'runtime storage credentials must authenticate against the Agent database')
   }
-  if (principal === 'migration' && authSource !== 'admin') {
+  if (!managed && principal === 'migration' && authSource !== 'admin') {
     throw new AgentStorageError('invalid_storage_config', 'migration credentials must authenticate against admin for the explicit FCV privilege')
   }
-  if (!/^[A-Za-z0-9_-]{3,64}$/.test(config.expectedReplicaSet)) {
+  if (!managed && !/^[A-Za-z0-9_-]{3,64}$/.test(config.expectedReplicaSet)) {
     throw new AgentStorageError('invalid_storage_config', 'expectedReplicaSet is invalid')
   }
   return {
@@ -88,6 +98,7 @@ export function normalizeStorageConfig(config: AgentStorageConfig): NormalizedAg
     applicationName: config.applicationName ?? 'stokd-agent-storage',
     connectTimeoutMS: config.connectTimeoutMS ?? 10_000,
     principal,
+    managed,
   }
 }
 
