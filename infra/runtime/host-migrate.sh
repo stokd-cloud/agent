@@ -53,14 +53,24 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-service_state="$(agent_aws ecs describe-services --region us-east-1 --cluster "$AGENT_API_CLUSTER_ARN" --services "$AGENT_API_SERVICE_ARN" --query '[length(services), services[0].desiredCount, services[0].runningCount]' --output text)"
+# Replacing the Mongo host kills the API task, so the service passes through
+# desired=1/running=0 on its way back to 1/1. That is an unsettled reading, not
+# a policy violation -- poll for one of the three states this migration accepts
+# rather than refusing on a snapshot taken mid-recovery. The accepted states are
+# unchanged; only a transient reading is no longer terminal.
+service_state=''
+for _ in $(seq 1 120); do
+  service_state="$(agent_aws ecs describe-services --region us-east-1 --cluster "$AGENT_API_CLUSTER_ARN" --services "$AGENT_API_SERVICE_ARN" --query '[length(services), services[0].desiredCount, services[0].runningCount]' --output text)"
+  [[ "$service_state" == $'1\t1\t1' || "$service_state" == 0$'\t'* || "$service_state" == $'1\t0\t0' ]] && break
+  sleep 5
+done
 if [[ "$service_state" == $'1\t1\t1' ]]; then
   agent_aws ecs update-service --region us-east-1 --cluster "$AGENT_API_CLUSTER_ARN" --service "$AGENT_API_SERVICE_ARN" --desired-count 0 >/dev/null
   api_owned=true
   agent_aws ecs wait services-stable --region us-east-1 --cluster "$AGENT_API_CLUSTER_ARN" --services "$AGENT_API_SERVICE_ARN"
   [[ "$(agent_aws ecs describe-services --region us-east-1 --cluster "$AGENT_API_CLUSTER_ARN" --services "$AGENT_API_SERVICE_ARN" --query 'services[0].[desiredCount,runningCount]' --output text)" == $'0\t0' ]] || exit 7
 elif [[ "$service_state" != 0$'\t'* && "$service_state" != $'1\t0\t0' ]]; then
-  echo 'migration requires an absent, exact 1/1, or already-quiesced API service' >&2
+  echo "migration requires an absent, exact 1/1, or already-quiesced API service; observed ${service_state//$'\t'/ }" >&2
   exit 7
 fi
 
