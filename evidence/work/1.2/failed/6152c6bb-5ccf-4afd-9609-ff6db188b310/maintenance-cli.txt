@@ -1,0 +1,44 @@
+$ /Users/stoked/.nvm/versions/node/v24.15.0/bin/node /opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/tests/work-1.2/maintenance-cli.mjs
+exit=0
+signal=<none>
+
+[stdout]
+{
+  "schemaVersion": "1.0",
+  "ok": true,
+  "commands": [
+    "migrate",
+    "readiness",
+    "validation-seed",
+    "validation-read",
+    "backup",
+    "restore-offline",
+    "restore-finalize"
+  ],
+  "migrationReplay": "idempotent",
+  "validationFixtureReplay": "representative-state-idempotent-conflict-safe-and-version-mapped",
+  "interruptedFinalizeSignal": "SIGKILL",
+  "copiedVersions": 3,
+  "injectedMissingVersionAfterExactSourceHead": true,
+  "injectedSourceVersionRetained": true,
+  "redispatchCount": 0,
+  "inputModes": "0400-owner",
+  "outputMode": "0600-atomic",
+  "foreignOwnerRejected": true,
+  "secretRedaction": {
+    "raw": true,
+    "uriEncoded": true,
+    "credentialSha256": true
+  },
+  "specialCharacterCredentialCorpus": [
+    "percent",
+    "slash",
+    "hash",
+    "at",
+    "plus",
+    "space"
+  ],
+  "protectedDefaultListenerUnchanged": true
+}
+
+[stderr]

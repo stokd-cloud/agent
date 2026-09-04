@@ -1,0 +1,347 @@
+{
+  "schemaVersion": "1.0",
+  "item": "1.2",
+  "runId": "6152c6bb-5ccf-4afd-9609-ff6db188b310",
+  "startedAt": "2026-09-04T14:46:56.720Z",
+  "sourceHead": "2fb2d6cd78e373479b635eafc703555d8c8cdbb2",
+  "sourceTreeSha256": "ca88d3a88ac5eceb6668c57a2bfcd85223bdb9dae3df6cf620c1d7be8527c434",
+  "canonicalManifestSha256": "17f9f765aa84faf2629760edab6cbcb62fc87a5dcf5977739120534a5b07a318",
+  "buildFingerprintManifestSha256": "8b537485866732ff9c887a131b68e0080212d2d3b20932b0589a0d0a17890b05",
+  "buildFingerprint": {
+    "schemaVersion": "1.0",
+    "sourcePaths": [
+      "apps/api/package.json",
+      "apps/api/src/bin.ts",
+      "apps/api/src/index.ts",
+      "apps/api/tsconfig.json",
+      "apps/cli/package.json",
+      "apps/cli/src/bin.ts",
+      "apps/cli/src/index.ts",
+      "apps/cli/tsconfig.json",
+      "apps/host/package.json",
+      "apps/host/src/bin.ts",
+      "apps/host/src/index.ts",
+      "apps/host/tsconfig.json",
+      "package.json",
+      "packages/dsh/package.json",
+      "packages/dsh/src/index.ts",
+      "packages/dsh/tsconfig.json",
+      "packages/protocol/package.json",
+      "packages/protocol/src/artifacts.ts",
+      "packages/protocol/src/authority.ts",
+      "packages/protocol/src/commands.ts",
+      "packages/protocol/src/context.ts",
+      "packages/protocol/src/errors.ts",
+      "packages/protocol/src/events.ts",
+      "packages/protocol/src/host.ts",
+      "packages/protocol/src/ids.ts",
+      "packages/protocol/src/index.ts",
+      "packages/protocol/src/schema-type-fixtures.ts",
+      "packages/protocol/src/serialization.ts",
+      "packages/protocol/src/service.ts",
+      "packages/protocol/src/transports/https.ts",
+      "packages/protocol/src/transports/ipc.ts",
+      "packages/protocol/src/transports/sse.ts",
+      "packages/protocol/src/version.ts",
+      "packages/protocol/src/work.ts",
+      "packages/protocol/tsconfig.json",
+      "packages/runtime/package.json",
+      "packages/runtime/src/index.ts",
+      "packages/runtime/tsconfig.json",
+      "packages/stokd-bridge/package.json",
+      "packages/stokd-bridge/src/index.ts",
+      "packages/stokd-bridge/tsconfig.json",
+      "packages/storage/package.json",
+      "packages/storage/src/backup.ts",
+      "packages/storage/src/catalog.ts",
+      "packages/storage/src/client.ts",
+      "packages/storage/src/config.ts",
+      "packages/storage/src/errors.ts",
+      "packages/storage/src/idempotency.ts",
+      "packages/storage/src/index.ts",
+      "packages/storage/src/lease.ts",
+      "packages/storage/src/maintenance-cli.ts",
+      "packages/storage/src/migration.ts",
+      "packages/storage/src/object-custody.ts",
+      "packages/storage/src/readiness.ts",
+      "packages/storage/src/recovery.ts",
+      "packages/storage/src/restore.ts",
+      "packages/storage/src/transactions.ts",
+      "packages/storage/src/validation-fixture.ts",
+      "packages/storage/tsconfig.json",
+      "packages/tui/package.json",
+      "packages/tui/src/cloud-agent-client.ts",
+      "packages/tui/tsconfig.cloud-agent-client.json",
+      "packages/tui/tsconfig.json",
+      "pnpm-lock.yaml",
+      "pnpm-workspace.yaml",
+      "tsconfig.base.json"
+    ],
+    "outputPaths": [
+      "apps/api/lib/bin.d.ts",
+      "apps/api/lib/bin.js",
+      "apps/api/lib/index.d.ts",
+      "apps/api/lib/index.js",
+      "apps/cli/lib/bin.d.ts",
+      "apps/cli/lib/bin.js",
+      "apps/cli/lib/index.d.ts",
+      "apps/cli/lib/index.js",
+      "apps/host/lib/bin.d.ts",
+      "apps/host/lib/bin.js",
+      "apps/host/lib/index.d.ts",
+      "apps/host/lib/index.js",
+      "packages/dsh/lib/index.d.ts",
+      "packages/dsh/lib/index.js",
+      "packages/protocol/lib/artifacts.d.ts",
+      "packages/protocol/lib/artifacts.js",
+      "packages/protocol/lib/authority.d.ts",
+      "packages/protocol/lib/authority.js",
+      "packages/protocol/lib/commands.d.ts",
+      "packages/protocol/lib/commands.js",
+      "packages/protocol/lib/context.d.ts",
+      "packages/protocol/lib/context.js",
+      "packages/protocol/lib/errors.d.ts",
+      "packages/protocol/lib/errors.js",
+      "packages/protocol/lib/events.d.ts",
+      "packages/protocol/lib/events.js",
+      "packages/protocol/lib/host.d.ts",
+      "packages/protocol/lib/host.js",
+      "packages/protocol/lib/ids.d.ts",
+      "packages/protocol/lib/ids.js",
+      "packages/protocol/lib/index.d.ts",
+      "packages/protocol/lib/index.js",
+      "packages/protocol/lib/schema-type-fixtures.d.ts",
+      "packages/protocol/lib/schema-type-fixtures.js",
+      "packages/protocol/lib/serialization.d.ts",
+      "packages/protocol/lib/serialization.js",
+      "packages/protocol/lib/service.d.ts",
+      "packages/protocol/lib/service.js",
+      "packages/protocol/lib/transports/https.d.ts",
+      "packages/protocol/lib/transports/https.js",
+      "packages/protocol/lib/transports/ipc.d.ts",
+      "packages/protocol/lib/transports/ipc.js",
+      "packages/protocol/lib/transports/sse.d.ts",
+      "packages/protocol/lib/transports/sse.js",
+      "packages/protocol/lib/version.d.ts",
+      "packages/protocol/lib/version.js",
+      "packages/protocol/lib/work.d.ts",
+      "packages/protocol/lib/work.js",
+      "packages/runtime/lib/index.d.ts",
+      "packages/runtime/lib/index.js",
+      "packages/stokd-bridge/lib/index.d.ts",
+      "packages/stokd-bridge/lib/index.js",
+      "packages/storage/lib/backup.d.ts",
+      "packages/storage/lib/backup.js",
+      "packages/storage/lib/catalog.d.ts",
+      "packages/storage/lib/catalog.js",
+      "packages/storage/lib/client.d.ts",
+      "packages/storage/lib/client.js",
+      "packages/storage/lib/config.d.ts",
+      "packages/storage/lib/config.js",
+      "packages/storage/lib/errors.d.ts",
+      "packages/storage/lib/errors.js",
+      "packages/storage/lib/idempotency.d.ts",
+      "packages/storage/lib/idempotency.js",
+      "packages/storage/lib/index.d.ts",
+      "packages/storage/lib/index.js",
+      "packages/storage/lib/lease.d.ts",
+      "packages/storage/lib/lease.js",
+      "packages/storage/lib/maintenance-cli.d.ts",
+      "packages/storage/lib/maintenance-cli.js",
+      "packages/storage/lib/migration.d.ts",
+      "packages/storage/lib/migration.js",
+      "packages/storage/lib/object-custody.d.ts",
+      "packages/storage/lib/object-custody.js",
+      "packages/storage/lib/readiness.d.ts",
+      "packages/storage/lib/readiness.js",
+      "packages/storage/lib/recovery.d.ts",
+      "packages/storage/lib/recovery.js",
+      "packages/storage/lib/restore.d.ts",
+      "packages/storage/lib/restore.js",
+      "packages/storage/lib/transactions.d.ts",
+      "packages/storage/lib/transactions.js",
+      "packages/storage/lib/validation-fixture.d.ts",
+      "packages/storage/lib/validation-fixture.js",
+      "packages/tui/lib/types/cloud-agent-client.d.ts",
+      "packages/tui/lib/types/cloud-agent-client.js"
+    ],
+    "sourceSha256": "2b4dc2df16e9757b9b7254de5bb2a51bbec64c10cd7c8b81f42ab080589856b3",
+    "outputSha256": "c9ce81a6094cecb9eb5dc4dd5207869e1c0cac70ac555f9c18721a18c4152169"
+  },
+  "toolchain": {
+    "schemaVersion": "1.0",
+    "node": "24.15.0",
+    "pnpm": "11.25.0",
+    "manifests": [
+      "package.json",
+      "packages/protocol/package.json",
+      "packages/runtime/package.json",
+      "packages/dsh/package.json",
+      "packages/storage/package.json",
+      "packages/stokd-bridge/package.json",
+      "apps/api/package.json",
+      "apps/host/package.json",
+      "apps/cli/package.json"
+    ]
+  },
+  "mappedScenarioCount": 9,
+  "state": "failed",
+  "canonicalPass": false,
+  "sealed": false,
+  "disposition": "work-check-incomplete",
+  "executedScenarioCount": 9,
+  "results": [
+    {
+      "id": "infra-policy-structure",
+      "command": [
+        "node",
+        "tests/work-1.2/infra-policy-structure.mjs"
+      ],
+      "targets": [
+        "VAL-OPS-001"
+      ],
+      "registeredScenarios": [
+        "standalone-private-infrastructure"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "verdict": "pass"
+    },
+    {
+      "id": "infra-guard-negative",
+      "command": [
+        "node",
+        "tests/work-1.2/infra-guard-negative.mjs"
+      ],
+      "targets": [
+        "VAL-OPS-001"
+      ],
+      "registeredScenarios": [
+        "account-stage-and-destruction-guard"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "verdict": "pass"
+    },
+    {
+      "id": "infra-mongo-cleanup",
+      "command": [
+        "node",
+        "tests/work-1.2/infra-mongo-cleanup.mjs"
+      ],
+      "targets": [
+        "VAL-OPS-001"
+      ],
+      "registeredScenarios": [
+        "owned-mongo-failure-cleanup"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "verdict": "pass"
+    },
+    {
+      "id": "infra-cloud-lifecycle",
+      "command": [
+        "node",
+        "tests/work-1.2/infra-cloud-lifecycle.mjs"
+      ],
+      "targets": [
+        "VAL-OPS-001"
+      ],
+      "registeredScenarios": [
+        "host-phase-and-custody-guards"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "verdict": "pass"
+    },
+    {
+      "id": "mongo-schema",
+      "command": [
+        "node",
+        "tests/work-1.2/mongo-schema.mjs"
+      ],
+      "targets": [
+        "VAL-OPS-002"
+      ],
+      "registeredScenarios": [
+        "replica-schema-migration-and-fencing"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "verdict": "pass"
+    },
+    {
+      "id": "maintenance-cli",
+      "command": [
+        "node",
+        "tests/work-1.2/maintenance-cli.mjs"
+      ],
+      "targets": [
+        "VAL-OPS-002",
+        "VAL-OPS-003"
+      ],
+      "registeredScenarios": [
+        "maintenance-migrate-and-durable-readback",
+        "maintenance-backup-restore-retry-and-redaction"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "verdict": "pass"
+    },
+    {
+      "id": "mongo-backup-restore",
+      "command": [
+        "node",
+        "tests/work-1.2/mongo-backup-restore.mjs"
+      ],
+      "targets": [
+        "VAL-OPS-003"
+      ],
+      "registeredScenarios": [
+        "oplog-backup-offline-restore-and-zero-redispatch"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "verdict": "pass"
+    },
+    {
+      "id": "s3-multipart",
+      "command": [
+        "node",
+        "tests/work-1.2/s3-multipart.mjs"
+      ],
+      "targets": [
+        "VAL-OPS-003"
+      ],
+      "registeredScenarios": [
+        "multipart-version-custody"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "verdict": "pass"
+    },
+    {
+      "id": "infra-cloud-validation",
+      "command": [
+        "node",
+        "tests/work-1.2/infra-cloud-validation.mjs"
+      ],
+      "targets": [
+        "VAL-OPS-001",
+        "VAL-OPS-002",
+        "VAL-OPS-003"
+      ],
+      "registeredScenarios": [
+        "isolated-cloud-deploy-redeploy-persistence",
+        "cloud-migration-redeploy-readback",
+        "cloud-versioned-backup-restore-readback"
+      ],
+      "exitCode": 1,
+      "signal": null,
+      "verdict": "fail"
+    }
+  ],
+  "failureEvidencePath": "failed/6152c6bb-5ccf-4afd-9609-ff6db188b310",
+  "error": "work scenario failed: infra-cloud-validation"
+}

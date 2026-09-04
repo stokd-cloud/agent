@@ -1,0 +1,37 @@
+$ /Users/stoked/.nvm/versions/node/v24.15.0/bin/node /opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/tests/work-1.2/infra-cloud-validation.mjs
+exit=1
+signal=<none>
+
+[stdout]
+✖ VAL-OPS-001/003 accumulated isolated AWS lifecycle evidence is complete (2.077084ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9.013458
+
+✖ failing tests:
+
+test at tests/work-1.2/infra-cloud-validation.mjs:210:1
+✖ VAL-OPS-001/003 accumulated isolated AWS lifecycle evidence is complete (2.077084ms)
+  AssertionError [ERR_ASSERTION]: real cloud validation must be explicitly selected
+  
+  undefined !== '1'
+  
+      at TestContext.<anonymous> (file:///opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/tests/work-1.2/infra-cloud-validation.mjs:211:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: '1',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+[stderr]

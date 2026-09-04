@@ -243,9 +243,16 @@ function physicalManifest(stage, manifest, planDigest, backupManifestVersionId, 
     ...controlPlane.privateRouteTableIds.map(id => ({ type: 'private-route-table', id })),
     ...controlPlane.publicRouteTableIds.map(id => ({ type: 'public-route-table', id })),
     ...controlPlane.endpointIds.map(id => ({ type: 'vpc-endpoint', id })),
-    ...Object.values(controlPlane.securityGroupIds).map(id => ({ type: 'security-group', id })),
+    // `securityGroupIds.unusedAlb` is absent on the Terraform topology (it was
+    // an SST artefact), so its value is `undefined` here even though
+    // JSON.stringify hides that. Drop absent identities rather than emitting a
+    // resource entry with no ID.
+    ...Object.values(controlPlane.securityGroupIds).filter(Boolean).map(id => ({ type: 'security-group', id })),
     ...controlPlane.roles.map(value => ({ type: 'iam-role', id: value.roleName })),
   ]
+  for (const resource of physicalResources) {
+    if (typeof resource.id !== 'string' || resource.id.length <= 3) throw new Error(`physical resource ${resource.type} has no usable identity`)
+  }
   return {
     schemaVersion: '1.0', accountId, region, stage, sourceDigest: manifest.sourceDigest, planDigest,
     physicalResources,
@@ -266,7 +273,8 @@ function proveDestructiveRefusal(stage, physical) {
     env: { ...process.env, AGENT_PHYSICAL_RESOURCE_MANIFEST: path, AGENT_DESTRUCTIVE_ACK: 'invalid-reviewed-acknowledgement' },
     encoding: 'utf8',
   })
-  if (result.status === 0 || !/remove refused|resource-bound acknowledgement/.test(`${result.stderr}\n${result.stdout}`)) throw new Error('real destructive-plan refusal did not fail closed')
+  const output = `${result.stderr ?? ''}\n${result.stdout ?? ''}`.trim()
+  if (result.status === 0 || !/remove refused|resource-bound acknowledgement/.test(output)) throw new Error(`real destructive-plan refusal did not fail closed (exit ${result.status}): ${output.slice(0, 400)}`)
 }
 
 async function runScenario(mode, stage, component, requestId, validationRunId, sourceDigest) {

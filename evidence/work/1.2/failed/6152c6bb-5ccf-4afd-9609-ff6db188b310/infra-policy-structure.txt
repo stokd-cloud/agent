@@ -1,0 +1,27 @@
+$ /Users/stoked/.nvm/versions/node/v24.15.0/bin/node /opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/tests/work-1.2/infra-policy-structure.mjs
+exit=0
+signal=<none>
+
+[stdout]
+✔ bootstrap trusts only the existing account OIDC provider and reviewed GitHub environment (0.613958ms)
+✔ deploy role is boundary constrained and cannot mutate itself or unbounded roles (0.531375ms)
+✔ exact attached-policy denials preserve retained custody and deploy-role immutability (0.300291ms)
+✔ every managed policy remains within the IAM 6,144-character document limit (0.37325ms)
+✔ SST home listing includes the exact app prefixes used by pinned ListStages (0.349167ms)
+✔ routine deployment cannot read managed secrets or delete retained custody resources (0.988625ms)
+✔ validation evidence KMS use is S3-scoped and service roles cannot invoke cloud models (0.483583ms)
+✔ refresh permissions include the exact DNS zone reads and certificate tag reads (0.191083ms)
+✔ branch-native validation is exact-branch, environment-reviewed, and dispatch-safe (0.351291ms)
+✔ GitHub environment apply is create-only and refuses to overwrite existing controls (0.299458ms)
+✔ Mongo initialization is loopback-only and steady state has no recovery administrator (0.12325ms)
+✔ immutable image reuse requires exact source and Docker-context provenance (0.111583ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7.960209
+
+[stderr]
