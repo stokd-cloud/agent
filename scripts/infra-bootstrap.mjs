@@ -227,7 +227,7 @@ export function run(argv = process.argv.slice(2), environment = process.env) {
   assertReviewedInputsUnchanged()
   aws([
     'cloudformation', 'deploy', '--region', 'us-east-1',
-    '--stack-name', 'stokd-agent-validation-bootstrap',
+    '--stack-name', 'stokd-agent-bootstrap',
     '--template-file', template,
     '--capabilities', 'CAPABILITY_NAMED_IAM',
     '--no-fail-on-empty-changeset',

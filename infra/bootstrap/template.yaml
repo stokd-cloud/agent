@@ -1167,7 +1167,7 @@ Resources:
           - cloudformation:CreateStack
           - cloudformation:ExecuteChangeSet
           - cloudformation:UpdateStack
-          Resource: arn:aws:cloudformation:us-east-1:167217327520:stack/stokd-agent-validation-bootstrap/*
+          Resource: arn:aws:cloudformation:us-east-1:167217327520:stack/stokd-agent-bootstrap/*
 
   AgentDeploySstHomePolicy:
     Type: AWS::IAM::ManagedPolicy

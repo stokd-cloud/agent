@@ -368,7 +368,7 @@ export function assertExactDeployCustodyDenials({ controlPolicy, runtimePolicy }
       'cloudformation:ExecuteChangeSet',
       'cloudformation:UpdateStack',
     ],
-    Resource: 'arn:aws:cloudformation:us-east-1:167217327520:stack/stokd-agent-validation-bootstrap/*',
+    Resource: 'arn:aws:cloudformation:us-east-1:167217327520:stack/stokd-agent-bootstrap/*',
   }, `${roleName} bootstrap-custody denial changed`)
   return ['CannotMutateBootstrapCustody', 'CannotResetVolumeInitializationProof', 'PersistentDeletionIsImpossible']
 }
@@ -731,7 +731,7 @@ const work12PhaseNames = [
 function classifyAgentParameter(name, stage) {
   const stageManifest = `/stokd-agent/${stage}/infrastructure-manifest/v1`
   if (name === stageManifest) return `sst-native:${stage}`
-  if (name === '/stokd-agent/shared/validation-certificate/v1') return 'cloudformation-stack:stokd-agent-validation-bootstrap'
+  if (name === '/stokd-agent/shared/validation-certificate/v1') return 'cloudformation-stack:stokd-agent-bootstrap'
   if (/^\/stokd-agent\/(?:source|restore)-val12\/infrastructure-manifest\/v1$/.test(name)) return 'other-stage-native'
   if (name === '/stokd-agent/validation/work-1.2/restore-admission-lock/v1') return 'transient-validation-state'
   const evidenceKinds = ['evidence', 'fixture', 'physical-resources', ...work12PhaseNames.map(value => `phase-${value}`)]
@@ -743,7 +743,7 @@ function classifyAgentParameter(name, stage) {
 }
 
 function inspectBootstrapAndShared(aws, manifest) {
-  const bootstrap = inspectStack(aws, 'stokd-agent-validation-bootstrap', { requireNoRoleArn: true })
+  const bootstrap = inspectStack(aws, 'stokd-agent-bootstrap', { requireNoRoleArn: true })
   const credentials = inspectStack(aws, `stokd-agent-${manifest.stage}-credentials`)
   const sstBootstrap = parseSstBootstrapParameter(aws(['ssm', 'get-parameter', '--name', SST_BOOTSTRAP_PARAMETER, '--no-with-decryption', '--output', 'json']))
   assert.equal(bootstrap.parameters.ExistingSstBootstrapVersion, String(sstBootstrap.version), 'bootstrap stack SST version binding changed')

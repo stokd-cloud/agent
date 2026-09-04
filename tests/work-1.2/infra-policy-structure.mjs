@@ -126,7 +126,7 @@ test('exact attached-policy denials preserve retained custody and deploy-role im
       'cloudformation:ExecuteChangeSet',
       'cloudformation:UpdateStack',
     ],
-    Resource: 'arn:aws:cloudformation:us-east-1:167217327520:stack/stokd-agent-validation-bootstrap/*',
+    Resource: 'arn:aws:cloudformation:us-east-1:167217327520:stack/stokd-agent-bootstrap/*',
   })
 
   const attachedPolicyIds = bootstrapValue.Resources.AgentValidationDeployRole.Properties.ManagedPolicyArns

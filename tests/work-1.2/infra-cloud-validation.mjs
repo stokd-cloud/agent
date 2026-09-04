@@ -102,8 +102,8 @@ function assertTerraformHandoff(value, stage, manifest) {
   assert.equal(value.cloudFormationOwnership.some(owner => owner.stackName === `stokd-agent-${stage}-credentials` && owner.selectedModel === 'cloudformation-stack-bridge'), true)
   assert.deepEqual(value.sharedBootstrapOwnership, stage === 'source-val12'
     ? { emittedByStage: 'source-val12', importRequiredHere: true }
-    : { emittedByStage: 'source-val12', importRequiredHere: false, stackName: 'stokd-agent-validation-bootstrap' })
-  assert.equal(imports.has('aws_cloudformation_stack\0stokd-agent-validation-bootstrap'), stage === 'source-val12')
+    : { emittedByStage: 'source-val12', importRequiredHere: false, stackName: 'stokd-agent-bootstrap' })
+  assert.equal(imports.has('aws_cloudformation_stack\0stokd-agent-bootstrap'), stage === 'source-val12')
   assert(value.externalReferences.some(item => item.kind === 'aws_iam_openid_connect_provider' && item.owner === 'pre-existing-shared-account-infrastructure'))
   assert(value.externalReferences.some(item => item.kind === 'aws_route53_zone' && item.id === manifest.hostedZoneId && item.owner === 'pre-existing-stokd-cloud-dns'))
   assert(value.externalReferences.some(item => item.kind === 'aws_iam_service_linked_role' && item.owner === 'aws-managed-shared-account-service-role'))

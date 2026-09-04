@@ -33,7 +33,7 @@ test('deployed policy readback requires all exact retained-custody denials', () 
   const bootstrapCustody = {
     Sid: 'CannotMutateBootstrapCustody', Effect: 'Deny',
     Action: ['cloudformation:CreateChangeSet', 'cloudformation:CreateStack', 'cloudformation:ExecuteChangeSet', 'cloudformation:UpdateStack'],
-    Resource: 'arn:aws:cloudformation:us-east-1:167217327520:stack/stokd-agent-validation-bootstrap/*',
+    Resource: 'arn:aws:cloudformation:us-east-1:167217327520:stack/stokd-agent-bootstrap/*',
   }
   const exact = { controlPolicy: policy(persistentDeletion, bootstrapCustody), runtimePolicy: policy(initializationProof) }
   assert.deepEqual(assertExactDeployCustodyDenials(exact), ['CannotMutateBootstrapCustody', 'CannotResetVolumeInitializationProof', 'PersistentDeletionIsImpossible'])
