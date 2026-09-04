@@ -714,6 +714,17 @@ Resources:
               aws:ResourceTag/Stage:
               - source-val12
               - restore-val12
+        - Sid: AdoptVpcDefaultSecurityGroup
+          Effect: Allow
+          Action:
+          # The VPC default group is created by AWS, so claiming it is not a
+          # create-time action and the CreateAction-scoped tagging statement
+          # cannot cover it.
+          - ec2:CreateTags
+          Resource: arn:aws:ec2:us-east-1:167217327520:security-group/*
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
         - Sid: ManageRulesOnAgentSecurityGroups
           Effect: Allow
           Action:
