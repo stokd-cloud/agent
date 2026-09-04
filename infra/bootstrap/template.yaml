@@ -201,6 +201,7 @@ Resources:
           - sts:GetCallerIdentity
           - acm:Describe*
           - acm:List*
+          - application-autoscaling:Describe*
           - cloudformation:Describe*
           - cloudformation:Get*
           - cloudformation:List*
