@@ -656,7 +656,14 @@ function inspectPublicApi(aws, manifest, ecs, albSecurityGroupId) {
   const recordName = `agent-${stage}.stokd.cloud.`
   const records = json(aws(['route53', 'list-resource-record-sets', '--hosted-zone-id', manifest.hostedZoneId, '--output', 'json']), 'Route53 records').ResourceRecordSets ?? []
   const aliasRecords = records.filter(value => value.Name === recordName && ['A', 'AAAA'].includes(value.Type) && value.AliasTarget)
-  assert(aliasRecords.some(value => value.Type === 'A' && String(value.AliasTarget.DNSName).replace(/^dualstack\./, '') === String(loadBalancer.DNSName).replace(/^dualstack\./, '')), 'Agent DNS A alias does not target the exact ALB')
+  // Route 53 returns alias targets fully qualified (trailing dot) and often
+  // dualstack-prefixed; the ELB API returns neither. Normalise both sides or
+  // the comparison can never match.
+  const normaliseAliasTarget = value => String(value ?? '').toLowerCase().replace(/^dualstack\./, '').replace(/\.$/, '')
+  assert(
+    aliasRecords.some(value => value.Type === 'A' && normaliseAliasTarget(value.AliasTarget.DNSName) === normaliseAliasTarget(loadBalancer.DNSName)),
+    'Agent DNS A alias does not target the exact ALB',
+  )
   const scalableResourceId = `service/${manifest.cluster.serviceName}/${manifest.cluster.serviceName}`
   const scalableTargets = json(aws(['application-autoscaling', 'describe-scalable-targets', '--service-namespace', 'ecs', '--resource-ids', scalableResourceId, '--scalable-dimension', 'ecs:service:DesiredCount', '--output', 'json']), 'autoscaling targets').ScalableTargets ?? []
   const scalableTarget = one(scalableTargets, 'fixed validation API scalable target')
