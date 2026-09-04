@@ -1127,7 +1127,11 @@ export async function inspectAgentControlPlane({ aws, manifest }) {
   ]
   const imports = [...stageNativeImports, ...cloudFormationOwnership.map(value => value.import)]
     .sort((left, right) => `${left.kind}:${left.importId}`.localeCompare(`${right.kind}:${right.importId}`))
-  assert.equal(new Set(imports.map(value => `${value.kind}\0${value.importId}`)).size, imports.length, 'Terraform handoff contains a duplicate remote-object import')
+  // Name the offenders: a bare count tells you nothing about which object was
+  // enumerated twice, and each diagnosis round-trip costs a full deploy.
+  const importKeys = imports.map(value => `${value.kind}\0${value.importId}`)
+  const duplicateKeys = [...new Set(importKeys.filter((value, index) => importKeys.indexOf(value) !== index))]
+  assert.deepEqual(duplicateKeys, [], `Terraform handoff contains duplicate remote-object imports: ${duplicateKeys.map(value => value.replace('\0', ' ')).join(', ')}`)
 
   const sstCustody = shared.sstBootstrap.initialization.externalCustody
   const externalRetainedCustody = {
