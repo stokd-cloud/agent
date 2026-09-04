@@ -907,10 +907,15 @@ export async function inspectAgentControlPlane({ aws, manifest }) {
   const apiGroup = groupById.get(manifest.vpc.apiSecurityGroupId)
   const mongoGroup = groupById.get(manifest.vpc.mongoSecurityGroupId)
   const albGroup = one(groups.filter(group => group.GroupName === `stokd-agent-alb-exact-${stage}`), 'exact ALB security group')
-  const unusedAlbGroup = one(groups.filter(group => group.GroupName === `stokd-agent-alb-component-unused-${stage}`), 'unused SST ALB security group')
+  // SST's Service component always created its own load-balancer security
+  // group, which this topology left unused by binding the ALB to the exact
+  // group instead; the assertion below proved it stayed empty. Terraform binds
+  // the ALB directly and creates no such component group, so there is nothing
+  // to prove -- absence is strictly stronger than "present but empty".
+  const unusedAlbGroup = groups.find(group => group.GroupName === `stokd-agent-alb-component-unused-${stage}`)
   const defaultGroup = one(groups.filter(group => group.GroupName === 'default'), 'VPC default security group')
   assert(endpointGroup && apiGroup && mongoGroup, 'required workload security group is missing')
-  for (const [group, label] of [[endpointGroup, 'endpoint'], [apiGroup, 'API'], [mongoGroup, 'Mongo'], [albGroup, 'ALB'], [unusedAlbGroup, 'unused SST ALB'], [defaultGroup, 'default VPC']]) assertTags(group.Tags, stage, `${label} security group`)
+  for (const [group, label] of [[endpointGroup, 'endpoint'], [apiGroup, 'API'], [mongoGroup, 'Mongo'], [albGroup, 'ALB'], [defaultGroup, 'default VPC']]) assertTags(group.Tags, stage, `${label} security group`)
   const s3Prefix = one((s3Endpoint.RouteTableIds ?? []).length ? json(aws(['ec2', 'describe-prefix-lists', '--filters', `Name=prefix-list-name,Values=com.amazonaws.${region}.s3`, '--output', 'json']), 'S3 prefix list').PrefixLists : [], 'S3 prefix list').PrefixListId
   assertExactPermissions(endpointGroup,
     [`tcp:443:443:sg:${apiGroup.GroupId}`, `tcp:443:443:sg:${mongoGroup.GroupId}`], [], 'endpoint security group')
@@ -923,7 +928,10 @@ export async function inspectAgentControlPlane({ aws, manifest }) {
   assertExactPermissions(albGroup,
     ['tcp:443:443:ipv4:0.0.0.0/0', 'tcp:80:80:ipv4:0.0.0.0/0'],
     [`tcp:8080:8080:sg:${apiGroup.GroupId}`], 'ALB security group')
-  assertExactPermissions(unusedAlbGroup, [], [], 'unused SST ALB security group')
+  if (unusedAlbGroup) {
+    assertTags(unusedAlbGroup.Tags, stage, 'unused SST ALB security group')
+    assertExactPermissions(unusedAlbGroup, [], [], 'unused SST ALB security group')
+  }
   assertExactPermissions(defaultGroup, [], [], 'default VPC security group')
   for (const group of groups) assert.equal(permissionSignatures(group.IpPermissionsEgress).some(value => value.endsWith(':ipv4:0.0.0.0/0') || value.endsWith(':ipv6:::/0')), false, `${group.GroupName} gained public egress`)
   const securityGroupRules = json(aws(['ec2', 'describe-security-group-rules', '--filters', `Name=group-id,Values=${groups.map(value => value.GroupId).join(',')}`, '--output', 'json']), 'security group rules').SecurityGroupRules ?? []
