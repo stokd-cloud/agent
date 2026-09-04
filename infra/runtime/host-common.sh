@@ -3,6 +3,15 @@ set -euo pipefail
 
 agent_load_config() {
   [[ "$(id -u)" == 0 ]] || { echo 'Agent host maintenance requires root' >&2; return 7; }
+  # Terraform reports an instance ready as soon as EC2 says "running", which is
+  # before cloud-init has written this file, so a maintenance command dispatched
+  # immediately after a host replacement can arrive first. Wait for the config
+  # rather than failing the operation on a boot race. The guard itself is
+  # unchanged: still a regular file, still exactly mode 400 owned by root.
+  for _ in $(seq 1 120); do
+    [[ -f /etc/stokd-agent/host.env && "$(stat -c '%a:%u' /etc/stokd-agent/host.env 2>/dev/null)" == '400:0' ]] && break
+    sleep 5
+  done
   [[ -f /etc/stokd-agent/host.env && "$(stat -c '%a:%u' /etc/stokd-agent/host.env)" == '400:0' ]] || {
     echo 'guarded Agent host config is missing' >&2
     return 7
