@@ -48,6 +48,20 @@ for (const [file, type, name] of persistentResources) {
   )
 }
 
+// ── Nothing is written into a bucket that is not yet versioned ───────────────
+// Every evidence pointer is a (bucket, key, versionId) triple. Nothing
+// references a versioning resource, so without an explicit dependency Terraform
+// may write objects into a bucket whose versioning is not on yet -- and those
+// objects have no version to point at.
+{
+  const block = tf['mongo.tf'].match(/resource "aws_s3_object" "host_files" \{[\s\S]*?\n\}/m)
+  assert.ok(block, 'aws_s3_object.host_files not found in mongo.tf')
+  assert.ok(
+    block[0].includes('aws_s3_bucket_versioning.custody'),
+    'aws_s3_object.host_files must depend on aws_s3_bucket_versioning.custody',
+  )
+}
+
 // ── The host may not boot before it can reach anything ───────────────────────
 // user_data pulls every host script from S3 at boot. Nothing in the
 // configuration references a security-group rule, so without an explicit

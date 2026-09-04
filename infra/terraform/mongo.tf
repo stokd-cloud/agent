@@ -449,9 +449,13 @@ resource "aws_s3_object" "host_files" {
   server_side_encryption = "aws:kms"
   kms_key_id             = aws_kms_key.data.arn
 
+  # Versioning too, not just policy and encryption. Every evidence pointer this
+  # item writes is a (bucket, key, versionId) triple; an object written into a
+  # bucket whose versioning is not yet on has no version to point at.
   depends_on = [
     aws_s3_bucket_policy.custody,
     aws_s3_bucket_server_side_encryption_configuration.custody,
+    aws_s3_bucket_versioning.custody,
   ]
 }
 
