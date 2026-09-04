@@ -99,11 +99,29 @@ async function httpJson(url, expectedStatus = 200) {
   throw last ?? new Error(`${url} did not become ready`)
 }
 
+// A freshly applied stage's Mongo host exists in EC2 well before its SSM agent
+// has registered, and `send-command` fails closed with InvalidInstanceId until
+// it does. The source stage never saw this because its instance was long
+// registered; the restore stage is built from nothing on every run.
+async function waitForSsmRegistration(instanceId) {
+  for (let attempt = 0; attempt < 120; attempt += 1) {
+    const result = spawnSync('aws', ['ssm', 'describe-instance-information', '--filters', `Key=InstanceIds,Values=${instanceId}`, '--region', region, '--output', 'json'], { cwd: root, env: process.env, encoding: 'utf8' })
+    if (result.status === 0) {
+      const listed = parseJson(result.stdout, 'SSM instance registration').InstanceInformationList ?? []
+      const found = listed.find(value => value.InstanceId === instanceId)
+      if (found?.PingStatus === 'Online') return
+    }
+    await new Promise(resolveWait => setTimeout(resolveWait, 5_000))
+  }
+  throw new Error(`SSM target ${instanceId} never registered as Online`)
+}
+
 async function sendCommand(documentName, instanceId, parameters = {}) {
   if (!Object.values(documentNames).includes(documentName)) throw new Error('SSM document is not allowlisted')
   if (!/^i-[a-f0-9]{17}$/.test(instanceId)) throw new Error('SSM target instance is invalid')
   const args = ['ssm', 'send-command', '--document-name', documentName, '--instance-ids', instanceId, '--timeout-seconds', '7200', '--output', 'json']
   if (Object.keys(parameters).length) args.push('--parameters', JSON.stringify(Object.fromEntries(Object.entries(parameters).map(([key, value]) => [key, [value]]))))
+  await waitForSsmRegistration(instanceId)
   const sent = parseJson(aws(args), `SSM ${documentName} send`)
   const commandId = sent.Command?.CommandId
   if (!/^[a-f0-9-]{36}$/.test(commandId ?? '')) throw new Error('SSM omitted the exact command ID')
