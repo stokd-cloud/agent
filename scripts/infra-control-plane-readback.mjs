@@ -1230,7 +1230,7 @@ export async function inspectAgentControlPlane({ aws, manifest }) {
     vpcId: vpc.VpcId, subnetIds: allSubnetIds.sort(), internetGatewayId: internetGateway.InternetGatewayId,
     routeTables, privateRouteTableIds: [...new Set(privateRouteTableIds)].sort(), publicRouteTableIds: [...new Set(publicRouteTableIds)].sort(),
     endpointIds: endpoints.map(value => value.VpcEndpointId).sort(),
-    securityGroupIds: { endpoint: endpointGroup.GroupId, api: apiGroup.GroupId, mongo: mongoGroup.GroupId, alb: albGroup.GroupId, unusedAlb: unusedAlbGroup.GroupId, defaultVpc: defaultGroup.GroupId }, securityGroupRuleIds: securityGroupRules.map(value => value.SecurityGroupRuleId).sort(),
+    securityGroupIds: { endpoint: endpointGroup.GroupId, api: apiGroup.GroupId, mongo: mongoGroup.GroupId, alb: albGroup.GroupId, unusedAlb: unusedAlbGroup?.GroupId, defaultVpc: defaultGroup.GroupId }, securityGroupRuleIds: securityGroupRules.map(value => value.SecurityGroupRuleId).sort(),
     buckets, kms, secretVersions, cloudMap, apiCloudMap, ecs, publicApi, shared,
     volume: { volumeId: volume.VolumeId, rootVolumeId: rootVolume.VolumeId, rootVolumeDeleteOnTermination: true, instanceId: instance.InstanceId, networkInterfaceId: networkInterface.NetworkInterfaceId, instanceProfileArn: profile.Arn, encrypted: true, attachmentState: 'attached' }, roles,
     terraformMigrationInventory,
