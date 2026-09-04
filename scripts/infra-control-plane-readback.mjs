@@ -1137,14 +1137,17 @@ export async function inspectAgentControlPlane({ aws, manifest }) {
   const duplicateKeys = [...new Set(importKeys.filter((value, index) => importKeys.indexOf(value) !== index))]
   assert.deepEqual(duplicateKeys, [], `Terraform handoff contains duplicate remote-object imports: ${duplicateKeys.map(value => value.replace('\0', ' ')).join(', ')}`)
 
-  const sstCustody = shared.sstBootstrap.initialization.externalCustody
+  // The SST home is absent under Terraform, so its initialization record and the
+  // custody it described are undefined. The envelope still carries the shape,
+  // with empty collections rather than values from a home that does not exist.
+  const sstCustody = shared.sstBootstrap.initialization?.externalCustody ?? { secretObjects: [], homeTerminals: [] }
   const externalRetainedCustody = {
     ownership: 'external-reference-only-never-import-or-reconfigure',
     stateBucket: shared.sstBootstrap.stateBucket,
     stateBucketControls: shared.sstBootstrap.stateControls,
     passphraseParameters: shared.sstBootstrap.passphrases,
     encryptedSecretObjects: sstCustody.secretObjects,
-    globalTerminal: shared.sstBootstrap.initialization.terminal,
+    globalTerminal: shared.sstBootstrap.initialization?.terminal,
     homeTerminals: sstCustody.homeTerminals,
     activeMarker: {
       ...sstCustody.activeMarker,
@@ -1211,7 +1214,7 @@ export async function inspectAgentControlPlane({ aws, manifest }) {
         awsManagedSsmKeyArn: shared.sstBootstrap.passphraseKms.arn,
         passphraseParameters: shared.sstBootstrap.passphrases,
         encryptedSecretObjects: sstCustody.secretObjects,
-        globalTerminal: shared.sstBootstrap.initialization.terminal,
+        globalTerminal: shared.sstBootstrap.initialization?.terminal,
         homeTerminals: sstCustody.homeTerminals,
         activeMarker: { ...sstCustody.activeMarker, currentState: sstCustody.activeMarkerCurrentState },
         retainedVersionInventory: sstCustody.observedRetainedVersionInventory,
