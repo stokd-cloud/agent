@@ -21,10 +21,15 @@ resource "aws_internet_gateway" "agent" {
 resource "aws_subnet" "public" {
   for_each = { for index, az in local.azs : az => index }
 
-  vpc_id                  = aws_vpc.agent.id
-  availability_zone       = each.key
-  cidr_block              = cidrsubnet(aws_vpc.agent.cidr_block, 8, each.value)
-  map_public_ip_on_launch = false
+  vpc_id            = aws_vpc.agent.id
+  availability_zone = each.key
+  cidr_block        = cidrsubnet(aws_vpc.agent.cidr_block, 8, each.value)
+
+  # The validated topology has this on for the load-balancer subnets. Nothing
+  # is launched into them directly -- the ALB manages its own addresses -- so
+  # this changes no instance's exposure; it keeps the readback identical to the
+  # topology the contract was written against.
+  map_public_ip_on_launch = true
 
   tags = merge(local.runtime_tags, {
     Name    = "stokd-agent-${var.stage}-public-${each.key}"
