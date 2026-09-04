@@ -62,6 +62,7 @@ for (const [file, type, name] of persistentResources) {
     'aws_vpc_security_group_egress_rule.dns_udp',
     'aws_vpc_security_group_egress_rule.dns_tcp',
     'aws_vpc_security_group_egress_rule.s3_endpoint',
+    'aws_route_table_association.private',
   ]) {
     assert.ok(block[0].includes(rule), `aws_instance.mongo must depend on ${rule}`)
   }

@@ -512,6 +512,12 @@ resource "aws_instance" "mongo" {
     aws_vpc_security_group_egress_rule.dns_udp,
     aws_vpc_security_group_egress_rule.dns_tcp,
     aws_vpc_security_group_egress_rule.s3_endpoint,
+    # The S3 endpoint is a GATEWAY: it works by route, not by ENI. Without the
+    # subnet's association to the route table that carries it, S3 is simply
+    # unroutable and user_data's download hangs until cloud-init gives up --
+    # while the interface endpoints, which need no route, keep working and make
+    # the host look reachable.
+    aws_route_table_association.private,
   ]
 }
 

@@ -71,6 +71,7 @@ export const DATA_PHASE_TARGETS = Object.freeze([
   '-target=aws_vpc_security_group_egress_rule.dns_udp',
   '-target=aws_vpc_security_group_egress_rule.dns_tcp',
   '-target=aws_vpc_security_group_egress_rule.s3_endpoint',
+  '-target=aws_route_table_association.private',
 ])
 
 export function phaseTargets(app) {
