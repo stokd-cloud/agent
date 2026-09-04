@@ -13,6 +13,18 @@ resource "aws_vpc" "agent" {
   tags = merge(local.runtime_tags, { Name = "stokd-agent-${var.stage}" })
 }
 
+# Every VPC ships a default security group that allows all intra-group traffic.
+# Nothing here uses it, so it is adopted and emptied rather than left as an
+# unmanaged allow-all group, and tagged so the control-plane readback can
+# account for it like every other group in the VPC.
+resource "aws_default_security_group" "agent" {
+  vpc_id = aws_vpc.agent.id
+
+  # No ingress or egress blocks: the group is deliberately empty.
+
+  tags = merge(local.runtime_tags, { Name = "stokd-agent-${var.stage}-default" })
+}
+
 resource "aws_internet_gateway" "agent" {
   vpc_id = aws_vpc.agent.id
   tags   = merge(local.runtime_tags, { Name = "stokd-agent-${var.stage}" })
