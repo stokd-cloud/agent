@@ -72,7 +72,10 @@ function one(values, label) {
   assert(Array.isArray(values) && values.length === 1, `${label} must resolve exactly once`)
   return values[0]
 }
-function tags(values) { return Object.fromEntries((values ?? []).map(tag => [tag.Key ?? tag.key, tag.Value ?? tag.value])) }
+// AWS is not consistent about tag shape: EC2 and S3 return Key/Value, KMS
+// returns TagKey/TagValue. Reading only the first shape silently produced an
+// empty tag set for every KMS assertion.
+function tags(values) { return Object.fromEntries((values ?? []).map(tag => [tag.Key ?? tag.TagKey ?? tag.key, tag.Value ?? tag.TagValue ?? tag.value])) }
 function assertTags(value, stage, label) {
   const actual = tags(value)
   assert.equal(actual.Project, 'stokd-agent', `${label} Project tag changed`)
