@@ -40,7 +40,14 @@ function runReadiness() {
     stdio: ['ignore', 'pipe', 'pipe'],
     timeout: 25_000,
   })
-  if (result.status !== 0) throw new Error('Agent storage readiness failed')
+  if (result.status !== 0) {
+    // Surface the child's own diagnosis. Without this the only symptom is
+    // "Agent storage readiness failed", which says nothing about why storage
+    // was unreachable and makes a failing task impossible to diagnose from
+    // logs alone.
+    const detail = [result.stderr, result.stdout].map(value => (value ?? '').trim()).filter(Boolean).join(' | ')
+    throw new Error(`Agent storage readiness failed (status ${result.status}${result.error ? `, ${result.error.message}` : ''})${detail ? `: ${detail}` : ''}`)
+  }
   const envelope = JSON.parse(readFileSync(readinessEnvironment.AGENT_OUTPUT_PATH, 'utf8'))
   if (envelope?.schemaVersion !== '1.0' || envelope?.command !== 'readiness' || envelope?.ok !== true) throw new Error('Agent storage readiness output is invalid')
   readiness = envelope.result
