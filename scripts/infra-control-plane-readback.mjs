@@ -1067,11 +1067,15 @@ export async function inspectAgentControlPlane({ aws, manifest }) {
     { kind: 'aws_vpc', importId: vpc.VpcId },
     ...subnets.map(value => ({ kind: 'aws_subnet', importId: value.SubnetId })),
     { kind: 'aws_internet_gateway', importId: internetGateway.InternetGatewayId },
-    ...routeTables.flatMap(value => [
+    // routeTables carries one entry per subnet association, so a route table
+    // shared by several subnets appears more than once. The associations are
+    // genuinely distinct and each must be imported; the table and its default
+    // route are one object each however many subnets point at them.
+    ...[...new Map(routeTables.map(value => [value.id, value])).values()].flatMap(value => [
       { kind: 'aws_route_table', importId: value.id },
-      { kind: 'aws_route_table_association', importId: value.associationImportId },
       ...(value.defaultRouteImportId ? [{ kind: 'aws_route', importId: value.defaultRouteImportId }] : []),
     ]),
+    ...routeTables.map(value => ({ kind: 'aws_route_table_association', importId: value.associationImportId })),
     ...endpoints.map(value => ({ kind: 'aws_vpc_endpoint', importId: value.VpcEndpointId })),
     ...groups.filter(value => value.GroupId !== defaultGroup.GroupId).map(value => ({ kind: 'aws_security_group', importId: value.GroupId })),
     { kind: 'aws_default_security_group', importId: defaultGroup.GroupId },
