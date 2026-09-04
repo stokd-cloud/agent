@@ -29,7 +29,12 @@ COPY --from=build /workspace/packages/runtime ./packages/runtime
 COPY --from=build /workspace/apps/api ./apps/api
 COPY infra/runtime/api-entrypoint.sh /usr/local/bin/agent-api-entrypoint
 COPY infra/runtime/api-entry.mjs /opt/stokd-agent/api-entry.mjs
-RUN chmod 0555 /usr/local/bin/agent-api-entrypoint /opt/stokd-agent/api-entry.mjs \
+# api-entry.mjs shells out to this wrapper for its storage readiness probe, so
+# the API image needs it too -- it was previously only in the maintenance image
+# and every task died with ENOENT before serving a request. The wrapper only
+# needs bash, node and packages/storage, all already present here.
+COPY infra/runtime/maintenance-entrypoint.sh /usr/local/bin/stokd-agent-storage-maintenance
+RUN chmod 0555 /usr/local/bin/agent-api-entrypoint /opt/stokd-agent/api-entry.mjs /usr/local/bin/stokd-agent-storage-maintenance \
     && install -d -o node -g node -m 0700 /run/stokd-agent
 USER node
 EXPOSE 8080
