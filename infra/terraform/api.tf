@@ -8,6 +8,14 @@ resource "aws_ecs_cluster" "api" {
   tags = local.runtime_tags
 }
 
+# Registered to match the validated cluster topology. The service pins
+# launch_type FARGATE, so availability of FARGATE_SPOT does not place anything
+# on spot capacity.
+resource "aws_ecs_cluster_capacity_providers" "api" {
+  cluster_name       = aws_ecs_cluster.api.name
+  capacity_providers = ["FARGATE", "FARGATE_SPOT"]
+}
+
 # The retained exact-SAN certificate is provisioned once and referenced by ARN,
 # so a stage rebuild never re-issues it.
 data "aws_ssm_parameter" "certificate" {
