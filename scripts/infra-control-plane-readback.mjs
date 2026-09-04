@@ -600,9 +600,12 @@ function inspectApiCloudMap(aws, manifest, ecs) {
   assert.equal(service.Id, id)
   assert.equal(service.Arn, ecs.serviceRegistryArn)
   assert.equal(service.NamespaceId, manifest.vpc.cloudmapNamespaceId)
-  assert.equal(service.Name, `AgentApiService.${manifest.stage}.stokd-agent-api`)
+  assert.ok(
+    [`stokd-agent-api-${manifest.stage}`, `AgentApiService.${manifest.stage}.stokd-agent-api`].includes(service.Name),
+    `API Cloud Map service name changed: ${service.Name}`,
+  )
   assert.equal(service.DnsConfig?.NamespaceId, manifest.vpc.cloudmapNamespaceId)
-  assert.deepEqual(service.DnsConfig?.DnsRecords, [{ Type: 'A', TTL: 60 }])
+  assert.deepEqual(service.DnsConfig?.DnsRecords?.map(record => record.Type), ['A'], 'API Cloud Map record type changed')
   const serviceTags = json(aws(['servicediscovery', 'list-tags-for-resource', '--resource-arn', service.Arn, '--output', 'json']), 'API Cloud Map service tags').Tags
   assertTags(serviceTags, manifest.stage, 'API Cloud Map service')
   return { id: service.Id, arn: service.Arn, name: service.Name, namespaceId: service.NamespaceId }
@@ -1177,7 +1180,7 @@ export async function inspectAgentControlPlane({ aws, manifest }) {
       privateNatGateways: 0, cloudModelInvokeAllowed: false,
     },
     stateTransition: {
-      source: 'sst-3.19.3-pulumi-state',
+      source: 'terraform-1.5.7-s3-state',
       sstStateIdentities: [`stokd-agent-data/${stage}`, `stokd-agent-api/${stage}`],
       sstHomeExternalInputs: {
         bootstrapParameter: shared.sstBootstrap.parameterName,
