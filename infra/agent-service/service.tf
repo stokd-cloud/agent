@@ -122,6 +122,17 @@ resource "aws_ecs_service" "api" {
     security_groups  = [aws_security_group.api.id]
     assign_public_ip = true
   }
+
+  dynamic "load_balancer" {
+    for_each = var.create_alb ? [1] : []
+    content {
+      target_group_arn = aws_lb_target_group.api[0].arn
+      container_name   = "api"
+      container_port   = 8080
+    }
+  }
+
+  depends_on = [aws_lb_listener.http]
 }
 
 output "cluster_arn" { value = local.cluster_arn }

@@ -16,6 +16,9 @@ const readinessEnvironment = {
   AGENT_OUTPUT_PATH: '/run/stokd-agent/readiness-output.json',
 }
 delete readinessEnvironment.AGENT_RUNTIME_SECRET_VALUE
+// Managed provider: the URI carries its own credentials and no credential file
+// is written, so pointing at one that does not exist just fails the read.
+if (process.env.AGENT_MONGO_URI) delete readinessEnvironment.AGENT_CREDENTIAL_FILE
 const validationOperationId = 'valop_work12_durable_fixture'
 const validationPayload = createHash('sha256').update('stokd-agent/cloud-agents-mvp/fixed-validation-fixture/v1').digest()
 const validationPayloadSha256 = createHash('sha256').update(validationPayload).digest('hex')
@@ -24,10 +27,14 @@ const validationReadEnvironment = {
   AGENT_MAINTENANCE_CONFIG: '/run/stokd-agent/validation-read-config.json',
   AGENT_OUTPUT_PATH: '/run/stokd-agent/validation-read-output.json',
 }
+const managedUri = process.env.AGENT_MONGO_URI
 writeFileSync(validationReadEnvironment.AGENT_MAINTENANCE_CONFIG, JSON.stringify({
   schemaVersion: '1.0', command: 'validation-read', environment: process.env.AGENT_STAGE,
-  databaseName: process.env.AGENT_DATABASE_NAME, replicaSet: process.env.AGENT_REPLICA_SET,
-  mongoHost: process.env.AGENT_MONGO_HOST, operationId: validationOperationId,
+  databaseName: process.env.AGENT_DATABASE_NAME,
+  ...(managedUri
+    ? { mongoUri: managedUri }
+    : { replicaSet: process.env.AGENT_REPLICA_SET, mongoHost: process.env.AGENT_MONGO_HOST }),
+  operationId: validationOperationId,
   expectedPayloadSha256: validationPayloadSha256,
 }), { mode: 0o400 })
 let readiness

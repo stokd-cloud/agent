@@ -634,10 +634,14 @@ export async function runMaintenanceCli(argv: readonly string[] = process.argv.s
   if (argv.length !== 1 || !['backup', 'restore-offline', 'restore-finalize', 'readiness', 'migrate', 'validation-seed', 'validation-read'].includes(argv[0]!)) fail('expected exactly one maintenance command')
   const command = argv[0] as CommandName
   const configPath = absolutePath(env.AGENT_MAINTENANCE_CONFIG, 'AGENT_MAINTENANCE_CONFIG')
-  const credentialPath = absolutePath(env.AGENT_CREDENTIAL_FILE, 'AGENT_CREDENTIAL_FILE')
   const outputPath = absolutePath(env.AGENT_OUTPUT_PATH, 'AGENT_OUTPUT_PATH')
   const config = readCanonicalJson(configPath, 'maintenance config')
-  const secrets = readCanonicalJson(credentialPath, 'credential file')
+  // A managed provider's URI already carries its credentials, so there is no
+  // separate credential file to read. Every other path still requires one.
+  const managed = typeof config.mongoUri === 'string' && config.mongoUri !== ''
+  const secrets = managed && env.AGENT_CREDENTIAL_FILE === undefined
+    ? {}
+    : readCanonicalJson(absolutePath(env.AGENT_CREDENTIAL_FILE, 'AGENT_CREDENTIAL_FILE'), 'credential file')
   if (config.schemaVersion !== '1.0' || config.command !== command) fail('maintenance config schemaVersion/command mismatch')
   let result: JsonObject
   if (command === 'backup') result = await backupCommand(config, secrets)
@@ -664,7 +668,11 @@ async function main(): Promise<void> {
     const storageError = error instanceof AgentStorageError ? error : null
     const code = storageError?.code ?? 'maintenance_failed'
     const exitCode = code === 'invalid_storage_config' ? 2 : code.startsWith('unsupported_') ? 7 : 1
-    process.stderr.write(`${JSON.stringify({ schemaVersion: '1.0', ok: false, error: { code, message: 'Agent storage maintenance command failed' } })}\n`)
+    // Carry the actual cause. These messages name configuration and topology,
+    // never credentials -- and without one, every failure here reads identically
+    // and costs a full build cycle to identify.
+    const detail = error instanceof Error ? error.message : String(error)
+    process.stderr.write(`${JSON.stringify({ schemaVersion: '1.0', ok: false, error: { code, message: detail } })}\n`)
     process.exitCode = exitCode
   }
 }
