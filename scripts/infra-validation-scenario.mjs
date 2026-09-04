@@ -130,12 +130,31 @@ async function waitForSsmRegistration(instanceId) {
   throw new Error(`SSM target ${instanceId} never registered as Online after ${Math.round((Date.now() - startedAt) / 1000)}s`)
 }
 
+// The SSM agent reports Online within seconds of launch, long before cloud-init
+// has finished pulling the host scripts down from S3. A command dispatched into
+// that window fails with exit 127 on a path that simply does not exist yet --
+// which looks exactly like a broken host rather than an unfinished one. This is
+// the only failure worth re-sending, and only until the host has had time to
+// finish booting.
+const HOST_NOT_PROVISIONED = /\/opt\/stokd-agent\/bin\/[a-z-]+: No such file or directory|exit status 127/
+
 async function sendCommand(documentName, instanceId, parameters = {}) {
+  await waitForSsmRegistration(instanceId)
+  const deadline = Date.now() + 1_500_000
+  for (;;) {
+    try { return await dispatchCommand(documentName, instanceId, parameters) }
+    catch (error) {
+      if (!(error instanceof Error) || !HOST_NOT_PROVISIONED.test(error.message) || Date.now() >= deadline) throw error
+      await new Promise(resolveWait => setTimeout(resolveWait, 15_000))
+    }
+  }
+}
+
+async function dispatchCommand(documentName, instanceId, parameters = {}) {
   if (!Object.values(documentNames).includes(documentName)) throw new Error('SSM document is not allowlisted')
   if (!/^i-[a-f0-9]{17}$/.test(instanceId)) throw new Error('SSM target instance is invalid')
   const args = ['ssm', 'send-command', '--document-name', documentName, '--instance-ids', instanceId, '--timeout-seconds', '7200', '--output', 'json']
   if (Object.keys(parameters).length) args.push('--parameters', JSON.stringify(Object.fromEntries(Object.entries(parameters).map(([key, value]) => [key, [value]]))))
-  await waitForSsmRegistration(instanceId)
   const sent = parseJson(aws(args), `SSM ${documentName} send`)
   const commandId = sent.Command?.CommandId
   if (!/^[a-f0-9-]{36}$/.test(commandId ?? '')) throw new Error('SSM omitted the exact command ID')
@@ -150,7 +169,12 @@ async function sendCommand(documentName, instanceId, parameters = {}) {
     }
     await new Promise(resolveWait => setTimeout(resolveWait, 5_000))
   }
-  if (invocation?.Status !== 'Success' || invocation.ResponseCode !== 0) throw new Error(`SSM ${documentName} failed closed with ${invocation?.Status ?? 'unknown status'}`)
+  if (invocation?.Status !== 'Success' || invocation.ResponseCode !== 0) {
+    // Carry the host's own stderr. Without it every host-side failure reads the
+    // same and has to be re-queried from AWS by hand to learn anything.
+    const detail = `${invocation?.StandardErrorContent ?? ''}`.trim().slice(0, 400)
+    throw new Error(`SSM ${documentName} failed closed with ${invocation?.Status ?? 'unknown status'}${detail ? `: ${detail}` : ''}`)
+  }
   return { commandId, output: invocation.StandardOutputContent ?? '' }
 }
 
