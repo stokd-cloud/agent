@@ -1006,7 +1006,9 @@ export async function inspectAgentControlPlane({ aws, manifest }) {
   assert.equal(rootVolume.Encrypted, true)
   assert.equal(rootVolume.KmsKeyId, kmsKeyArn)
   assert.equal(rootVolume.VolumeType, 'gp3')
-  assert.equal(rootVolume.Size, 16)
+  // The pinned AMI's root snapshot is 30 GiB, so the root volume cannot be
+  // smaller. This is the OS disk; MongoDB data lives on the retained volume.
+  assert.equal(rootVolume.Size, 30)
   assertTags(rootVolume.Tags, stage, 'Mongo root volume')
   const networkInterface = one(json(aws(['ec2', 'describe-network-interfaces', '--network-interface-ids', manifest.mongo.networkInterfaceId, '--output', 'json']), 'Mongo ENI').NetworkInterfaces, 'Mongo ENI')
   assert.equal(networkInterface.Status, 'in-use')
