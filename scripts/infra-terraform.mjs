@@ -52,12 +52,25 @@ export function backendConfig(stage, environment) {
 }
 
 /**
- * The data layer, reached through the one resource that depends on all of it.
- * The API service is deliberately absent.
+ * The data layer. The API service is deliberately absent.
+ *
+ * The manifest parameter and the volume attachment pull in the host and its
+ * storage, but security-group RULES are not in either closure -- a rule
+ * references its groups, nothing references the rule. On a stage that has
+ * already had a full apply that goes unnoticed, because the rules are already
+ * there. On a stage built from nothing it is fatal: the host boots with no
+ * egress, its SSM agent can never reach the endpoints, and every command
+ * against it fails closed. So the rules the host itself needs are targeted
+ * explicitly.
  */
 export const DATA_PHASE_TARGETS = Object.freeze([
   '-target=aws_ssm_parameter.infrastructure_manifest',
   '-target=aws_volume_attachment.data',
+  '-target=aws_vpc_security_group_ingress_rule.endpoints_from_mongo',
+  '-target=aws_vpc_security_group_egress_rule.mongo_to_endpoints',
+  '-target=aws_vpc_security_group_egress_rule.dns_udp',
+  '-target=aws_vpc_security_group_egress_rule.dns_tcp',
+  '-target=aws_vpc_security_group_egress_rule.s3_endpoint',
 ])
 
 export function phaseTargets(app) {

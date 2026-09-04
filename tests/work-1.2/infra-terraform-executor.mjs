@@ -58,6 +58,13 @@ test('the data phase excludes the API service so Mongo comes up first', () => {
   assert.deepEqual(phaseTargets('data'), DATA_PHASE_TARGETS)
   assert.ok(DATA_PHASE_TARGETS.some(t => t.includes('infrastructure_manifest')))
   assert.ok(!DATA_PHASE_TARGETS.some(t => t.includes('ecs_service')))
+  // A stage built from nothing boots its host inside this phase. Without the
+  // rules that give it egress to the private endpoints, its SSM agent never
+  // registers and every command against it fails closed -- invisible on a
+  // stage that has already had a full apply, fatal on a fresh one.
+  for (const rule of ['endpoints_from_mongo', 'mongo_to_endpoints', 'dns_udp', 'dns_tcp', 's3_endpoint']) {
+    assert.ok(DATA_PHASE_TARGETS.some(t => t.endsWith(`.${rule}`)), `data phase must create ${rule}`)
+  }
   assert.deepEqual(phaseTargets('api'), [], 'the api phase applies everything')
   assert.throws(() => phaseTargets('other'), /unknown component/)
 
