@@ -37,7 +37,7 @@ for _ in $(seq 1 180); do
 done
 [[ "$mongo_ready" == true ]] || { echo 'MongoDB did not become ready for guarded migration' >&2; exit 7; }
 exec 9>/run/stokd-agent/maintenance.lock
-flock -n 9 || { echo 'another Agent maintenance operation owns the host' >&2; exit 7; }
+flock -w 600 9 || { echo 'another Agent maintenance operation owns the host' >&2; exit 7; }
 agent_assert_no_active_restore || { echo 'migration refused while a restore is incomplete' >&2; exit 7; }
 
 api_owned=false

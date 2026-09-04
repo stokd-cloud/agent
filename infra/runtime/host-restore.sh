@@ -41,7 +41,7 @@ agent_pull_image "$AGENT_MAINTENANCE_IMAGE"
 instance_id="$(agent_verify_instance)"
 agent_mount_volume
 exec 9>/run/stokd-agent/maintenance.lock
-flock -n 9 || { echo 'another Agent maintenance operation owns the host' >&2; exit 7; }
+flock -w 600 9 || { echo 'another Agent maintenance operation owns the host' >&2; exit 7; }
 
 state_path="/var/lib/stokd-agent/receipts/restore-operation-$operation_id.json"
 operation_dir="/var/lib/stokd-agent/restore/$operation_id"

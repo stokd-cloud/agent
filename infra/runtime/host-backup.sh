@@ -11,7 +11,7 @@ instance_id="$(agent_verify_instance)"
 agent_mount_volume
 systemctl is-active --quiet stokd-agent-mongo.service || { echo 'Mongo service is not active' >&2; exit 7; }
 exec 9>/run/stokd-agent/maintenance.lock
-flock -n 9 || { echo 'another Agent maintenance operation owns the host' >&2; exit 7; }
+flock -w 600 9 || { echo 'another Agent maintenance operation owns the host' >&2; exit 7; }
 agent_assert_no_active_restore || { echo 'backup refused while a restore is incomplete' >&2; exit 7; }
 
 api_quiesced=false
