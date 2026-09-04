@@ -488,7 +488,16 @@ function inspectKms(aws, manifest) {
   const statements = policyStatements(policy, 'KMS key')
   const evidence = one(statements.filter(value => value.Sid === 'BoundedDeployEvidenceS3Use'), 'evidence KMS statement')
   assert.equal(evidence.Condition?.StringEquals?.['kms:ViaService'], `s3.${region}.amazonaws.com`)
-  assert.equal(evidence.Condition?.StringLike?.['kms:EncryptionContext:aws:s3:arn'], `arn:aws:s3:::${manifest.custody.artifactBucket}/validation/work-1.2/${stage}/*`)
+  // S3 Bucket Keys present the BUCKET arn as the encryption context rather than
+  // the object arn, so the policy must accept both forms. Object writes stay
+  // scoped to the evidence prefix by the deploy role's own S3 statement.
+  assert.deepEqual(
+    [evidence.Condition?.StringLike?.['kms:EncryptionContext:aws:s3:arn']].flat().sort(),
+    [
+      `arn:aws:s3:::${manifest.custody.artifactBucket}`,
+      `arn:aws:s3:::${manifest.custody.artifactBucket}/validation/work-1.2/${stage}/*`,
+    ].sort(),
+  )
   const general = one(statements.filter(value => value.Sid === 'BoundedDeployServiceUse'), 'general deploy KMS statement')
   assert.equal(values(general.Condition?.StringLike?.['kms:ViaService']).includes(`s3.${region}.amazonaws.com`), false)
   return {
