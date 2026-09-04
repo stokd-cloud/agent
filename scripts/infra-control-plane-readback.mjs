@@ -373,8 +373,9 @@ export function assertExactDeployCustodyDenials({ controlPolicy, runtimePolicy }
   return ['CannotMutateBootstrapCustody', 'CannotResetVolumeInitializationProof', 'PersistentDeletionIsImpossible']
 }
 
-export function assertExactSstHomePolicy(document, stateBucket) {
+export function assertExactSstHomePolicy(document, stateBucket, assetBucket) {
   assert.match(stateBucket ?? '', /^sst-state-[a-z0-9]{12}$/)
+  assert.match(assetBucket ?? '', /^sst-asset-[a-z0-9]{12}$/)
   const bucketArn = `arn:aws:s3:::${stateBucket}`
   const identities = SST_HOME_IDENTITIES
   const passphrases = SST_PASSPHRASE_IDENTITIES.map(({ app, stage }) => `arn:aws:ssm:${region}:${accountId}:parameter/sst/passphrase/${app}/${stage}`)
@@ -391,7 +392,9 @@ export function assertExactSstHomePolicy(document, stateBucket) {
     Statement: [
       { Sid: 'ExactSstBootstrapRecord', Effect: 'Allow', Action: 'ssm:GetParameter', Resource: `arn:aws:ssm:${region}:${accountId}:parameter/sst/bootstrap` },
       { Sid: 'ExactSstPassphrases', Effect: 'Allow', Action: ['ssm:GetParameter', 'ssm:ListTagsForResource'], Resource: passphrases },
-      { Sid: 'ExistingSstStateBucketMetadata', Effect: 'Allow', Action: ['s3:GetBucketPolicy', 's3:GetBucketPublicAccessBlock', 's3:GetBucketLocation', 's3:GetBucketOwnershipControls', 's3:GetBucketVersioning', 's3:GetEncryptionConfiguration', 's3:GetLifecycleConfiguration'], Resource: bucketArn },
+      // Both SST buckets are external inputs this readback inspects, so the
+      // metadata grant covers the asset bucket as well as the state bucket.
+      { Sid: 'ExistingSstStateBucketMetadata', Effect: 'Allow', Action: ['s3:GetBucketPolicy', 's3:GetBucketPublicAccessBlock', 's3:GetBucketLocation', 's3:GetBucketOwnershipControls', 's3:GetBucketVersioning', 's3:GetEncryptionConfiguration', 's3:GetLifecycleConfiguration'], Resource: [bucketArn, `arn:aws:s3:::${assetBucket}`] },
       { Sid: 'ExactSstStatePrefixes', Effect: 'Allow', Action: ['s3:ListBucket', 's3:ListBucketVersions'], Resource: bucketArn, Condition: { StringLike: { 's3:prefix': [
         'app/stokd-agent-data', 'app/stokd-agent-api', 'app/stokd-agent-data/*', 'app/stokd-agent-api/*', 'lock/stokd-agent-data/*', 'lock/stokd-agent-api/*',
         'update/stokd-agent-data/*', 'update/stokd-agent-api/*', 'snapshot/stokd-agent-data/*', 'snapshot/stokd-agent-api/*',
@@ -424,7 +427,7 @@ function inspectDeployRole(aws) {
   const sstPolicy = one(policies.attached.filter(value => value.arn.endsWith('/stokd-agent-validation-deploy-sst-home')), `${roleName} SST home policy`)
   const controlPolicy = one(policies.attached.filter(value => value.arn.endsWith('/stokd-agent-validation-deploy-control')), `${roleName} control policy`)
   const runtimePolicy = one(policies.attached.filter(value => value.arn.endsWith('/stokd-agent-validation-deploy-runtime')), `${roleName} runtime policy`)
-  assertExactSstHomePolicy(sstPolicy.document, sstBootstrap.state)
+  assertExactSstHomePolicy(sstPolicy.document, sstBootstrap.state, sstBootstrap.asset)
   const custodyDenials = assertExactDeployCustodyDenials({ controlPolicy: controlPolicy.document, runtimePolicy: runtimePolicy.document }, roleName)
   assertExactSendCommandScope([...policies.inline, ...policies.attached].map(value => value.document), roleName)
   const secretReadResources = effectiveSecretReadResources(policies)

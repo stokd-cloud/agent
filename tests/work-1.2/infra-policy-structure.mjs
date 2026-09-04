@@ -175,9 +175,11 @@ test('every managed policy remains within the IAM 6,144-character document limit
 test('SST home listing includes the exact app prefixes used by pinned ListStages', () => {
   const statements = bootstrapValue.Resources.AgentDeploySstHomePolicy.Properties.PolicyDocument.Statement
   const stateBucket = 'sst-state-000000000000'
+  const assetBucket = 'sst-asset-000000000000'
   assert.doesNotThrow(() => assertExactSstHomePolicy(
     JSON.parse(resolvePolicyDocument(bootstrapValue.Resources.AgentDeploySstHomePolicy.Properties.PolicyDocument)),
     stateBucket,
+    assetBucket,
   ))
   const boundaryDocument = JSON.parse(resolvePolicyDocument(bootstrapValue.Resources.AgentDeployPermissionsBoundary.Properties.PolicyDocument))
   // The statement now covers both SST buckets, so Resource is a list rather

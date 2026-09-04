@@ -1204,7 +1204,9 @@ Resources:
           - s3:GetBucketVersioning
           - s3:GetEncryptionConfiguration
           - s3:GetLifecycleConfiguration
-          Resource: !Sub arn:aws:s3:::${ExistingSstStateBucketName}
+          Resource:
+          - !Sub arn:aws:s3:::${ExistingSstStateBucketName}
+          - !Sub arn:aws:s3:::${ExistingSstAssetBucketName}
         - Sid: ExactSstStatePrefixes
           Effect: Allow
           Action:
