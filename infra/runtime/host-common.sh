@@ -234,7 +234,14 @@ agent_mount_volume() {
   fi
   [[ "$filesystem" == xfs ]] || { echo "unexpected retained volume filesystem ${filesystem}" >&2; return 7; }
   if [[ "$initialization_state" == pending-v1 ]]; then
-    agent_aws ec2 create-tags --region us-east-1 --resources "$AGENT_VOLUME_ID" --tags Key=InitializationState,Value=initialized-v1
+    # The mongo unit and a migration invocation bootstrap concurrently, so both
+    # can read pending-v1 and both enter this branch. The tag write is permitted
+    # only FROM pending-v1 -- by design, so the proof can never be reset -- which
+    # means the loser of that race is denied. Re-read rather than trust the exit
+    # status: the proof being finalized is the outcome that matters, whoever
+    # wrote it. A genuine reset attempt still fails, because the state would
+    # still not read initialized-v1.
+    agent_aws ec2 create-tags --region us-east-1 --resources "$AGENT_VOLUME_ID" --tags Key=InitializationState,Value=initialized-v1 || true
     initialization_state="$(agent_aws ec2 describe-volumes --region us-east-1 --volume-ids "$AGENT_VOLUME_ID" --query "Volumes[0].Tags[?Key=='InitializationState']|[0].Value" --output text)"
     [[ "$initialization_state" == initialized-v1 ]] || { echo 'fresh volume initialization proof did not finalize' >&2; return 7; }
   fi
