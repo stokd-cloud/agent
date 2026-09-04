@@ -44,7 +44,8 @@ function policyStatement(policyLogicalId, sid) {
 
 function resolvePolicyDocument(policyDocument) {
   const resolved = JSON.parse(JSON.stringify(policyDocument)
-    .replaceAll('${ExistingSstStateBucketName}', 'sst-state-000000000000'))
+    .replaceAll('${ExistingSstStateBucketName}', 'sst-state-000000000000')
+    .replaceAll('${ExistingSstAssetBucketName}', 'sst-asset-000000000000'))
   const serialized = JSON.stringify(resolved)
   assert.doesNotMatch(serialized, /\$\{[^}]+\}/, 'resolved managed policy must not retain CloudFormation placeholders')
   return serialized
@@ -179,7 +180,9 @@ test('SST home listing includes the exact app prefixes used by pinned ListStages
     stateBucket,
   ))
   const boundaryDocument = JSON.parse(resolvePolicyDocument(bootstrapValue.Resources.AgentDeployPermissionsBoundary.Properties.PolicyDocument))
-  const boundaryMetadata = boundaryDocument.Statement.filter(value => value.Resource === `arn:aws:s3:::${stateBucket}` && [value.Action].flat().includes('s3:GetBucketPolicy'))
+  // The statement now covers both SST buckets, so Resource is a list rather
+  // than a scalar; match on membership.
+  const boundaryMetadata = boundaryDocument.Statement.filter(value => [value.Resource].flat().includes(`arn:aws:s3:::${stateBucket}`) && [value.Action].flat().includes('s3:GetBucketPolicy'))
   assert.equal(boundaryMetadata.length, 1, 'deploy boundary must have one exact SST state metadata statement')
   assert.deepEqual(boundaryMetadata[0].Action, [
     's3:GetBucketPolicy',
