@@ -104,7 +104,12 @@ async function httpJson(url, expectedStatus = 200) {
 // it does. The source stage never saw this because its instance was long
 // registered; the restore stage is built from nothing on every run.
 async function waitForSsmRegistration(instanceId) {
-  for (let attempt = 0; attempt < 120; attempt += 1) {
+  const startedAt = Date.now()
+  // Observed registration on a freshly replaced host: just over 12 minutes.
+  // Budget 25 so a slow boot does not fail a chain that is otherwise green;
+  // the loop returns the moment the agent reports Online, so a fast host pays
+  // nothing for the headroom.
+  for (let attempt = 0; attempt < 300; attempt += 1) {
     const result = spawnSync('aws', ['ssm', 'describe-instance-information', '--filters', `Key=InstanceIds,Values=${instanceId}`, '--region', region, '--output', 'json'], { cwd: root, env: process.env, encoding: 'utf8' })
     if (result.status === 0) {
       const listed = parseJson(result.stdout, 'SSM instance registration').InstanceInformationList ?? []
@@ -113,7 +118,7 @@ async function waitForSsmRegistration(instanceId) {
     }
     await new Promise(resolveWait => setTimeout(resolveWait, 5_000))
   }
-  throw new Error(`SSM target ${instanceId} never registered as Online`)
+  throw new Error(`SSM target ${instanceId} never registered as Online after ${Math.round((Date.now() - startedAt) / 1000)}s`)
 }
 
 async function sendCommand(documentName, instanceId, parameters = {}) {
