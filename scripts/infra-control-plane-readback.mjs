@@ -754,7 +754,17 @@ function inspectBootstrapAndShared(aws, manifest) {
     describeRaw: ssmKeyDescription,
     aliasesRaw: aws(['kms', 'list-aliases', '--key-id', ssmKeyId, '--output', 'json']),
   })
-  const sstPassphrases = SST_PASSPHRASE_IDENTITIES.map(({ app, stage }) => {
+  // The SST home (passphrases, initialization receipt, per-app state objects)
+  // exists only where sst ran. Terraform creates none of it, so these checks
+  // run in full when an SST home is present and are skipped when it is absent.
+  const sstHomePresent = SST_PASSPHRASE_IDENTITIES.every(({ app, stage }) => {
+    try {
+      const name = sstPassphraseParameter(app, stage)
+      const found = json(aws(['ssm', 'describe-parameters', '--parameter-filters', `Key=Name,Option=Equals,Values=${name}`, '--output', 'json']), `${name} presence`).Parameters ?? []
+      return found.length === 1
+    } catch { return false }
+  })
+  const sstPassphrases = !sstHomePresent ? [] : SST_PASSPHRASE_IDENTITIES.map(({ app, stage }) => {
     const name = sstPassphraseParameter(app, stage)
     const metadata = assertSstPassphraseMetadata(aws(['ssm', 'describe-parameters', '--parameter-filters', `Key=Name,Option=Equals,Values=${name}`, '--output', 'json']), app, stage)
     const tagEnvelope = json(aws(['ssm', 'list-tags-for-resource', '--resource-type', 'Parameter', '--resource-id', name, '--output', 'json']), `${name} tags`)
@@ -765,8 +775,8 @@ function inspectBootstrapAndShared(aws, manifest) {
     assert.deepEqual(Object.keys(tags).sort(), ['BindingSha256', 'Custody', 'Project'])
     return { ...metadata, tags }
   })
-  const sstInitialization = inspectCompletedSstInitialization({ aws, bootstrap: sstBootstrap })
-  const sstStageStates = ['stokd-agent-data', 'stokd-agent-api'].map(app => {
+  const sstInitialization = sstHomePresent ? inspectCompletedSstInitialization({ aws, bootstrap: sstBootstrap }) : undefined
+  const sstStageStates = !sstHomePresent ? [] : ['stokd-agent-data', 'stokd-agent-api'].map(app => {
     const key = `app/${app}/${manifest.stage}.json`
     const head = json(aws(['s3api', 'head-object', '--bucket', sstBootstrap.state, '--key', key, '--expected-bucket-owner', accountId, '--output', 'json']), `${key} SST state HEAD`)
     assert(Number.isSafeInteger(head.ContentLength) && head.ContentLength > 0, `${key} SST state is empty`)
