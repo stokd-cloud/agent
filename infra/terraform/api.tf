@@ -376,6 +376,22 @@ resource "aws_service_discovery_service" "api" {
   tags = local.stateless_tags
 }
 
+# The validated topology registers a scalable target pinned at exactly one task
+# with no scaling policies attached -- capacity is fixed, and the readback
+# proves it by finding the target and finding zero policies on it. Without the
+# target there is nothing to prove against.
+resource "aws_appautoscaling_target" "api" {
+  service_namespace  = "ecs"
+  scalable_dimension = "ecs:service:DesiredCount"
+  resource_id        = "service/${aws_ecs_cluster.api.name}/${local.api_service_name}"
+  min_capacity       = 1
+  max_capacity       = 1
+
+  tags = local.stateless_tags
+
+  depends_on = [aws_ecs_service.api]
+}
+
 resource "aws_ecs_service" "api" {
   name            = local.api_service_name
   cluster         = aws_ecs_cluster.api.id
