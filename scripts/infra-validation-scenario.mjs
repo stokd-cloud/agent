@@ -115,6 +115,15 @@ async function waitForSsmRegistration(instanceId) {
       const listed = parseJson(result.stdout, 'SSM instance registration').InstanceInformationList ?? []
       const found = listed.find(value => value.InstanceId === instanceId)
       if (found?.PingStatus === 'Online') return
+    } else {
+      // Only throttling is worth retrying. Anything else -- an authorization
+      // gap above all -- must surface here: a readback that silently retries a
+      // permanent failure reports "never registered" for a host that has been
+      // Online the whole time, which is a lie that costs a full CI cycle.
+      const failure = `${result.stderr ?? ''}\n${result.stdout ?? ''}`.trim()
+      if (!/Throttling|RequestLimitExceeded|ServiceUnavailable/.test(failure)) {
+        throw new Error(`SSM registration readback for ${instanceId} failed: ${failure.slice(0, 300)}`)
+      }
     }
     await new Promise(resolveWait => setTimeout(resolveWait, 5_000))
   }

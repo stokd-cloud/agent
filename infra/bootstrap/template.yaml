@@ -474,8 +474,14 @@ Resources:
           - servicediscovery:ListOperations
           - servicediscovery:ListServices
           - servicediscovery:ListTagsForResource
-          - ssm:DescribeParameters
-          - ssm:DescribeDocument
+          # Read-only metadata. Collapsing DescribeParameters/DescribeDocument
+          # into the boundary's own `ssm:Describe*` costs FEWER policy bytes
+          # than either the pair or an added DescribeInstanceInformation line --
+          # this policy sits within a few bytes of the 6144 quota. It also
+          # covers DescribeInstanceInformation, which the scenario needs: EC2
+          # reports `running` well before the SSM agent has registered, and
+          # SendCommand fails closed until it has.
+          - ssm:Describe*
           - ssm:GetDocument
           - ssm:ListTagsForResource
           Resource: '*'
