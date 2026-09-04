@@ -68,7 +68,9 @@ test('Terraform handoff has one executable owner and import identity per remote 
   assert.match(control, /transient-validation-state/)
   assert.match(control, /kind: 'aws_route53_zone', id: manifest\.hostedZoneId, owner: 'pre-existing-stokd-cloud-dns'/)
   assert.match(control, /retire-sst-state-without-cloud-deletes/)
-  assert.match(control, /new Set\(imports\.map[\s\S]*duplicate remote-object import/)
+  // The check now names the offending entries rather than comparing counts, so
+  // assert on the property it enforces: every import kind+id appears once.
+  assert.match(control, /duplicateKeys[\s\S]*duplicate remote-object imports/)
 })
 
 test('host lifecycle binds exact Mongo identity, waits for attachment, and refuses an unowned bridge', () => {
