@@ -354,6 +354,28 @@ resource "aws_ecs_task_definition" "api" {
   }])
 }
 
+# The API service registers itself in the same private namespace as MongoDB, so
+# the validated topology has one Cloud Map registry per ECS service.
+resource "aws_service_discovery_service" "api" {
+  name = local.api_service_name
+
+  dns_config {
+    namespace_id   = aws_service_discovery_private_dns_namespace.agent.id
+    routing_policy = "MULTIVALUE"
+
+    dns_records {
+      ttl  = 30
+      type = "A"
+    }
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
+  }
+
+  tags = local.stateless_tags
+}
+
 resource "aws_ecs_service" "api" {
   name            = local.api_service_name
   cluster         = aws_ecs_cluster.api.id
@@ -377,6 +399,10 @@ resource "aws_ecs_service" "api" {
     target_group_arn = aws_lb_target_group.api.arn
     container_name   = "api"
     container_port   = 8080
+  }
+
+  service_registries {
+    registry_arn = aws_service_discovery_service.api.arn
   }
 
   tags = local.stateless_tags
