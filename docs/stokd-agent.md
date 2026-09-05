@@ -46,7 +46,7 @@ rows are never deleted. Large individual excerpts may be clipped within the
 compaction prompt; their original contents remain available in history.
 
 Memory extraction runs after the answer is committed and accepts up to six
-facts explicitly attributed to the user. It and compaction use the same chat
+facts explicitly attributed to the user. It and compaction use the same agent
 fallback chain, owned by the engine. Failures appear as notices and do not
 erase the committed answer. There are no donor side questions, title calls,
 or other hidden inference paths.
