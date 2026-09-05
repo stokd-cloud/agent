@@ -1,2 +1,0 @@
-$ npm pack --dry-run --json --ignore-scripts | node scripts/verify-package.mjs
-package surface OK (1326 files, 25 entry targets)

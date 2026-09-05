@@ -1,5 +1,0 @@
-$ node scripts/verify-contract.mjs --target VAL-REPO-001
-mock substitution is forbidden for contract verification
-[ELIFECYCLE] Command failed with exit code 2.
-
-exit=2

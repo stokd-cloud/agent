@@ -1,8 +1,0 @@
-$ /Users/stoked/.nvm/versions/node/v24.15.0/bin/node /opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/tests/work-1.1/headless-protocol.mjs
-exit=0
-signal=<none>
-
-[stdout]
-{"ok":true,"headlessProcess":true,"tuiModules":0,"loadedProductModules":["packages/protocol/lib/index.js","packages/protocol/lib/artifacts.js","packages/protocol/lib/authority.js","packages/protocol/lib/commands.js","packages/protocol/lib/context.js","packages/protocol/lib/errors.js","packages/protocol/lib/events.js","packages/protocol/lib/ids.js","packages/protocol/lib/version.js","packages/protocol/lib/host.js","packages/protocol/lib/serialization.js","packages/protocol/lib/service.js","packages/protocol/lib/work.js","packages/protocol/lib/transports/https.js","packages/protocol/lib/transports/ipc.js","packages/protocol/lib/transports/sse.js","packages/runtime/lib/index.js","apps/api/lib/index.js"],"protocol":{"ok":true,"inProcessClients":2,"operations":["admitMessage","getWakeStatus","cancelWake","respondApproval","getArtifactReference"],"rawHttpCommands":5,"rawHttpErrors":[7,7,2],"sseEvents":1,"networkTrace":["http://127.0.0.1:62036"],"unsupportedMajor":"exit-7","unknownMinorInformational":"skipped-without-state-change","unknownStateChanging":"exit-7"}}
-
-[stderr]

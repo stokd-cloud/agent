@@ -1,8 +1,0 @@
-$ /Users/stoked/.nvm/versions/node/v24.15.0/bin/node /opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/tests/work-1.1/schema-wire-parity.mjs
-exit=0
-signal=<none>
-
-[stdout]
-{"ok":true,"typedSchemas":6,"errorSuccessRejected":true,"commandVariants":5,"commandNegativeCases":9,"eventNegativeCases":4,"unknownMinorInformational":"unchanged-state","schemaDecoderParity":true}
-
-[stderr]

@@ -1,5 +1,0 @@
-$ node scripts/verify-contract.mjs --target VAL-REPO-001
-contract target is implemented but unsealed: VAL-REPO-001; work checks cannot seal VAL evidence
-[ELIFECYCLE] Command failed with exit code 2.
-
-exit=2

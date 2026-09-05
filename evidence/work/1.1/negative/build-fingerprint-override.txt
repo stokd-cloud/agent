@@ -1,9 +1,0 @@
-$ node scripts/verify-structure.mjs --item 1.1
-Error: AGENT_BUILD_FINGERPRINT override is forbidden
-    at file:///opt/worktrees/stokd-cloud/agent/project-d7f02e6-cloud-agents-mvp/scripts/verify-structure.mjs:18:154
-    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
-    at async node:internal/modules/esm/loader:639:26
-    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
-[ELIFECYCLE] Command failed with exit code 2.
-
-exit=2

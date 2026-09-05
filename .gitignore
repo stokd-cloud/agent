@@ -1,24 +1,18 @@
-
 node_modules/
 package-lock.json
-**/lib/
-!/scripts/lib/
-!/scripts/lib/*.mjs
-**/*.tsbuildinfo
+/lib/
 *.log
 .DS_Store
+*.tsbuildinfo
 *.tgz
-**/dist-bundle/
-**/dist-standalone/
-**/.tmp/
-.local/
+/dist-bundle/
+/dist-standalone/
+/standalone/runtime.tar.gz
+/standalone/node_modules/
+/standalone/dist/
+.tmp/
+.dsh-prompt-debug.json
 HANDOVER.md
-**/.sst/**
-**/.pulumi/**
-
-# Terraform provider plugins and local state. The .terraform.lock.hcl IS
-# committed — it pins provider versions — but the downloaded binaries are not.
-**/.terraform/
-*.tfstate
-*.tfstate.*
-crash.log
+.local/
+.claude/
+.upstream/
