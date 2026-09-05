@@ -1,0 +1,29 @@
+[package]
+name = "stokd-agent-engine"
+version = "0.2.0"
+edition = "2024"
+license = "MIT"
+description = "Durable Rust domain runtime for the Stokd DSH TUI fork"
+
+[lib]
+name = "stokd_agent"
+path = "rust/lib.rs"
+
+[[bin]]
+name = "stokd-agent-engine"
+path = "rust/main.rs"
+
+[dependencies]
+anyhow = "1"
+async-trait = "0.1"
+fs2 = "0.4"
+libc = "0.2"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
+rusqlite = { version = "0.38", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+tempfile = "3"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "io-std", "io-util", "process", "sync", "time", "signal"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+uuid = { version = "1", features = ["v4"] }

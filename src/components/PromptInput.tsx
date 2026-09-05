@@ -287,8 +287,20 @@ export interface PromptController {
    *  Chat's working-turn Esc interrupt must yield in BOTH submodes. */
   vimActive(): boolean}
 
+/** The editor consumes only its action/projection seam, not a native session. */
+export type PromptChannel = Pick<Channel,
+  | 'expandEditor' | 'commandCompletions' | 'listFileCandidates' | 'submit'
+  | 'steer' | 'notify' | 'working' | 'pending' | 'removePending'
+  | 'interruptAndDeliver' | 'commandList' | 'stageImage' | 'cycleMode'
+  | 'sessionColor' | 'mode' | 'notifications' | 'sessionTitle'
+  | 'promptSessionLabel' | 'reasoningEffort' | 'effortLevels'
+>
+
 export interface PromptInputProps {
-  channel: Channel
+  channel: PromptChannel
+  /** False for domain-owned hosts: no history writes, native clipboard/image
+   * extraction, filesystem completion, external editor, or native shortcuts. */
+  localEffects?: boolean
   /** Whether the `?` help menu is open (state lives in the Chat screen). */
   helpOpen: boolean
   onToggleHelp(): void
@@ -356,6 +368,7 @@ export interface PromptInputProps {
  */
 export function PromptInput({
   channel,
+  localEffects = true,
   helpOpen,
   onToggleHelp,
   onRunCommand,
@@ -596,7 +609,7 @@ export function PromptInput({
   // appears.
   const [fileMatches, setFileMatches] = React.useState<readonly FileCandidate[]>([])
   const [fileSelected, setFileSelected] = React.useState(0)
-  const mention = mentionAtCaret(value, cursor)
+  const mention = localEffects ? mentionAtCaret(value, cursor) : undefined
   const atTrigger = mention !== undefined
   const fileRequestId = React.useRef(0)
   const selectedFile = fileMatches[fileSelected]
@@ -761,7 +774,7 @@ export function PromptInput({
     historyIndex.current = -1
     setInput('', 0)
     setSelectedCommand(0)
-    void appendHistory(trimmed)
+    if (localEffects) void appendHistory(trimmed)
     channel.submit(trimmed)
     if (notice) {
       channel.notify(notice, { timeoutMs: 2500 })
@@ -785,9 +798,9 @@ export function PromptInput({
     historyIndex.current = -1
     setInput('', 0)
     setSelectedCommand(0)
-    void appendHistory(trimmed)
+    if (localEffects) void appendHistory(trimmed)
     channel.steer(trimmed)
-    channel.notify(t('input-interrupted-next'), { timeoutMs: 2500 })
+    if (localEffects) channel.notify(t('input-interrupted-next'), { timeoutMs: 2500 })
   }
 
   /**
@@ -795,6 +808,10 @@ export function PromptInput({
    * waits for the running turn to end, then is processed in order.
    */
   const queueSend = (text: string) => {
+    if (!localEffects) {
+      channel.notify('Tab queuing is unsupported. Press Enter to steer the running response.')
+      return
+    }
     const trimmed = text.trim()
     if (!trimmed) return
     history.current.push(trimmed)
@@ -802,7 +819,7 @@ export function PromptInput({
     historyIndex.current = -1
     setInput('', 0)
     setSelectedCommand(0)
-    void appendHistory(trimmed)
+    if (localEffects) void appendHistory(trimmed)
     channel.submit(trimmed)
     channel.notify(t('input-queued-after-turn'), { timeoutMs: 2500 })
   }
@@ -847,7 +864,7 @@ export function PromptInput({
     setInput('', 0)
     setSelectedCommand(0)
     setFileSelected(0)
-    void appendHistory(trimmed)
+    if (localEffects) void appendHistory(trimmed)
     channel.notify(t('input-interrupt-immediate'), { timeoutMs: 2500 })
   }
 
@@ -865,7 +882,7 @@ export function PromptInput({
     if (parsed === undefined) return false
     const known = channel.commandList.some(command => command.name === parsed.name)
       || isHiddenCommandName(parsed.name)
-    if (!known) return false
+    if (!known && localEffects) return false
     const handled = onRunCommand(parsed.name, parsed.rawInput)
     if (handled) {
       history.current.push(text.trim())
@@ -873,7 +890,7 @@ export function PromptInput({
       historyIndex.current = -1
       setInput('', 0)
       setSelectedCommand(0)
-      void appendHistory(text.trim())
+      if (localEffects) void appendHistory(text.trim())
     }
     return handled
   }
@@ -912,6 +929,7 @@ export function PromptInput({
         return
       }
     }
+    if (!localEffects && tryRunCommand(value)) return
     if (channel.working && value.trim() !== '') {
       // CC's immediate-command semantics: /btw and /skills are exempt from
       // steering — neither command interrupts the running turn. Hidden
@@ -1129,6 +1147,10 @@ export function PromptInput({
     // read here — text, file paths when the file manager copied files, or
     // an exported temp-file path when the clipboard holds a raw image.
     if (actionMatches('paste', input, key)) {
+      if (!localEffects) {
+        channel.notify('Use terminal paste (Ctrl+Shift+V or the terminal Paste menu). Clipboard file extraction is unsupported.')
+        return
+      }
       if (clipboardBusyRef.current) return
       // Match insertAtCaret's overlay/selection dismissal up front: the
       // async continuation below only sets value/cursor, so a paste landing
@@ -1204,6 +1226,7 @@ export function PromptInput({
     // never kill the process, and the busy flag must always clear or the
     // editor key stays locked forever.
     if (actionMatches('editor', input, key)) {
+      if (!localEffects) { channel.notify('External editor commands are unsupported'); return }
       editorBusyRef.current = true
       void (async () => {
         try {
@@ -1916,6 +1939,7 @@ export function PromptInput({
         }
         return
       }
+      if (!localEffects) return
       escPendingRef.current = true
       channel.notify(
         value.length === 0 ? t('esc-again-rewind') : t('esc-again-clear'),

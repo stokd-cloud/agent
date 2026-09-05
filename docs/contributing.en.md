@@ -1,58 +1,45 @@
 # Contributing
 
-[Documentation index](README.md) · [简体中文](contributing.md)
+[Documentation index](README.md) · [Stokd runtime contract](stokd-agent.md)
 
-Thanks for considering contributing to dsh-TUI! This guide is the shared
-development contract for humans and coding agents working on `@deepseek-harness-tui/dsh-tui`.
+This guide is the shared development contract for the Stokd fork of
+`@deepseek-harness-tui/dsh-tui`. The Stokd runtime contract takes precedence
+for `apps/agent-cli`, `src/stokd`, and `bin/stokd-agent.js`. The upstream
+plugin and renderer contracts below remain applicable to donor code.
 
-## How To Contribute
+## How to contribute
 
-- **Report bugs** through the bug issue form: version, terminal environment,
-  and a minimal reproduction.
-- **Request features** in [Discussions Ideas](https://github.com/ccch1mneyyy/dsh-TUI/discussions/new?category=ideas).
-  Issues do not accept feature requests. Accepted proposals get a tracking issue,
-  and its assignee owns the implementation. **Do not start writing code before the
-  proposal is accepted** — OAuth, `/cost`, notifications, a plugin API and a remote
-  runtime were each written in full and then closed.
-  If a maintainer has not responded within 14 days, you may open a PR directly; it
-  gets the `unreviewed-proposal` label and is treated as unreviewed.
-- **Open a pull request** against `main`. Keep changes focused: one logical
-  change per PR, with a Chinese or bilingual title and a description that
-  covers motivation, what changed, and how it was verified.
-  **A pull request that changes code must link an issue**: add a `Closes #<issue>`
-  line to the description, or link it through the Development sidebar. The
-  `issue-link` CI group checks this and fails without a link. Docs-only changes
-  are exempt (same routing as the build and regression groups); for a maintainer
-  release, revert, or CI hotfix that genuinely has no issue to link, apply the
-  `no-issue-needed` label.
-- **Run the verification matrix** below before requesting a review; CI runs
-  the same commands.
-- New features should include or extend a focused regression script.
-
-### When the feature proposal flow takes effect
-
-It applies only to pull requests opened on or after 2026-08-24. Pull requests
-already open before that date follow the previous rules and need no Discussion
-or tracking issue.
-
-
+- Describe the concrete problem, resulting behavior and validation in English.
+- Keep changes focused and add meaningful regression coverage for new behavior.
+- For Stokd-governed work, obtain the required task sanction and follow its
+  prescribed disposition. The canonical lander owns protected-branch updates.
+- Upstream contributions follow the donor's proposal and issue-link workflow;
+  that workflow does not require asking again for a user-authorized fork change.
+- Run the applicable verification matrix before handoff.
 
 ## Scope
 
 This file applies to the entire repository. It is the shared development
 contract for humans and coding agents working on `@deepseek-harness-tui/dsh-tui`.
 
-`@deepseek-harness-tui/dsh-tui` is a single-package, ESM-only TypeScript project. It provides a
+The retained upstream `@deepseek-harness-tui/dsh-tui` plugin is ESM-only TypeScript. It provides a
 React terminal UI front door for DeepSeek Harness through Cordis. The package
 owns the TUI, its local command surface, and a ported Ink/Yoga renderer.
-DeepSeek Harness owns the agent, session, model, tool, skill, persistence,
-and policy domains that the TUI consumes.
+For the upstream plugin, DeepSeek Harness owns agent, session, model, tool,
+skill, persistence and policy domains. In the Stokd entry, the Rust engine
+owns those domain operations and the TypeScript host only routes and projects.
 
 Before making a broad change, read `package.json`, the relevant README section,
 and every source file being edited. Prefer the repository's existing service
 boundaries and helpers over introducing parallel abstractions.
 
 ## Repository Map
+
+- `apps/agent-cli/rust/`: Stokd domain, SQLite event store, bounded prompts,
+  inference fallback, retrieval, compaction, memory and command routing.
+- `src/stokd/`: transport and ordered conversation projection, plus the Stokd
+  Chat coordinator built with donor components.
+- `bin/stokd-agent.js`: routing/presentation launcher and named-shim target.
 
 - `src/index.ts`: public Cordis plugin entry point, configuration schema, and
   lazy handoff to the runtime plugin.
@@ -105,13 +92,14 @@ boundaries and helpers over introducing parallel abstractions.
 - `lib/`: ignored JavaScript, declarations, and declaration maps generated from
   `src/` and shipped to npm. `./invariant` uses the compiled
   `lib/types/dsh-adapter/invariant.js` entry as well.
-- `README.md` and `README_EN.md`: Chinese and English user documentation. Keep
-  behavior, configuration, shortcuts, and limitations synchronized between
-  them.
+- `README.md` and `README_EN.md`: synchronized English user documentation.
+  Upstream locale dictionaries remain compatibility assets; the Stokd host
+  always uses English.
 
 ## Runtime Shape
 
-The central runtime path is:
+The Stokd runtime path is documented in [stokd-agent.md](stokd-agent.md).
+The retained upstream plugin path is:
 
 ```text
 Cordis config
@@ -189,7 +177,8 @@ seam.
 
 ## Build And Generated Files
 
-The normal build and type-check gate is:
+Build both Stokd layers with `pnpm build:agent`; Rust requires its locked
+Cargo dependencies. The normal TypeScript build and type-check gate is:
 
 ```sh
 pnpm build
@@ -226,6 +215,22 @@ checkout. It locates a DSH checkout and rewires dependencies to that checkout.
 It is not the default build command for this standalone repository.
 
 ## Verification
+
+For Stokd changes, also run:
+
+```sh
+cargo fmt --manifest-path apps/agent-cli/Cargo.toml --check
+cargo test --manifest-path apps/agent-cli/Cargo.toml --locked
+cargo clippy --manifest-path apps/agent-cli/Cargo.toml --all-targets --locked -- -D warnings
+pnpm verify:stokd
+python3 scripts/verify-stokd-pty.py
+```
+
+Build both runtimes first. The Stokd checks use local fixtures and never touch
+existing agent data. On macOS use `TMPDIR=/tmp` for the donor socket probes,
+which exceed the Unix socket path limit under long system temp directories.
+The donor CI fixtures pin `DSH_TUI_LANG=zh`; the Stokd entry and its checks pin
+English independently. A locale fixture is not the product language.
 
 There is no root `test` or `lint` script. Do not claim that either ran. The
 TypeScript build is the universal static gate, followed by focused executable
@@ -353,6 +358,11 @@ the required credentials.
 
 ### Interaction And Commands
 
+- Stokd commands are declared and routed in `apps/agent-cli/rust/routing.rs`.
+  They map to a domain command or an explicit unsupported result. Its help and
+  `src/stokd/Chat.tsx` key hints must stay synchronized. The donor command rules
+  below apply to the retained upstream entry only.
+
 - Keyboard precedence is behavior, not incidental control flow. A focused
   questionnaire or modal consumes its keys before global handlers; mouse text
   selection consumes Escape before rewind/clear behavior; the prompt owns text
@@ -363,7 +373,7 @@ the required credentials.
 - Local slash commands are declared in `src/commands.ts` and dispatched in
   `Chat.tsx`; registry commands are merged at runtime. When adding a command,
   update declaration, dispatch, help/documentation, the i18n description
-  (`cmd-desc-<name>` in `src/i18n.ts`, zh only — en falls back to the
+  (`cmd-desc-<name>` in `src/i18n.ts`; English falls back to the
   declaration), and any related skill mapping together.
 - Skill commands stay out of LOCAL_COMMANDS: user-invocable skills discovered by
   DSH are merged from the registry as dispatch commands. Names must be parseable
@@ -419,7 +429,7 @@ the required credentials.
 | Session/channel behavior | `src/dsh-adapter/channel.ts`, affected UI projections, compiled output, focused channel/replay regression |
 | Renderer/layout behavior | `src/ink/` or Yoga source, compiled output, CI regressions, focused scroll/resize/PTY probe |
 | Skill discovery or presentation | DSH adapter, slash-command merge, `/skills`, and focused regressions; maintainer-only skills live in `.agents/skills/` and must stay out of npm |
-| User-facing documented behavior | Chinese and English READMEs, plus config comments/help text where applicable |
+| User-facing documented behavior | Both English READMEs, plus config comments/help text where applicable |
 | Package version or dependency | `package.json`, `pnpm-lock.yaml`, generated/published artifacts as applicable; do not churn the legacy npm lock incidentally |
 
 ## Git And Release Safety

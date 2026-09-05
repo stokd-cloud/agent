@@ -1,8 +1,13 @@
 {
   "name": "@stokd-cloud/agent-cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "bin": { "stokd-agent": "./src/cli.mjs" },
-  "dependencies": { "mongodb": "6.20.0" }
+  "bin": {
+    "stokd-agent": "./src/cli.mjs"
+  },
+  "dependencies": {
+    "mongodb": "6.20.0"
+  },
+  "description": "Rust durable agent engine with the forked DSH TUI"
 }
