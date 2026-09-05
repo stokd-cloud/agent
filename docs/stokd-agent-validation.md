@@ -29,7 +29,8 @@ first fact. Every generated prompt is checked against its byte limit. Crash
 recovery distinguishes provisional text from committed messages; cancellation
 is also exercised across independent engine instances.
 
-A live check used the machine's configured `models.workloads.chat` chain with
+Before the dedicated agent workload was introduced, a live check used
+the machine's configured `models.workloads.chat` chain with
 an isolated temporary agent. The primary attempt failed; fallback resolved to
 `codex/gpt-5.6-sol`, used a 686-byte prompt and returned exactly
 `Runtime connection verified.` The concrete model is evidence from that run,
@@ -49,3 +50,19 @@ of the Stokd entry's forced English interface.
 See [the runtime contract](stokd-agent.md) for storage, migration, transport and
 execution limits. The source is handed to Stokd's canonical lander through the
 sanctioned feature branch; no protected-branch hook is bypassed.
+
+## Dedicated agent workload follow-up
+
+The runtime now reads `models.workloads.agent` for answers, extraction and
+compaction. All 12 Rust tests, Clippy, the full TypeScript build, the process
+integration and both real PTY modes passed after this change. The new routing
+regression configures different `agent` and `chat` chains, proves only the
+agent chain is selected, and checks missing/empty agent policies inherit only
+`models.defaults`.
+
+The public model inspection returned `workload: agent` and resolved the
+operator's configured four-provider chain. The new global agent entry was
+initialized from the existing chat model order; chat remains independently
+configured. Stokd versions that filter unknown workload names also need the
+companion workload registration in `apps/cli` before their config inspector
+will display the entry. The Rust engine reads this entry directly.

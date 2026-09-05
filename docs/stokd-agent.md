@@ -75,15 +75,22 @@ models:
   mode: all
   defaults: [codex-sol, deepseek-pro]
   workloads:
-    chat: [claude-opus, default, grok-grok]
+    agent: [claude-opus, default, grok-grok]
 agent:
   promptBytes: 24000
   timeoutSeconds: 180
 ```
 
-`chat: {models: [...]}` is also accepted. The `default` sentinel expands in
-place, keeps order, and deduplicates IDs. An absent/empty chat chain uses
-`models.defaults`. An empty resolved chain fails explicitly on inference.
+Configure or inspect this workload with `stokd model workload agent`; pass an
+ordered list of selectors to set it, for example
+`stokd model workload agent claude-opus codex-sol default`.
+Use a Stokd version with the `agent` workload registered; older versions may
+filter it from their config inspector. The Rust engine reads the entry directly.
+
+`agent: {models: [...]}` is also accepted. The `default` sentinel expands in
+place, keeps order, and deduplicates IDs. An absent/empty agent chain uses
+`models.defaults`. The chat workload is independent and is never an implicit
+agent fallback. An empty resolved chain fails explicitly on inference.
 Family selectors resolve to concrete IDs from Stokd's
 `cache/provider-models/*.json`, respecting configured providers and
 `models.mode`. No model ID is compiled into the engine. Unresolved selectors
@@ -118,7 +125,7 @@ providers:
 models:
   mode: all
   workloads:
-    chat: [local-chat/your-installed-model-id]
+    agent: [local-chat/your-installed-model-id]
 ```
 
 Provider entries may carry `port`, `apiKeyEnv`, or `apiKey` (including

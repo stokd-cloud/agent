@@ -83,7 +83,7 @@ change TypeScript inputs.
   transcript source of truth. Preserve ordered cursors, sequence anchors and
   call IDs. Never promote a provisional response into a committed fact in UI.
 - `AX-AGENT-BOUNDED-CONFIGURED-INFERENCE`: every model call is bounded and uses
-  the configured `models.workloads.chat` fallback chain. Compaction advances
+  the configured `models.workloads.agent` fallback chain. Compaction advances
   its watermark without deleting transcript. No hidden donor model calls.
 - Domain mutations belong in Rust. CLI code only routes/presents. Projection
   belongs in `src/stokd/channel.ts`; interaction precedence belongs in Chat;

@@ -25,7 +25,7 @@ integrations-lead
 must be on `PATH`. Use `node bin/stokd-agent.js chat integrations-lead` directly
 otherwise. Add `--fullscreen` to use the alternate terminal screen.
 
-Configure `models.workloads.chat` in Stokd first. Existing family selectors
+Configure `models.workloads.agent` in Stokd first. Existing family selectors
 such as `claude-opus` and `codex-sol` resolve against Stokd's provider discovery
 cache. Refresh that cache with `stokd model list --refresh`. All inference,
 including memory extraction and compaction, uses the configured ordered chain.

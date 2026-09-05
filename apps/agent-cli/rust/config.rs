@@ -101,12 +101,19 @@ impl Config {
 
     pub fn from_document(doc: &Value, catalog: &[Value], root: PathBuf) -> Result<Self> {
         let defaults = string_chain(&doc["models"]["defaults"])?;
-        let mut chat = &doc["models"]["workloads"]["chat"];
-        if chat.is_object() {
-            chat = &chat["models"];
+        let mut workload = &doc["models"]["workloads"]["agent"];
+        if workload.is_object() {
+            workload = &workload["models"];
         }
-        let chat = string_chain(chat)?;
-        let chain = expand_chain(if chat.is_empty() { &defaults } else { &chat }, &defaults);
+        let workload = string_chain(workload)?;
+        let chain = expand_chain(
+            if workload.is_empty() {
+                &defaults
+            } else {
+                &workload
+            },
+            &defaults,
+        );
         let providers = providers(doc)?;
         let mode = if let Some(modes) = doc["models"]["mode"].as_array() {
             modes
@@ -222,7 +229,7 @@ impl Config {
     }
 
     pub fn public_routes(&self) -> Value {
-        json!({"workload":"chat","promptBytes":self.prompt_bytes,"routes":self.routes.iter().map(|r| json!({"selector":r.selector,"provider":r.provider,"model":r.model,"unavailable":r.unavailable})).collect::<Vec<_>>()})
+        json!({"workload":"agent","promptBytes":self.prompt_bytes,"routes":self.routes.iter().map(|r| json!({"selector":r.selector,"provider":r.provider,"model":r.model,"unavailable":r.unavailable})).collect::<Vec<_>>()})
     }
 }
 
@@ -252,7 +259,7 @@ fn string_chain(v: &Value) -> Result<Vec<String>> {
         .map(|x| {
             x.as_str()
                 .map(String::from)
-                .context("Chat model IDs must be strings")
+                .context("Agent model IDs must be strings")
         })
         .collect()
 }

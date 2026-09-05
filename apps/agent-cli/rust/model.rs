@@ -99,7 +99,7 @@ impl Model for RoutedModel {
         );
         ensure!(
             !self.config.routes.is_empty(),
-            "No chat models configured; set models.workloads.chat or models.defaults in Stokd config"
+            "No agent models configured; set models.workloads.agent or models.defaults in Stokd config"
         );
         let mut failures = vec![];
         for route in &self.config.routes {
@@ -120,7 +120,7 @@ impl Model for RoutedModel {
                 Err(error) => failures.push(format!("{}: {error}", route.selector)),
             }
         }
-        bail!("All chat models failed: {}", failures.join("; "))
+        bail!("All agent models failed: {}", failures.join("; "))
     }
 }
 
