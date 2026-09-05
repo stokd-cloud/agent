@@ -37,6 +37,7 @@
     "#dsh-ecosystem-spec/tui-channel": "./dsh-ecosystem-spec/protocols/tui-channel.js"
   },
   "bin": {
+    "stokd-agent": "./bin/stokd-agent.js",
     "dsh-tui": "./bin/dsh-tui.js",
     "dst": "./bin/dsh-tui.js"
   },
@@ -106,12 +107,20 @@
     "dsh-ecosystem-spec/registry",
     "dsh-ecosystem-spec/protocols",
     "dsh-ecosystem-spec/schemas",
-    "presets"
+    "presets",
+    "apps/agent-cli/Cargo.toml",
+    "apps/agent-cli/Cargo.lock",
+    "apps/agent-cli/rust",
+    "apps/agent-cli/src/export-poc.mjs",
+    "docs/stokd-agent.md"
   ],
   "engines": {
     "node": "^22.19 || >=24"
   },
   "scripts": {
+    "build:agent": "cargo build --manifest-path apps/agent-cli/Cargo.toml --locked && pnpm build",
+    "agent": "node bin/stokd-agent.js",
+    "verify:stokd": "node --import tsx/esm scripts/verify-stokd.tsx",
     "clean": "node scripts/clean-lib.mjs",
     "build:dsh-std": "pnpm --dir vendor/dsh-std install --frozen-lockfile --ignore-scripts && pnpm --dir vendor/dsh-std --filter @dsh-std/core --filter @dsh-std/manifest --filter @dsh-std/connection --filter @dsh-std/presentation --filter @dsh-std/command --filter @dsh-std/storage --filter @dsh-std/messages -r build",
     "build:dsh-auth": "pnpm --dir dsh-auth install --frozen-lockfile --ignore-scripts && pnpm --dir dsh-auth run build",
@@ -315,6 +324,7 @@
     "indent-string": "^5.0.0",
     "lodash-es": "^4.17.0",
     "marked": "^18.0.7",
+    "mongodb": "6.20.0",
     "react": "^19.2.0",
     "react-reconciler": "^0.33.0",
     "semver": "^7.0.0",
