@@ -48,7 +48,7 @@ sys.exit(result)
     config = directory / 'config.json'
     config.write_text(json.dumps({
         'providers': [{'name': 'fixture', 'command': 'python3', 'args': [str(fixture)], 'models': ['test-model']}],
-        'models': {'workloads': {'chat': ['test-model']}},
+        'models': {'workloads': {'agent': ['test-model']}},
         'agent': {'timeoutSeconds': 40},
     }))
     env = dict(os.environ, STOKD_AGENT_CONFIG=str(config), STOKD_AGENT_HOME=str(directory / 'data'),

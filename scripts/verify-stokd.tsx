@@ -42,7 +42,7 @@ const endpoint = `http://127.0.0.1:${(server.address() as AddressInfo).port}/v1`
 const config = path.join(dir, 'config.json')
 await fs.writeFile(config, JSON.stringify({
   providers: [{ name: 'fixture', endpoint, models: ['broken', 'working'] }],
-  models: { workloads: { chat: ['broken', 'default'] }, defaults: ['working'] },
+  models: { workloads: { agent: ['broken', 'default'], chat: ['fixture/must-not-run'] }, defaults: ['working'] },
   agent: { promptBytes: 6000, timeoutSeconds: 2, embedding: { endpoint, model: 'fixture-vectors' } },
 }))
 process.env.STOKD_AGENT_CONFIG = config
@@ -53,6 +53,7 @@ const transport = new EngineTransport(path.resolve('.'))
 let reopened: InstanceType<typeof EngineTransport> | undefined
 try {
   const created = await transport.request<{ agent: { name: string }; shim: string }>('agent.create', { name: 'navigator', identity: 'Help plan journeys', remit: 'Maps and travel' })
+  assert.equal((await transport.request<{ workload: string }>('model.list')).value!.workload, 'agent')
   assert.equal(created.value!.agent.name, 'navigator')
   assert.match(await fs.readFile(created.value!.shim, 'utf8'), /exec '.*' '.*' chat 'navigator' "\$@"/)
   await assert.rejects(transport.request('agent.create', { name: 'navigator' }), /shim already exists/)

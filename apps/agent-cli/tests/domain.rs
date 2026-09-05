@@ -141,7 +141,7 @@ fn workload_sentinel_aliases_and_strict_local_pool() {
         ),
         vec!["one", "two", "three"]
     );
-    let doc = json!({"providers":["claude","codex"],"models":{"defaults":["codex-sol"],"workloads":{"chat":{"models":["claude-opus","default"]}}}});
+    let doc = json!({"providers":["claude","codex"],"models":{"defaults":["codex-sol"],"workloads":{"agent":{"models":["claude-opus","default"]}}}});
     let catalog = vec![
         json!({"provider":"claude","id":"claude-opus-4-8"}),
         json!({"provider":"claude","id":"claude-opus-5"}),
@@ -165,7 +165,7 @@ fn workload_sentinel_aliases_and_strict_local_pool() {
             .iter()
             .all(|r| r.unavailable.is_some())
     );
-    let doc = json!({"providers":["lmStudio","codex"],"models":{"mode":"free","workloads":{"chat":["shared"]}}});
+    let doc = json!({"providers":["lmStudio","codex"],"models":{"mode":"free","workloads":{"agent":["shared"]}}});
     let catalog = vec![
         json!({"provider":"codex","id":"shared"}),
         json!({"provider":"lmstudio","id":"shared"}),
@@ -184,6 +184,40 @@ fn workload_sentinel_aliases_and_strict_local_pool() {
     );
 }
 use std::path::PathBuf;
+
+#[test]
+fn agent_workload_is_independent_of_chat_and_inherits_only_defaults() {
+    let mut doc = json!({
+        "providers":[{"name":"fixture","models":["agent-model","chat-model","default-model"]}],
+        "models":{
+            "defaults":["default-model"],
+            "workloads":{"agent":["agent-model","default"],"chat":["chat-model"]}
+        }
+    });
+    let config = Config::from_document(&doc, &[], PathBuf::new()).unwrap();
+    assert_eq!(config.public_routes()["workload"], "agent");
+    assert_eq!(
+        config
+            .routes
+            .iter()
+            .map(|r| r.model.as_str())
+            .collect::<Vec<_>>(),
+        vec!["agent-model", "default-model"]
+    );
+    for agent in [Value::Null, json!([]), json!({"models":[]})] {
+        doc["models"]["workloads"]["agent"] = agent;
+        let config = Config::from_document(&doc, &[], PathBuf::new()).unwrap();
+        assert_eq!(config.routes.len(), 1);
+        assert_eq!(config.routes[0].model, "default-model");
+    }
+    doc["models"]["defaults"] = json!([]);
+    assert!(
+        Config::from_document(&doc, &[], PathBuf::new())
+            .unwrap()
+            .routes
+            .is_empty()
+    );
+}
 
 #[tokio::test]
 async fn forty_turns_compact_without_deleting_transcript_and_recall_after_restart() {
