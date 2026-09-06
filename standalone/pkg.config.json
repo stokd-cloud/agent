@@ -1,8 +1,0 @@
-{
-  "assets": [
-    "runtime.tar.gz"
-  ],
-  "compress": "GZip",
-  "bytecode": false,
-  "public": true
-}
